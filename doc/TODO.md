@@ -11,6 +11,7 @@ The following is simply a place to quickly write down known issues as well as ne
 * You should probably be able to choose what kind of file type you want. If you want to use yaml, or toml, json or just text. Any of these will honestly work. Maybe not text since we have libraries to parse the text already.
 * Being able to copy specific columns or row from a table to be able to paste it somewhere tha is usable, like copy it in a python list or something like that.
 * Formatting special copy.
+* When inputing code, you should be able to select a line range from a file and show that instead of having to paste either the text or the image. This will be great to create a link with the code instead of just text. This can be tricky for jupyter notebooks. Jupyter notebooks have ids so we probably do this as well! 
 
 
 
