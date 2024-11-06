@@ -3,7 +3,6 @@
 import {useEffect, useState, useRef} from "react";
 import {Box, Typography} from "@mui/material";
 import ViewCompactIcon from "@mui/icons-material/ViewCompact";
-import EditIcon from '@mui/icons-material/Edit';
 import parse from "html-react-parser";
 import {styled} from "@mui/material/styles";
 import Tiptap from "@/app/components/TiptapEditor/Tiptap";

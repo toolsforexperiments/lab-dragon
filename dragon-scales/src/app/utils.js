@@ -112,7 +112,7 @@ export async function updateEntity(entityId, updates, username, isHTML = false, 
         const response = await fetch(
             `${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${entityId}?username=${encodeURIComponent(username)}&HTML=${isHTML}`,
             {
-                method: 'PUT', // Use PUT for full updates
+                method: 'PUT', 
                 headers: {
                     'Content-Type': 'application/json',
                 },

@@ -1,18 +1,17 @@
 "use client"
 
-import {useEffect, useRef, useState, useContext} from "react";
-import {Box, Button, Divider, Paper, Stack, Typography, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton} from "@mui/material";
-import {styled} from "@mui/material/styles";
+import { useEffect, useRef, useState, useContext } from "react";
+import { Box, Button, Divider, Paper, Stack, Typography, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, IconButton, Input } from "@mui/material";
+import { styled } from "@mui/material/styles";
 import parse from "html-react-parser";
 import ViewCompactIcon from "@mui/icons-material/ViewCompact";
 import DeleteIcon from '@mui/icons-material/Delete';
-
+import EditIcon from '@mui/icons-material/Edit'
 import ActiveStepContentBlock from "@/app/components/StepViewerComponents/ActiveStepContentBlock";
 import Tiptap from "@/app/components/TiptapEditor/Tiptap";
-import {ExplorerContext} from "@/app/contexts/explorerContext";
+import { ExplorerContext } from "@/app/contexts/explorerContext";
 
-
-import {getEntity, submitContentBlockEdition, submitNewContentBlock, deleteEntity} from "@/app/utils";
+import { getEntity, submitContentBlockEdition, submitNewContentBlock, deleteEntity, updateEntity } from "@/app/utils";
 
 const StyledStepPaper = styled(Paper)(({ theme }) => ({
     position: 'relative',
@@ -29,6 +28,13 @@ const StyledStepPaper = styled(Paper)(({ theme }) => ({
         cursor: 'pointer',
     },
 }))
+
+const StyledEditButton = styled(IconButton)(({ theme }) => ({
+    position: 'absolute',
+    top: theme.spacing(1),
+    right: theme.spacing(6),
+    color: theme.palette.primary.main,
+}));
 
 const StyledDeleteButton = styled(IconButton)(({ theme }) => ({
     position: 'absolute',
@@ -47,7 +53,6 @@ const StyledStepPaperActive = styled(Paper)(({ theme }) => ({
     paddingLeft: theme.spacing(2),
     paddingTop: theme.spacing(1),
     paddingBottom: theme.spacing(1),
-
 }))
 
 const StyledStepTittleTypography = styled(Typography)(({ theme }) => ({
@@ -63,13 +68,9 @@ const StyledNewContentBox = styled(Box)(({ theme }) => ({
     display: "flex",
     alignItems: "center",
     paddingTop: "10px"
-
 }))
 
-
-
-
-export default function StepViewer( { stepEntity, markStepState, reloadTask } ) {
+export default function StepViewer({ stepEntity, markStepState, reloadTask }) {
 
     const { entitySectionIdRef } = useContext(ExplorerContext);
 
@@ -78,13 +79,12 @@ export default function StepViewer( { stepEntity, markStepState, reloadTask } ) 
     const [parsedContentBlocksEnt, setParsedContentBlocksEnt] = useState([]);
     const [reloadEditor, setReloadEditor] = useState(0);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
-
-    // Holds as keys the ids of contentBlocks and as values their corresponding refs
+    const [editStepDialogOpen, setEditStepDialogOpen] = useState(false);
+    const [newStepName, setNewStepName] = useState(stepEntity.name);
     const contentBlocksRefs = useRef({});
     const activeContentBlockRef = useRef(null);
-    const newContentBlockRef = useRef(null);  // Used to keep track of the up-to-date content of tiptap
-    const stepViewerRef = useRef(null); // used to keep track of active state
+    const newContentBlockRef = useRef(null);
+    const stepViewerRef = useRef(null);
     const stepRef = useRef(null);
 
     entitySectionIdRef.current[step.ID] = stepRef;
@@ -110,24 +110,21 @@ export default function StepViewer( { stepEntity, markStepState, reloadTask } ) 
         const newContent = contentBlocksRefs.current[activeContentBlockRef.current]
 
         if (newContent && contBlock) {
-            // FIXME: Change the user here to use the context of the selected user
-            // FIXME: there is probably a more efficient way of finding the contentBlock but oh well
             const success = submitContentBlockEdition(
                 step.ID,
                 "marcos",
                 contBlock,
                 newContent,
             ).then(response => {
-                    if (success) {
-                        activeContentBlockRef.current = null;
-                        getEntity(step.ID).then(entity => {
-                            setStep(JSON.parse(entity));
-                        })
-                    } else {
-                        console.log("Error: content block edition failed")
-                    }
+                if (success) {
+                    activeContentBlockRef.current = null;
+                    getEntity(step.ID).then(entity => {
+                        setStep(JSON.parse(entity));
+                    })
+                } else {
+                    console.log("Error: content block edition failed")
                 }
-            )
+            });
         }
     }
 
@@ -139,13 +136,13 @@ export default function StepViewer( { stepEntity, markStepState, reloadTask } ) 
                 if (success) {
                     getEntity(step.ID).then(entity => {
                         newContentBlockRef.current = null;
-                        setReloadEditor(prev => prev+1);
+                        setReloadEditor(prev => prev + 1);
                         setStep(JSON.parse(entity));
                     })
                 } else {
                     console.log("Error: new content block submission failed")
                 }
-            })
+            });
         }
     }
 
@@ -169,6 +166,34 @@ export default function StepViewer( { stepEntity, markStepState, reloadTask } ) 
             console.error("Error deleting step:", error);
         }
     };
+
+    const handleOpenEditStepDialog = () => {
+        setEditStepDialogOpen(true);
+    };
+
+    const handleCloseEditStepDialog = () => {
+        setEditStepDialogOpen(false);
+    };
+
+    const handleUpdateStepName = async () => {
+        try {
+          console.log("Updating step name to:", newStepName); // For debugging
+          // Use PUT method and send the name as a string directly
+          const success = await updateEntity(stepEntity.ID, JSON.stringify(newStepName), "Smuag", false, true); // Setting sendAsString to true
+          if (success) {
+            console.log("Successfully updated step name to:", newStepName);
+            setStep((prevStep) => ({ ...prevStep, name: newStepName }));
+            handleCloseEditStepDialog();
+            reloadTask(); // Make sure to reload the parent task to reflect changes
+          }
+        } catch (error) {
+          console.error("Error updating step name:", error);
+        }
+      };
+    
+    
+    
+
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (stepViewerRef.current && !stepViewerRef.current.contains(event.target)) {
@@ -184,34 +209,35 @@ export default function StepViewer( { stepEntity, markStepState, reloadTask } ) 
         }
     }, [isActive]);
 
-
     useEffect(() => {
-        // FIXME: Replace the word comments with contentBlocks once the backend is updated
         const parsedContentBlocksEnt = step.comments.map(comment => JSON.parse(comment));
-        setParsedContentBlocksEnt(parsedContentBlocksEnt)
+        setParsedContentBlocksEnt(parsedContentBlocksEnt);
         contentBlocksRefs.current = parsedContentBlocksEnt.reduce((acc, contentBlock) => {
             acc[contentBlock.ID] = contentBlock.content[contentBlock.content.length - 1];
             return acc;
         }, {});
-    }, [step])
+    }, [step]);
 
-    if (isActive) {
-        return (
-            <Box ref={stepRef} flexGrow={1}>
+    return (
+        <Box ref={stepRef} flexGrow={1}>
+            {isActive ? (
                 <Box ref={stepViewerRef} flexGrow={1} display="flex" alignItems="center">
                     <StyledStepPaperActive>
+                        <StyledEditButton onClick={handleOpenEditStepDialog} aria-label="edit step">
+                            <EditIcon />
+                        </StyledEditButton>
                         <StyledDeleteButton onClick={handleOpenDeleteDialog} aria-label="delete step">
                             <DeleteIcon />
                         </StyledDeleteButton>
                         <StyledStepTittleTypography paddingLeft={5}>{step.name}</StyledStepTittleTypography>
                         {parsedContentBlocksEnt.map(contentBlock => (
                             <ActiveStepContentBlock key={contentBlock.ID}
-                                                    contentBlock={contentBlock}
-                                                    entID={step.ID}
-                                                    activeContentBlockRef={activeContentBlockRef}
-                                                    updateContent={updateContentBlocksRefs} />
+                                contentBlock={contentBlock}
+                                entID={step.ID}
+                                activeContentBlockRef={activeContentBlockRef}
+                                updateContent={updateContentBlocksRefs} />
                         ))}
-                        <Divider sx={{paddingTop: "5px",}} />
+                        <Divider sx={{ paddingTop: "5px", }} />
                         <form noValidate autoComplete="off" onSubmit={handleSubmitNewContent}>
                             <StyledNewContentBox>
                                 <Box marginRight={2}>
@@ -219,52 +245,28 @@ export default function StepViewer( { stepEntity, markStepState, reloadTask } ) 
                                 </Box>
 
                                 <Tiptap onContentChange={handleNewContentChange}
-                                        entID={step.ID}
-                                        initialContent={newContentBlockRef.current}
-                                        reloadEditor={reloadEditor}
-                                        placeholder="Write a new content block here..."
-                                        newLineEditor={true} />
+                                    entID={step.ID}
+                                    initialContent={newContentBlockRef.current}
+                                    reloadEditor={reloadEditor}
+                                    placeholder="Write a new content block here..."
+                                    newLineEditor={true} />
 
                                 <Button type="submit"
-                                        variant="contained"
-                                        size="small"
-                                        sx={{ marginLeft: 1,
-                                            marginRight: 1
-                                        }}
+                                    variant="contained"
+                                    size="small"
+                                    sx={{
+                                        marginLeft: 1,
+                                        marginRight: 1
+                                    }}
                                 >
                                     Submit
                                 </Button>
                             </StyledNewContentBox>
                         </form>
-
                     </StyledStepPaperActive>
                 </Box>
-                <Dialog
-                    open={deleteDialogOpen}
-                    onClose={handleCloseDeleteDialog}
-                    aria-labelledby="alert-dialog-title"
-                    aria-describedby="alert-dialog-description"
-                >
-                    <DialogTitle id="alert-dialog-title">{"Confirm Step Deletion"}</DialogTitle>
-                    <DialogContent>
-                        <DialogContentText id="alert-dialog-description">
-                            Are you sure you want to delete this step?
-                        </DialogContentText>
-                    </DialogContent>
-                    <DialogActions>
-                        <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
-                        <Button onClick={handleDeleteStep} color="error" autoFocus>
-                            Delete
-                        </Button>
-                    </DialogActions>
-                </Dialog>
-            </Box>
-        )
-    } else {
-        return (
-            <Box ref={stepRef} flexGrow={1}>
-                <StyledStepPaper
-                    onClick={() => activateStepViewer()}>
+            ) : (
+                <StyledStepPaper onClick={() => activateStepViewer()}>
                     <Box flexGrow={1} display="flex" alignItems="center">
                         <Box marginRight={2}>
                             <ViewCompactIcon />
@@ -281,7 +283,52 @@ export default function StepViewer( { stepEntity, markStepState, reloadTask } ) 
                         </Box>
                     </Box>
                 </StyledStepPaper>
-            </Box>
-        )
-    }
+            )}
+            <Dialog
+                open={deleteDialogOpen}
+                onClose={handleCloseDeleteDialog}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
+            >
+                <DialogTitle id="alert-dialog-title">{"Confirm Step Deletion"}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="alert-dialog-description">
+                        Are you sure you want to delete this step?
+                    </DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+                    <Button onClick={handleDeleteStep} color="error" autoFocus>
+                        Delete
+                    </Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog
+                open={editStepDialogOpen}
+                onClose={handleCloseEditStepDialog}
+                aria-labelledby="edit-step-dialog-title"
+                aria-describedby="edit-step-dialog-description"
+            >
+                <DialogTitle id="edit-step-dialog-title">Edit Step Name</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="edit-step-dialog-description">
+                        Enter the new name for the step:
+                    </DialogContentText>
+                    <Input
+                        autoFocus
+                        fullWidth
+                        variant="standard"
+                        value={newStepName}
+                        onChange={(e) => setNewStepName(e.target.value)}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseEditStepDialog}>Cancel</Button>
+                    <Button onClick={handleUpdateStepName} color="primary">
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        </Box>
+    );
 }
