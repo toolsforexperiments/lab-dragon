@@ -96,6 +96,46 @@ export async function createLibrary(name, user) {
     return response.status === 201;
 }
 
+// utils.js
+
+// utils.js
+
+// utils.js
+
+// Send as plain text
+// utils.js
+
+export async function updateEntity(entityId, updates, username, isHTML = false, sendAsString = false) {
+    try {
+        const bodyContent = sendAsString ? updates : JSON.stringify(updates);
+        
+        const response = await fetch(
+            `${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${entityId}?username=${encodeURIComponent(username)}&HTML=${isHTML}`,
+            {
+                method: 'PUT', // Use PUT for full updates
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: bodyContent,
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error(`Failed to update entity with status: ${response.status}`);
+        }
+
+        const result = response.headers.get('content-type')?.includes('application/json')
+            ? await response.json()
+            : await response.text();
+        return result;
+    } catch (error) {
+        console.error("Error updating entity:", error);
+        throw error;
+    }
+}
+
+
+
 
 
 

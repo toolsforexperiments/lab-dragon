@@ -1,23 +1,17 @@
-"use client"
+"use client";
 import { useState, useEffect, useRef, useContext } from "react";
 import { styled } from "@mui/material/styles";
-import { Typography, Paper, Stack, Breadcrumbs, Box, Divider, IconButton, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from "@mui/material";
+import { Typography, Paper, Stack, Breadcrumbs, Box, Divider, IconButton, Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, Input } from "@mui/material";
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import ViewCompactIcon from "@mui/icons-material/ViewCompact";
 import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
 import Tiptap from "@/app/components/TiptapEditor/Tiptap";
 import StepViewer from "../StepViewerComponents/StepViewer";
 import TaskContentViewer from "./TaskContentViewer";
-import {deleteEntity, getEntity, sortAndFilterChildren, submitNewContentBlock} from "@/app/utils";
+import { deleteEntity, getEntity, sortAndFilterChildren, submitNewContentBlock, updateEntity } from "@/app/utils";
 import NewEntityDialog from "@/app/components/dialogs/NewEntityDialog";
 import { ExplorerContext } from "@/app/contexts/explorerContext";
-
-const StyledDeleteButton = styled(IconButton)(({ theme }) => ({
-    position: 'absolute',
-    top: theme.spacing(2),
-    right: theme.spacing(2),
-    color: theme.palette.error.main,
-}));
 
 const StyledTaskPaper = styled(Paper)(({ theme }) => ({
     position: 'relative',
@@ -28,14 +22,18 @@ const StyledTaskPaper = styled(Paper)(({ theme }) => ({
     height: '96%',
     paddingTop: theme.spacing(1),
     paddingBottom: theme.spacing(2),
-}))
+}));
 
-const StyledTaskTittleTypography = styled(Typography)(({ theme }) => ({
-    position: 'relative',
+const StyledTaskTitleTypography = styled(Typography)(({ theme }) => ({
     fontWeight: 'bold',
     fontSize: theme.typography.h4.fontSize,
-    paddingLeft: theme.spacing(2),
-}))
+}));
+
+const StyledButtonStack = styled(Stack)(({ theme }) => ({
+    position: 'absolute',
+    top: theme.spacing(2),
+    right: theme.spacing(2),
+}));
 
 const StyledNewContentBox = styled(Box)(({ theme }) => ({
     display: "flex",
@@ -43,9 +41,18 @@ const StyledNewContentBox = styled(Box)(({ theme }) => ({
     paddingTop: "10px",
     width: "96%",
     paddingLeft: theme.spacing(2),
-    marginLeft: theme.spacing(2)
+    marginLeft: theme.spacing(2),
+}));
 
-}))
+const StyledDeleteButton = styled(IconButton)(({ theme }) => ({
+    position: 'relative',
+    color: theme.palette.error.main,
+}));
+
+const StyledEditButton = styled(IconButton)(({ theme }) => ({
+    position: 'relative',
+    color: theme.palette.primary.main,
+}));
 
 export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject }) {
 
@@ -58,58 +65,51 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
     const [reloadEditor, setReloadEditor] = useState(0);
     const [newEntityDialogOpen, setNewEntityDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [editTaskDialogOpen, setEditTaskDialogOpen] = useState(false);
+    const [newTaskName, setNewTaskName] = useState(taskEntity.name);
+
     const taskRef = useRef(null);
     const newContentBlockRef = useRef(null);
 
     entitySectionIdRef.current[task.ID] = taskRef;
 
-    const handleOpenNewEntityDialog = () => {
-        setNewEntityDialogOpen(true);
-    }
-
-    const handleCloseNewEntityDialog = () => {
-        setNewEntityDialogOpen(false);
-    }
+    const handleOpenNewEntityDialog = () => setNewEntityDialogOpen(true);
+    const handleCloseNewEntityDialog = () => setNewEntityDialogOpen(false);
+    const handleOpenDeleteDialog = () => setDeleteDialogOpen(true);
+    const handleCloseDeleteDialog = () => setDeleteDialogOpen(false);
+    const handleOpenEditTaskDialog = () => setEditTaskDialogOpen(true);
+    const handleCloseEditTaskDialog = () => setEditTaskDialogOpen(false);
 
     const handleNewContentBlockChange = (content) => {
         newContentBlockRef.current = content;
-    }
+    };
 
-    const handleSubmitNewContent = (e) => {
-        e.preventDefault()
+    const handleSubmitNewContent = async (e) => {
+        e.preventDefault();
         const newContent = newContentBlockRef.current;
         if (newContent) {
-            const success = submitNewContentBlock(task.ID, "marcos", newContent).then(() => {
-                if (success) {
-                    newContentBlockRef.current = null;
-                    setReloadEditor(reloadEditor + 1);
-                    reloadTask();
-                } else {
-                    console.error("Error submitting content block edition");
-                }
-            })
+            const success = await submitNewContentBlock(task.ID, "marcos", newContent);
+            if (success) {
+                newContentBlockRef.current = null;
+                setReloadEditor(reloadEditor + 1);
+                reloadTask();
+            } else {
+                console.error("Error submitting content block edition");
+            }
         }
-    }
+    };
 
     const updateStepActiveStatus = (stepId, isActive) => {
         setActiveSteps(prevState => ({
             ...prevState,
-            [stepId]: isActive
+            [stepId]: isActive,
         }));
     };
 
     const reloadTask = () => {
         getEntity(task.ID).then(t => {
             setTask(JSON.parse(t));
-        })
-    }
-
-    const handleOpenDeleteDialog = () => {
-        setDeleteDialogOpen(true);
-    };
-
-    const handleCloseDeleteDialog = () => {
-        setDeleteDialogOpen(false);
+        });
     };
 
     const handleDeleteTask = async () => {
@@ -124,62 +124,70 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
         }
     };
 
-    // Loads the children
+    const handleUpdateTaskName = async () => {
+        try {
+            console.log("Updating task name to:", newTaskName); // Debugging
+            const success = await updateEntity(task.ID, newTaskName, "Smuag", false);
+            if (success) {
+                // Confirm successful state update
+                console.log("Successfully updated task name to:", newTaskName);
+                setTask({ ...task, name: newTaskName }); // Update local task state
+                handleCloseEditTaskDialog();
+            }
+        } catch (error) {
+            console.error("Error updating task name:", error);
+        }
+    };
+    
+    
+
     useEffect(() => {
         Promise.all(task.children.map(child => getEntity(child))).then(steps => {
             const newSteps = steps.map(s => JSON.parse(s));
             setSteps(newSteps);
             newSteps.forEach(step => {
                 updateStepActiveStatus(step.ID, false);
-            })
-        })
-    }, [task])
+            });
+        });
+    }, [task]);
 
-    // Sorts the children with content blocks
     useEffect(() => {
-        // goes through task.comments parsing any strings
-        const parsedComments = task.comments.map(comment => typeof comment === 'string' ? JSON.parse(comment) : comment);
-        // using a new variables instead of state because I cannot guarantee that state updates in time
+        const parsedComments = task.comments.map(comment => (typeof comment === 'string' ? JSON.parse(comment) : comment));
         const parsedCommentsTask = { ...task, comments: parsedComments };
-
         if (parsedCommentsTask.comments && steps) {
             const sortedAndFiltered = sortAndFilterChildren(parsedCommentsTask, steps, false);
             setSortedStepsAndContent(sortedAndFiltered);
         }
-    }, [task, steps])
+    }, [task, steps]);
 
     return (
         <Box ref={taskRef} sx={{ display: 'flex', justifyContent: 'center' }}>
             <StyledTaskPaper>
-                <StyledDeleteButton onClick={handleOpenDeleteDialog} aria-label="delete task">
-                    <DeleteIcon />
-                </StyledDeleteButton>
-                <Stack flexGrow={1} spacing={2} direction='column'>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" paddingX={2}>
+                    <StyledTaskTitleTypography>{task.name}</StyledTaskTitleTypography>
+                    <StyledButtonStack direction="row" spacing={1}>
+                        <StyledEditButton onClick={handleOpenEditTaskDialog} aria-label="edit task">
+                            <EditIcon />
+                        </StyledEditButton>
+                        <StyledDeleteButton onClick={handleOpenDeleteDialog} aria-label="delete task">
+                            <DeleteIcon />
+                        </StyledDeleteButton>
+                    </StyledButtonStack>
+                </Stack>
+                <Stack flexGrow={1} spacing={2} direction="column">
                     <Breadcrumbs separator=">" color="#4C9DFC" paddingLeft={2} paddingTop={1}>
                         {breadcrumbsText.map(text => (
-                            <Typography key={text} color="#000000">
-                                {text}
-                            </Typography>
+                            <Typography key={text} color="#000000">{text}</Typography>
                         ))}
                     </Breadcrumbs>
-                    <StyledTaskTittleTypography>
-                        {task.name}
-                    </StyledTaskTittleTypography>
-                    <Stack flexGrow={1} spacing={2} direction='column' paddingLeft={2}>
+                    <Stack flexGrow={1} spacing={2} direction="column" paddingLeft={2}>
                         {sortedStepsAndContent.map(item => (
                             <Box key={item.ID} display="flex" alignItems="center" width="100%" flexGrow={1}>
                                 {item.type ? (
-                                    <StepViewer style={{ flexGrow: 1 }}
-                                                stepEntity={item}
-                                                markStepState={updateStepActiveStatus}
-                                                reloadTask={reloadTask}/>
+                                    <StepViewer style={{ flexGrow: 1 }} stepEntity={item} markStepState={updateStepActiveStatus} reloadTask={reloadTask} />
                                 ) : (
                                     <Box marginLeft={2} flexGrow={1}>
-                                        <TaskContentViewer
-                                            contentBlock={item}
-                                            entID={task.ID}
-                                            reloadTask={reloadTask}
-                                        />
+                                        <TaskContentViewer contentBlock={item} entID={task.ID} reloadTask={reloadTask} />
                                     </Box>
                                 )}
                             </Box>
@@ -190,49 +198,20 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
                             <Box marginRight={2}>
                                 <ViewCompactIcon />
                             </Box>
-                            <Tiptap onContentChange={handleNewContentBlockChange}
-                                    entID={task.ID}
-                                    initialContent={newContentBlockRef.current}
-                                    reloadEditor={reloadEditor}
-                                    placeholder={`Add content block to "${task.name}" here...`}
-                                    newLineEditor={true} />
-                            <Button type="submit"
-                                    variant="contained"
-                                    size="small"
-                                    sx={{
-                                        marginLeft: 1,
-                                        marginRight: 1
-                                    }}
-                            >
-                                Submit
-                            </Button>
+                            <Tiptap onContentChange={handleNewContentBlockChange} entID={task.ID} initialContent={newContentBlockRef.current} reloadEditor={reloadEditor} placeholder={`Add content block to "${task.name}" here...`} newLineEditor={true} />
+                            <Button type="submit" variant="contained" size="small" sx={{ marginLeft: 1, marginRight: 1 }}>Submit</Button>
                         </StyledNewContentBox>
                     </form>
                     <Box display="flex" flexDirection="column" alignItems="center">
-                        <Divider sx={{ width: "90%", margin: "auto", }} />
-                        <IconButton aria-label="add new entity"
-                                    sx={{ paddingTop: 1 }}
-                                    onClick={handleOpenNewEntityDialog}>
+                        <Divider sx={{ width: "90%", margin: "auto" }} />
+                        <IconButton aria-label="add new entity" sx={{ paddingTop: 1 }} onClick={handleOpenNewEntityDialog}>
                             <AddBoxOutlinedIcon titleAccess="Add new entity" />
                         </IconButton>
                     </Box>
                 </Stack>
             </StyledTaskPaper>
-            <NewEntityDialog
-                user="marcos"
-                type="Step"
-                parentName={task.name}
-                parentID={task.ID}
-                open={newEntityDialogOpen}
-                onClose={handleCloseNewEntityDialog}
-                reloadParent={reloadTask}
-            />
-            <Dialog
-                open={deleteDialogOpen}
-                onClose={handleCloseDeleteDialog}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
+            <NewEntityDialog user="marcos" type="Step" parentName={task.name} parentID={task.ID} open={newEntityDialogOpen} onClose={handleCloseNewEntityDialog} reloadParent={reloadTask} />
+            <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog} aria-labelledby="alert-dialog-title" aria-describedby="alert-dialog-description">
                 <DialogTitle id="alert-dialog-title">{"Confirm Task Deletion"}</DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">
@@ -241,11 +220,22 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
-                    <Button onClick={handleDeleteTask} color="error" autoFocus>
-                        Delete
-                    </Button>
+                    <Button onClick={handleDeleteTask} color="error" autoFocus>Delete</Button>
+                </DialogActions>
+            </Dialog>
+            <Dialog open={editTaskDialogOpen} onClose={handleCloseEditTaskDialog} aria-labelledby="edit-task-dialog-title" aria-describedby="edit-task-dialog-description">
+                <DialogTitle id="edit-task-dialog-title">Edit Task Name</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="edit-task-dialog-description">
+                        Enter the new name for the task:
+                    </DialogContentText>
+                    <Input autoFocus margin="dense" fullWidth variant="standard" value={newTaskName} onChange={(e) => setNewTaskName(e.target.value)} />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseEditTaskDialog}>Cancel</Button>
+                    <Button onClick={handleUpdateTaskName} color="primary" autoFocus>Save</Button>
                 </DialogActions>
             </Dialog>
         </Box>
-    )
+    );
 }
