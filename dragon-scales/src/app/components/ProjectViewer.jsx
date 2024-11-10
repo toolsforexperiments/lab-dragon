@@ -54,7 +54,9 @@ export default function ProjectViewer({ projectEntity, notebookName, reloadNoteb
     const [newEntityDialogOpen, setNewEntityDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [editProjectDialogOpen, setEditProjectDialogOpen] = useState(false);
-    const [newProjectName, setNewProjectName] = useState(project.name);
+    // const [newProjectName, setNewProjectName] = useState(project.name);
+    const [tempProjectName, setTempProjectName] = useState('');
+
 
     const projectRef = useRef(null);
     entitySectionIdRef.current[project.ID] = projectRef;
@@ -67,11 +69,16 @@ export default function ProjectViewer({ projectEntity, notebookName, reloadNoteb
         setNewEntityDialogOpen(false);
     }
 
-    const reloadProject = () => {
-        getEntity(project.ID).then(newProject => {
-            setProject(JSON.parse(newProject));
-        });
-    }
+    const reloadProject = async () => {
+        try {
+            const newProjectData = await getEntity(project.ID);
+            const parsedProject = JSON.parse(newProjectData);
+            setProject(parsedProject);
+        } catch (error) {
+            console.error("Error reloading project:", error);
+        }
+    };
+
 
     const handleOpenDeleteDialog = () => {
         setDeleteDialogOpen(true);
@@ -94,27 +101,61 @@ export default function ProjectViewer({ projectEntity, notebookName, reloadNoteb
     };
 
     const handleOpenEditProjectDialog = () => {
+        setTempProjectName(project.name);
         setEditProjectDialogOpen(true);
     };
 
     const handleCloseEditProjectDialog = () => {
         setEditProjectDialogOpen(false);
+        setTempProjectName('');
     };
+
 
     const handleUpdateProjectName = async () => {
         try {
-            console.log("Updating project name to:", newProjectName); // Debugging
-            const success = await updateEntity(project.ID, newProjectName, "Smuag", false);
+            console.log("Attempting to update project name to:", tempProjectName);
+            
+            const updates = {
+                new_name: tempProjectName
+            };
+            
+            console.log("Sending update request with data:", updates);
+            
+            const success = await updateEntity(
+                project.ID, 
+                updates, 
+                "Smuag",
+                false,
+                false
+            );
+    
+            console.log("Update response:", success);
+    
             if (success) {
-                // Confirm successful state update
-                console.log("Successfully updated project name to:", newProjectName);
-                setProject({ ...project, name: newProjectName });
+                // Update local state
+                setProject(prevProject => {
+                    console.log("Updating project state from:", prevProject.name, "to:", tempProjectName);
+                    return {
+                        ...prevProject,
+                        name: tempProjectName
+                    };
+                });
+                
+                await reloadProject();
                 handleCloseEditProjectDialog();
             }
         } catch (error) {
-            console.error("Error updating project name:", error);
+            console.error("Detailed error in handleUpdateProjectName:", {
+                message: error.message,
+                cause: error.cause,
+                stack: error.stack
+            });
+            
+            // More informative error message for users
+            alert(`Failed to update project name: ${error.message}`);
         }
     };
+
 
 
     useEffect(() => {
@@ -204,7 +245,6 @@ export default function ProjectViewer({ projectEntity, notebookName, reloadNoteb
                 open={editProjectDialogOpen}
                 onClose={handleCloseEditProjectDialog}
                 aria-labelledby="edit-project-dialog-title"
-                aria-describedby="edit-project-dialog-description"
             >
                 <DialogTitle id="edit-project-dialog-title">Edit Project Name</DialogTitle>
                 <DialogContent>
@@ -216,13 +256,22 @@ export default function ProjectViewer({ projectEntity, notebookName, reloadNoteb
                         margin="dense"
                         fullWidth
                         variant="standard"
-                        value={newProjectName}
-                        onChange={(e) => setNewProjectName(e.target.value)}
+                        value={tempProjectName}
+                        onChange={(e) => setTempProjectName(e.target.value)}
+                        // Add error handling for empty input
+                        error={tempProjectName.trim() === ''}
+                        helperText={tempProjectName.trim() === '' ? 'Project name cannot be empty' : ''}
                     />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseEditProjectDialog}>Cancel</Button>
-                    <Button onClick={handleUpdateProjectName} color="primary" autoFocus>
+                    <Button
+                        onClick={handleUpdateProjectName}
+                        color="primary"
+                        autoFocus
+                        // Disable if empty or unchanged
+                        disabled={!tempProjectName.trim() || tempProjectName === project.name}
+                    >
                         Save
                     </Button>
                 </DialogActions>

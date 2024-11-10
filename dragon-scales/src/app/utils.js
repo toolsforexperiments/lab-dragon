@@ -108,42 +108,45 @@ export async function createLibrary(name, user) {
 export async function updateEntity(entityId, updates, username, isHTML = false, sendAsString = false) {
     try {
         const bodyContent = sendAsString ? updates : JSON.stringify(updates);
+        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${entityId}?username=${encodeURIComponent(username)}&HTML=${isHTML}`;
         
-        const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${entityId}?username=${encodeURIComponent(username)}&HTML=${isHTML}`,
-            {
-                method: 'PUT', 
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: bodyContent,
-            }
-        );
+        console.log('Making PATCH request to:', url);
+        console.log('With body:', bodyContent);
+        
+        const response = await fetch(url, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: bodyContent,
+        });
+
+        console.log('Response status:', response.status);
+        console.log('Response headers:', Object.fromEntries(response.headers));
+
+        // Log the raw response
+        const responseText = await response.text();
+        console.log('Raw response:', responseText);
 
         if (!response.ok) {
-            throw new Error(`Failed to update entity with status: ${response.status}`);
+            throw new Error(`Failed to update entity with status: ${response.status}. Response: ${responseText}`);
         }
 
-        const result = response.headers.get('content-type')?.includes('application/json')
-            ? await response.json()
-            : await response.text();
+        // Try to parse as JSON if it's JSON content
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch {
+            result = responseText;
+        }
         return result;
+
     } catch (error) {
-        console.error("Error updating entity:", error);
+        console.error("Detailed error in updateEntity:", {
+            message: error.message,
+            stack: error.stack,
+            status: error.response?.status,
+        });
         throw error;
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

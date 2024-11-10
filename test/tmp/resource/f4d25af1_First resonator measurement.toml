@@ -1,0 +1,17 @@
+["First resonator measurement"]
+type = "Step"
+user = "Smuag"
+ID = "f4d25af1-52ec-426e-9643-c1ab97f06a1b"
+name = "First resonator measurement"
+previous_names = []
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/31d3eefb_Finding Resonator Frequency.toml"
+deleted = false
+description = ""
+comments = ["{\"ID\": \"99192605-bcf0-46b4-b238-1ccda9e22dbd\", \"user\": \"Smuag\", \"created\": \"2024-11-10T15:33:56.724751-06:00\", \"deleted\": false, \"content\": [\"Could not seem to find anything: \\n ![](/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/finding_resonator_1/resonator_response_raw.png)\"], \"dates\": [\"2024-11-10T15:33:56.724751-06:00\"], \"authors\": [\"Smuag\"], \"com_type\": [2]}"]
+children = []
+params = []
+data_buckets = []
+bookmarked = false
+start_time = "2024-11-10T15:33:56.724803-06:00"
+end_time = "2024-11-10T15:33:56.724814-06:00"
+process = ""

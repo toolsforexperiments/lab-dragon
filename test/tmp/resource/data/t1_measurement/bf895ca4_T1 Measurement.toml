@@ -1,0 +1,26 @@
+["T1 Measurement"]
+type = "Instance"
+user = "Smuag"
+ID = "bf895ca4-8371-43e9-885c-83e9e0c1378f"
+name = "T1 Measurement"
+previous_names = []
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/0dc391f7_Measurements.toml"
+deleted = false
+description = ""
+comments = []
+children = []
+params = []
+data_buckets = []
+bookmarked = false
+start_time = "2024-11-10T15:33:57.947617-06:00"
+end_time = "2024-11-10T15:33:57.947642-06:00"
+version = 0
+stored_params = []
+tags = ["star"]
+images = ["/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/t1_measurement/t1_fit.png", "/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/t1_measurement/t1_raw.png"]
+data = ["/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/t1_measurement/data.ddh5"]
+analysis = []
+
+["T1 Measurement".data_structure."data.ddh5"]
+"signal[time][a.u.]" = [300]
+"time[us]" = [300]

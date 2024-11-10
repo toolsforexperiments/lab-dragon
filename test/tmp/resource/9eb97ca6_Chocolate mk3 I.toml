@@ -1,0 +1,16 @@
+["Chocolate mk3 I"]
+type = "Library"
+user = "Smuag"
+ID = "9eb97ca6-477a-42e8-bbb2-ecbc695be5b8"
+name = "Chocolate mk3 I"
+previous_names = []
+parent = ""
+deleted = false
+description = ""
+comments = []
+children = ["/Users/smital/Desktop/lab-dragon/test/tmp/resource/ad33e1da_Chocolate mk3 I Tune-up.toml"]
+params = []
+data_buckets = ["/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/0dc391f7_Measurements.toml"]
+bookmarked = false
+start_time = "2024-11-10T15:33:55.229869-06:00"
+end_time = "2024-11-10T15:33:55.229880-06:00"
