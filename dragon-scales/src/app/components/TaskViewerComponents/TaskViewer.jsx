@@ -77,6 +77,7 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
     const handleCloseNewEntityDialog = () => setNewEntityDialogOpen(false);
     const handleOpenDeleteDialog = () => setDeleteDialogOpen(true);
     const handleCloseDeleteDialog = () => setDeleteDialogOpen(false);
+    
     const handleOpenEditTaskDialog = () => {
         setTempTaskName(task.name); // Initialize temp state with current name
         setEditTaskDialogOpen(true);
@@ -133,9 +134,8 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
 
     const handleUpdateTaskName = async () => {
         try {
-            // Create an update object that matches the expected API schema
-            const updateData = { new_name: tempTaskName };  // Ensuring the structure matches the API expectation
-    
+            const updateData = { new_name: tempTaskName };
+
             const success = await updateEntity(task.ID, updateData, "Smuag");
             if (success) {
                 setTask(prevTask => ({
@@ -143,11 +143,10 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
                     name: tempTaskName
                 }));
                 handleCloseEditTaskDialog();
-                reloadTask();  // Reload the task to reflect changes in the UI
+                reloadTask();
             }
         } catch (error) {
             console.error("Error updating task name:", error);
-            // Optionally inform the user of the failure
             alert("Failed to update task name. Please try again.");
         }
     };
@@ -242,13 +241,13 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
                     <DialogContentText id="edit-task-dialog-description">
                         Enter the new name for the task:
                     </DialogContentText>
-                    <Input 
-                        autoFocus 
-                        margin="dense" 
-                        fullWidth 
-                        variant="standard" 
-                        value={tempTaskName} 
-                        onChange={(e) => setTempTaskName(e.target.value)} 
+                    <Input
+                        autoFocus
+                        margin="dense"
+                        fullWidth
+                        variant="standard"
+                        value={tempTaskName}
+                        onChange={(e) => setTempTaskName(e.target.value)}
                     />
                 </DialogContent>
                 <DialogActions>

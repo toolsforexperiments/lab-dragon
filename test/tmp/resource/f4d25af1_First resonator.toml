@@ -1,9 +1,9 @@
-["First resonator measurement"]
+["First resonator"]
 type = "Step"
 user = "Smuag"
 ID = "f4d25af1-52ec-426e-9643-c1ab97f06a1b"
-name = "First resonator measurement"
-previous_names = []
+name = "First resonator"
+previous_names = ["First resonator measurement"]
 parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/31d3eefb_Finding Resonator .toml"
 deleted = false
 description = ""

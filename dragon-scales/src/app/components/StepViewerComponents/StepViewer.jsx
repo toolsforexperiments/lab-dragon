@@ -80,7 +80,7 @@ export default function StepViewer({ stepEntity, markStepState, reloadTask }) {
     const [reloadEditor, setReloadEditor] = useState(0);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [editStepDialogOpen, setEditStepDialogOpen] = useState(false);
-    const [newStepName, setNewStepName] = useState(stepEntity.name);
+    const [tempStepName, setTempStepName] = useState(step.name);
     const contentBlocksRefs = useRef({});
     const activeContentBlockRef = useRef(null);
     const newContentBlockRef = useRef(null);
@@ -168,6 +168,7 @@ export default function StepViewer({ stepEntity, markStepState, reloadTask }) {
     };
 
     const handleOpenEditStepDialog = () => {
+        setTempStepName(step.name); // Load current name into temp state
         setEditStepDialogOpen(true);
     };
 
@@ -176,23 +177,22 @@ export default function StepViewer({ stepEntity, markStepState, reloadTask }) {
     };
 
     const handleUpdateStepName = async () => {
-        try {
-          console.log("Updating step name to:", newStepName); // For debugging
-          // Use PUT method and send the name as a string directly
-          const success = await updateEntity(stepEntity.ID, JSON.stringify(newStepName), "Smuag", false, true); // Setting sendAsString to true
-          if (success) {
-            console.log("Successfully updated step name to:", newStepName);
-            setStep((prevStep) => ({ ...prevStep, name: newStepName }));
+        if (tempStepName !== step.name) {
+            try {
+                const updates = { new_name: tempStepName };
+                const success = await updateEntity(step.ID, updates, "Smuag");
+                if (success) {
+                    setStep(prev => ({ ...prev, name: tempStepName }));
+                    reloadTask(); // Reload to fetch updated data
+                }
+            } catch (error) {
+                console.error("Failed to update step name:", error);
+            }
             handleCloseEditStepDialog();
-            reloadTask(); // Make sure to reload the parent task to reflect changes
-          }
-        } catch (error) {
-          console.error("Error updating step name:", error);
         }
-      };
-    
-    
-    
+    };
+
+
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -217,6 +217,11 @@ export default function StepViewer({ stepEntity, markStepState, reloadTask }) {
             return acc;
         }, {});
     }, [step]);
+
+    useEffect(() => {
+        entitySectionIdRef.current[step.ID] = stepRef;
+    }, [step.ID, entitySectionIdRef]);
+
 
     return (
         <Box ref={stepRef} flexGrow={1}>
@@ -303,30 +308,15 @@ export default function StepViewer({ stepEntity, markStepState, reloadTask }) {
                     </Button>
                 </DialogActions>
             </Dialog>
-            <Dialog
-                open={editStepDialogOpen}
-                onClose={handleCloseEditStepDialog}
-                aria-labelledby="edit-step-dialog-title"
-                aria-describedby="edit-step-dialog-description"
-            >
-                <DialogTitle id="edit-step-dialog-title">Edit Step Name</DialogTitle>
+            <Dialog open={editStepDialogOpen} onClose={handleCloseEditStepDialog}>
+                <DialogTitle>Edit Step Name</DialogTitle>
                 <DialogContent>
-                    <DialogContentText id="edit-step-dialog-description">
-                        Enter the new name for the step:
-                    </DialogContentText>
-                    <Input
-                        autoFocus
-                        fullWidth
-                        variant="standard"
-                        value={newStepName}
-                        onChange={(e) => setNewStepName(e.target.value)}
-                    />
+                    <DialogContentText>Enter the new name for the step:</DialogContentText>
+                    <Input fullWidth value={tempStepName} onChange={(e) => setTempStepName(e.target.value)} />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseEditStepDialog}>Cancel</Button>
-                    <Button onClick={handleUpdateStepName} color="primary">
-                        Save
-                    </Button>
+                    <Button onClick={handleUpdateStepName} color="primary">Save</Button>
                 </DialogActions>
             </Dialog>
         </Box>
