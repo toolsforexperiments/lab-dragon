@@ -66,7 +66,7 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
     const [newEntityDialogOpen, setNewEntityDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [editTaskDialogOpen, setEditTaskDialogOpen] = useState(false);
-    const [newTaskName, setNewTaskName] = useState(taskEntity.name);
+    const [tempTaskName, setTempTaskName] = useState('');
 
     const taskRef = useRef(null);
     const newContentBlockRef = useRef(null);
@@ -77,8 +77,15 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
     const handleCloseNewEntityDialog = () => setNewEntityDialogOpen(false);
     const handleOpenDeleteDialog = () => setDeleteDialogOpen(true);
     const handleCloseDeleteDialog = () => setDeleteDialogOpen(false);
-    const handleOpenEditTaskDialog = () => setEditTaskDialogOpen(true);
-    const handleCloseEditTaskDialog = () => setEditTaskDialogOpen(false);
+    const handleOpenEditTaskDialog = () => {
+        setTempTaskName(task.name); // Initialize temp state with current name
+        setEditTaskDialogOpen(true);
+    };
+
+    const handleCloseEditTaskDialog = () => {
+        setTempTaskName(''); // Reset temp state
+        setEditTaskDialogOpen(false);
+    };
 
     const handleNewContentBlockChange = (content) => {
         newContentBlockRef.current = content;
@@ -126,20 +133,26 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
 
     const handleUpdateTaskName = async () => {
         try {
-            console.log("Updating task name to:", newTaskName); // Debugging
-            const success = await updateEntity(task.ID, newTaskName, "Smuag", false);
+            // Create an update object that matches the expected API schema
+            const updateData = { new_name: tempTaskName };  // Ensuring the structure matches the API expectation
+    
+            const success = await updateEntity(task.ID, updateData, "Smuag");
             if (success) {
-                // Confirm successful state update
-                console.log("Successfully updated task name to:", newTaskName);
-                setTask({ ...task, name: newTaskName }); // Update local task state
+                setTask(prevTask => ({
+                    ...prevTask,
+                    name: tempTaskName
+                }));
                 handleCloseEditTaskDialog();
+                reloadTask();  // Reload the task to reflect changes in the UI
             }
         } catch (error) {
             console.error("Error updating task name:", error);
+            // Optionally inform the user of the failure
+            alert("Failed to update task name. Please try again.");
         }
     };
-    
-    
+
+
 
     useEffect(() => {
         Promise.all(task.children.map(child => getEntity(child))).then(steps => {
@@ -229,7 +242,14 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
                     <DialogContentText id="edit-task-dialog-description">
                         Enter the new name for the task:
                     </DialogContentText>
-                    <Input autoFocus margin="dense" fullWidth variant="standard" value={newTaskName} onChange={(e) => setNewTaskName(e.target.value)} />
+                    <Input 
+                        autoFocus 
+                        margin="dense" 
+                        fullWidth 
+                        variant="standard" 
+                        value={tempTaskName} 
+                        onChange={(e) => setTempTaskName(e.target.value)} 
+                    />
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={handleCloseEditTaskDialog}>Cancel</Button>

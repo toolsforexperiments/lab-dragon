@@ -114,23 +114,23 @@ export default function ProjectViewer({ projectEntity, notebookName, reloadNoteb
     const handleUpdateProjectName = async () => {
         try {
             console.log("Attempting to update project name to:", tempProjectName);
-            
+
             const updates = {
                 new_name: tempProjectName
             };
-            
+
             console.log("Sending update request with data:", updates);
-            
+
             const success = await updateEntity(
-                project.ID, 
-                updates, 
+                project.ID,
+                updates,
                 "Smuag",
                 false,
                 false
             );
-    
+
             console.log("Update response:", success);
-    
+
             if (success) {
                 // Update local state
                 setProject(prevProject => {
@@ -140,7 +140,7 @@ export default function ProjectViewer({ projectEntity, notebookName, reloadNoteb
                         name: tempProjectName
                     };
                 });
-                
+
                 await reloadProject();
                 handleCloseEditProjectDialog();
             }
@@ -150,7 +150,7 @@ export default function ProjectViewer({ projectEntity, notebookName, reloadNoteb
                 cause: error.cause,
                 stack: error.stack
             });
-            
+
             // More informative error message for users
             alert(`Failed to update project name: ${error.message}`);
         }

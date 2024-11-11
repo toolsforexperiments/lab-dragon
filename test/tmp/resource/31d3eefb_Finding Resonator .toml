@@ -1,9 +1,9 @@
-["Finding Resonator Frequency"]
+["Finding Resonator "]
 type = "Task"
 user = "Smuag"
 ID = "31d3eefb-1114-403d-adb4-b79cc0e452c2"
-name = "Finding Resonator Frequency"
-previous_names = []
+name = "Finding Resonator "
+previous_names = ["Finding Resonator Frequency"]
 parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/063ccdd8_Chocolate mk3 I Tune.toml"
 deleted = false
 description = ""
