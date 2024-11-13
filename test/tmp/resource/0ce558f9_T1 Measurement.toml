@@ -1,0 +1,17 @@
+["T1 Measurement"]
+type = "Step"
+user = "Smuag"
+ID = "0ce558f9-ea10-4c71-a634-4ca9630836a1"
+name = "T1 Measurement"
+previous_names = []
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/5c82cac8_Doing coherence measurements now.toml"
+deleted = false
+description = ""
+comments = ["{\"ID\": \"c6abd64a-ea41-4fd8-926d-dc8ec3f2607c\", \"user\": \"Smuag\", \"created\": \"2024-11-13T08:29:43.313117-06:00\", \"deleted\": false, \"content\": [\"![](/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/t1_measurement/t1_fit.png) \\n31.2 us. Comparable to last time, and I can live with this\"], \"dates\": [\"2024-11-13T08:29:43.313117-06:00\"], \"authors\": [\"Smuag\"], \"com_type\": [2]}"]
+children = []
+params = []
+data_buckets = []
+bookmarked = false
+start_time = "2024-11-13T08:29:43.313163-06:00"
+end_time = "2024-11-13T08:29:43.313173-06:00"
+process = ""

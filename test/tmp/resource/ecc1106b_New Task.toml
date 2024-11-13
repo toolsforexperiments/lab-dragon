@@ -1,0 +1,16 @@
+["New Task"]
+type = "Task"
+user = "marcos"
+ID = "ecc1106b-3d09-4bd7-98cc-0f56c79cfada"
+name = "New Task"
+previous_names = []
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/140f6dca_Chocolate.toml"
+deleted = true
+description = ""
+comments = []
+children = []
+params = []
+data_buckets = []
+bookmarked = false
+start_time = "2024-11-13T09:48:55.655658-06:00"
+end_time = "2024-11-13T09:48:55.656273-06:00"

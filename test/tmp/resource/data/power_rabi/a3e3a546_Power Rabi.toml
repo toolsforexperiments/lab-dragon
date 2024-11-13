@@ -1,0 +1,26 @@
+["Power Rabi"]
+type = "Instance"
+user = "Smuag"
+ID = "a3e3a546-16ec-41ac-8a35-ac7005da5814"
+name = "Power Rabi"
+previous_names = []
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/bd0415d6_Measurements.toml"
+deleted = false
+description = ""
+comments = []
+children = []
+params = []
+data_buckets = []
+bookmarked = false
+start_time = "2024-11-13T08:29:43.039967-06:00"
+end_time = "2024-11-13T08:29:43.039999-06:00"
+version = 0
+stored_params = []
+tags = ["star"]
+images = ["/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/power_rabi/power_rabi_raw.png", "/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/power_rabi/power_rabi_fit.png"]
+data = ["/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/power_rabi/data.ddh5"]
+analysis = []
+
+["Power Rabi".data_structure."data.ddh5"]
+amp = [150]
+"probability[amp]" = [150]

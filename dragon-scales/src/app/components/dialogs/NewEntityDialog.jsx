@@ -41,7 +41,7 @@ export default function NewEntityDialog({ user, type, parentName, parentID,  ope
                 }
             }}
             >
-            <DialogTitle>Add New <em>{type}</em> to <b><em>{parentName}</em></b></DialogTitle>
+            <DialogTitle>Edit {type} name to <b><em>{parentName}</em></b></DialogTitle>
             <DialogContent>
                 <DialogContentText>Please enter name of new {type}</DialogContentText>
                 <TextField
@@ -59,42 +59,8 @@ export default function NewEntityDialog({ user, type, parentName, parentID,  ope
             </DialogContent>
             <DialogActions>
                 <Button onClick={onClose}>Cancel</Button>
-                <Button type="submit">Create</Button>
+                <Button type="submit">Save</Button>
             </DialogActions>
         </Dialog>
     )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

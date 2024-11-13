@@ -1,0 +1,16 @@
+["Doing coherence measurements now"]
+type = "Task"
+user = "Smuag"
+ID = "5c82cac8-8281-47fb-a9aa-6b2fe806719f"
+name = "Doing coherence measurements now"
+previous_names = []
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/140f6dca_Chocolate.toml"
+deleted = false
+description = ""
+comments = ["{\"ID\": \"6451a3ec-6351-4bd7-a595-27b0eae0b4be\", \"user\": \"Smuag\", \"created\": \"2024-11-13T08:29:44.073207-06:00\", \"deleted\": false, \"dates\": [\"2024-11-13T08:29:44.073207-06:00\"], \"authors\": [\"Smuag\"], \"com_type\": [2], \"content\": [\"So we went from 5 us to almost 30 us. The things I changed last time for this qubit was gave it copper clamps, put moly washers on as many of the screws for the clamps as I could, and moved the copper braid to the top clamp (because I was worried putting it on the bottom clamp would not allow for use to really tighten the screw on for the bottom clamp and cause it be loose)\"]}"]
+children = ["/Users/smital/Desktop/lab-dragon/test/tmp/resource/0ce558f9_T1 Measurement.toml", "/Users/smital/Desktop/lab-dragon/test/tmp/resource/6a498e2d_T2 Ramsey Measurement.toml", "/Users/smital/Desktop/lab-dragon/test/tmp/resource/7760338c_T2 Echo Measurement.toml", "/Users/smital/Desktop/lab-dragon/test/tmp/resource/6d0f1118_New step.toml"]
+params = []
+data_buckets = []
+bookmarked = false
+start_time = "2024-11-13T08:29:43.045299-06:00"
+end_time = "2024-11-13T08:29:43.045317-06:00"

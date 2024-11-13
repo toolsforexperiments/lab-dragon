@@ -1,0 +1,16 @@
+[Trial]
+type = "Project"
+user = "marcos"
+ID = "4a7b0586-3faf-46b9-baad-2a6fcf63d4cc"
+name = "Trial"
+previous_names = []
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/9650ed0a_Chocolate mk3 I Tune-up.toml"
+deleted = true
+description = ""
+comments = []
+children = []
+params = []
+data_buckets = []
+bookmarked = false
+start_time = "2024-11-13T09:45:54.122658-06:00"
+end_time = "2024-11-13T09:45:54.122865-06:00"

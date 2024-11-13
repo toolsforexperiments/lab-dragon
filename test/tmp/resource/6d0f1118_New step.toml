@@ -1,0 +1,17 @@
+["New step"]
+type = "Step"
+user = "marcos"
+ID = "6d0f1118-bd3b-47fb-a2b4-d406c83eaf1d"
+name = "New step"
+previous_names = []
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/5c82cac8_Doing coherence measurements now.toml"
+deleted = false
+description = ""
+comments = []
+children = []
+params = []
+data_buckets = []
+bookmarked = false
+start_time = "2024-11-13T09:48:49.270189-06:00"
+end_time = "2024-11-13T09:48:49.272497-06:00"
+process = ""

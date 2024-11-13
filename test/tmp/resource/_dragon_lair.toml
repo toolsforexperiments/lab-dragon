@@ -1,0 +1,13 @@
+# COMPUTER MANAGED FILE, PLEASE DO NOT EDIT MANUALLY 
+# This is the central management file for the Lab Dragon system
+
+[meta]
+ID = "f4d21c3e-c284-4bcd-bee5-faf1cfc4479f"
+creation_timestamp = "2024-11-13T08:29:40.561281-06:00"
+modified_timestamps = ["2024-11-13T08:29:40.562076-06:00", "2024-11-13T08:29:44.623725-06:00", "2024-11-13T08:29:45.799747-06:00"]
+
+["Chocolate mk3 I"]
+name = "Chocolate mk3 I"
+ID = "8c12d127-08d4-43a1-8484-5b4e98cdcd8d"
+deleted = false
+path = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/8c12d127_Chocolate mk3 I.toml"
