@@ -10,7 +10,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import ActiveStepContentBlock from "@/app/components/StepViewerComponents/ActiveStepContentBlock";
 import Tiptap from "@/app/components/TiptapEditor/Tiptap";
 import { ExplorerContext } from "@/app/contexts/explorerContext";
-
+import DeleteEntityDialog from "@/app/components/dialogs/DeleteEntityDialog";
 import { getEntity, submitContentBlockEdition, submitNewContentBlock, deleteEntity, updateEntity } from "@/app/utils";
 
 const StyledStepPaper = styled(Paper)(({ theme }) => ({

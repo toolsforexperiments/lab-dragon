@@ -1,0 +1,16 @@
+["Chocolate mk"]
+type = "Project"
+user = "Smuag"
+ID = "2e553fc3-ddb6-4384-96dc-73785df394d5"
+name = "Chocolate mk"
+previous_names = ["Chocolate mk3 I Tune-up", "Chocolate mk3"]
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/639b5952_Chocolate mk3 I Tune-up.toml"
+deleted = false
+description = ""
+comments = ["{\"ID\": \"864c2de5-ce82-41dd-8c17-8b3b97f3af41\", \"user\": \"Smuag\", \"created\": \"2024-11-15T00:48:48.822956-06:00\", \"deleted\": false, \"dates\": [\"2024-11-15T00:48:48.822956-06:00\"], \"authors\": [\"Smuag\"], \"com_type\": [2], \"content\": [\"Now let's check Van IV, the other qubit connected, to see if it is still good\"]}"]
+children = ["/Users/smital/Desktop/lab-dragon/test/tmp/resource/1504bf8c_Doing coherence measurements now.toml"]
+params = []
+data_buckets = []
+bookmarked = false
+start_time = "2024-11-15T00:48:46.029478-06:00"
+end_time = "2024-11-15T00:48:46.029489-06:00"

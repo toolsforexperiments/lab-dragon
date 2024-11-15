@@ -1,10 +1,10 @@
 ["T2 Echo Measurement"]
 type = "Instance"
 user = "Smuag"
-ID = "6aa45d53-f1e6-46e5-a7e5-4b4216e3a915"
+ID = "61b1f66e-3827-4855-b17f-4d0c898dd922"
 name = "T2 Echo Measurement"
 previous_names = []
-parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/bd0415d6_Measurements.toml"
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/b11fa98e_Measurements.toml"
 deleted = false
 description = ""
 comments = []
@@ -12,8 +12,8 @@ children = []
 params = []
 data_buckets = []
 bookmarked = false
-start_time = "2024-11-13T08:29:44.341131-06:00"
-end_time = "2024-11-13T08:29:44.341155-06:00"
+start_time = "2024-11-15T00:48:48.817500-06:00"
+end_time = "2024-11-15T00:48:48.817523-06:00"
 version = 0
 stored_params = []
 tags = ["star"]

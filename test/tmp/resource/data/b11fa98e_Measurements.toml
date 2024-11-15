@@ -1,0 +1,24 @@
+[Measurements]
+type = "Bucket"
+user = "Smuag"
+ID = "b11fa98e-84dd-475b-9e9f-daaeec97b05b"
+name = "Measurements"
+previous_names = []
+parent = ""
+deleted = false
+description = ""
+comments = []
+children = []
+params = []
+data_buckets = []
+bookmarked = false
+start_time = "2024-11-15T00:48:46.029193-06:00"
+end_time = "2024-11-15T00:48:46.029207-06:00"
+
+[Measurements.path_to_uuid]
+"/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/finding_resonator_1/f66b4940_Finding Resonator 1.toml" = "f66b4940-070a-490b-bee6-de58229d3724"
+"/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/finding_resonator_2/b548c94b_Finding Resonator .toml" = "b548c94b-8c64-482b-b885-3d28706159fe"
+"/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/power_rabi/d8860e07_Power Rabi.toml" = "d8860e07-fcab-40c8-9ff8-370232d81c2b"
+"/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/t1_measurement/3f89d62e_T1 Measurement.toml" = "3f89d62e-05ad-452e-bd63-0e44c9e34080"
+"/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/t2_ramsey_measurement/fc9ed51c_T2 Ramsey Measurement.toml" = "fc9ed51c-c7db-462c-8aed-57a3f3c68899"
+"/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/t2_echo_measurement/61b1f66e_T2 Echo Measurement.toml" = "61b1f66e-3827-4855-b17f-4d0c898dd922"

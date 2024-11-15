@@ -1,0 +1,17 @@
+["Second resonator measurement"]
+type = "Step"
+user = "Smuag"
+ID = "c634a6d1-f2e1-4419-b2ae-a91e4c168e7a"
+name = "Second resonator measurement"
+previous_names = []
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/00527c85_Finding Resonator Frequency.toml"
+deleted = false
+description = ""
+comments = ["{\"ID\": \"c9d94cbe-5923-4a15-aefb-9635323ae149\", \"user\": \"Smuag\", \"created\": \"2024-11-15T00:48:46.839552-06:00\", \"deleted\": false, \"content\": [\"Found it at 5.025GHz! \\n ![](/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/finding_resonator_2/resonator_response_fit.png)\"], \"dates\": [\"2024-11-15T00:48:46.839552-06:00\"], \"authors\": [\"Smuag\"], \"com_type\": [2]}"]
+children = []
+params = []
+data_buckets = []
+bookmarked = false
+start_time = "2024-11-15T00:48:46.839599-06:00"
+end_time = "2024-11-15T00:48:46.839609-06:00"
+process = ""

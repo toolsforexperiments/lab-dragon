@@ -186,15 +186,42 @@ export default function ProjectViewer({ projectEntity, notebookName, reloadNoteb
                 onClose={handleCloseDeleteDialog}
                 onDelete={handleDeleteProject}
             />
-            <EditEntityDialog
-                user="marcos"
-                type="Project"
-                entityName={project.name}
-                entityID={project.ID}
+            <Dialog
                 open={editProjectDialogOpen}
                 onClose={handleCloseEditProjectDialog}
-                reloadParent={reloadProject}
-            />
+                aria-labelledby="edit-project-dialog-title"
+            >
+                <DialogTitle id="edit-project-dialog-title">Edit Project Name</DialogTitle>
+                <DialogContent>
+                    <DialogContentText id="edit-project-dialog-description">
+                        Enter the new name for the project:
+                    </DialogContentText>
+                    <Input
+                        autoFocus
+                        margin="dense"
+                        fullWidth
+                        variant="standard"
+                        value={tempProjectName}
+                        onChange={(e) => setTempProjectName(e.target.value)}
+                        // Add error handling for empty input
+                        error={tempProjectName.trim() === ''}
+                        helperText={tempProjectName.trim() === '' ? 'Project name cannot be empty' : ''}
+                    />
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={handleCloseEditProjectDialog}>Cancel</Button>
+                    <Button
+                        onClick={handleUpdateProjectName}
+                        color="primary"
+                        autoFocus
+                        // Disable if empty or unchanged
+                        disabled={!tempProjectName.trim() || tempProjectName === project.name}
+                    >
+                        Save
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
         </Box>
     );
 }

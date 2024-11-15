@@ -1,0 +1,17 @@
+["T2 Ramsey"]
+type = "Step"
+user = "Smuag"
+ID = "a7eac91f-9fdd-4027-9ac1-e533dbec9668"
+name = "T2 Ramsey"
+previous_names = ["T2 Ramsey Measurement"]
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/1504bf8c_Doing coherence measurements now.toml"
+deleted = false
+description = ""
+comments = ["{\"ID\": \"645e10d4-702c-425e-88e5-9033934b431a\", \"user\": \"Smuag\", \"created\": \"2024-11-15T00:48:48.055093-06:00\", \"deleted\": false, \"dates\": [\"2024-11-15T00:48:48.055093-06:00\"], \"authors\": [\"Smuag\"], \"com_type\": [2], \"content\": [\"!Now for the real moment of truth. Last time it was like 6 us at best \\n[](/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/t2_ramsey_measurement/t2_fit.png) \\nHell yeah, 28.7 us. Now there is something else going on in this decay as we can see the data does not really an exponential decay, but we can still se the oscillations go on for much longer.\"]}"]
+children = []
+params = []
+data_buckets = []
+bookmarked = false
+start_time = "2024-11-15T00:48:48.055118-06:00"
+end_time = "2024-11-15T00:48:48.055127-06:00"
+process = ""

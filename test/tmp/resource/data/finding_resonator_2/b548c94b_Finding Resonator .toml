@@ -1,10 +1,10 @@
 ["Finding Resonator 2"]
 type = "Instance"
 user = "Smuag"
-ID = "8af1241b-3f42-4c49-8ec2-1d4f5bef6314"
+ID = "b548c94b-8c64-482b-b885-3d28706159fe"
 name = "Finding Resonator 2"
 previous_names = []
-parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/bd0415d6_Measurements.toml"
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/b11fa98e_Measurements.toml"
 deleted = false
 description = ""
 comments = []
@@ -12,8 +12,8 @@ children = []
 params = []
 data_buckets = []
 bookmarked = false
-start_time = "2024-11-13T08:29:42.274358-06:00"
-end_time = "2024-11-13T08:29:42.274382-06:00"
+start_time = "2024-11-15T00:48:46.833717-06:00"
+end_time = "2024-11-15T00:48:46.833741-06:00"
 version = 0
 stored_params = []
 tags = ["star"]

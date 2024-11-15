@@ -1,10 +1,10 @@
 ["T1 Measurement"]
 type = "Instance"
 user = "Smuag"
-ID = "11da0a3b-9ab4-4ead-865c-4d4bc778c815"
+ID = "3f89d62e-05ad-452e-bd63-0e44c9e34080"
 name = "T1 Measurement"
 previous_names = []
-parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/bd0415d6_Measurements.toml"
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/b11fa98e_Measurements.toml"
 deleted = false
 description = ""
 comments = []
@@ -12,8 +12,8 @@ children = []
 params = []
 data_buckets = []
 bookmarked = false
-start_time = "2024-11-13T08:29:43.307441-06:00"
-end_time = "2024-11-13T08:29:43.307472-06:00"
+start_time = "2024-11-15T00:48:47.807666-06:00"
+end_time = "2024-11-15T00:48:47.807688-06:00"
 version = 0
 stored_params = []
 tags = ["star"]

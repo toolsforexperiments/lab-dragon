@@ -1,10 +1,10 @@
 ["Power Rabi"]
 type = "Instance"
 user = "Smuag"
-ID = "a3e3a546-16ec-41ac-8a35-ac7005da5814"
+ID = "d8860e07-fcab-40c8-9ff8-370232d81c2b"
 name = "Power Rabi"
 previous_names = []
-parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/bd0415d6_Measurements.toml"
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/b11fa98e_Measurements.toml"
 deleted = false
 description = ""
 comments = []
@@ -12,8 +12,8 @@ children = []
 params = []
 data_buckets = []
 bookmarked = false
-start_time = "2024-11-13T08:29:43.039967-06:00"
-end_time = "2024-11-13T08:29:43.039999-06:00"
+start_time = "2024-11-15T00:48:47.586980-06:00"
+end_time = "2024-11-15T00:48:47.587005-06:00"
 version = 0
 stored_params = []
 tags = ["star"]

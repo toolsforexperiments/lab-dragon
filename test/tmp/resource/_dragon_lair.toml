@@ -2,12 +2,12 @@
 # This is the central management file for the Lab Dragon system
 
 [meta]
-ID = "f4d21c3e-c284-4bcd-bee5-faf1cfc4479f"
-creation_timestamp = "2024-11-13T08:29:40.561281-06:00"
-modified_timestamps = ["2024-11-13T08:29:40.562076-06:00", "2024-11-13T08:29:44.623725-06:00", "2024-11-13T08:29:45.799747-06:00"]
+ID = "93f835c6-c4f2-4d52-bd4c-cfeb8346549f"
+creation_timestamp = "2024-11-15T00:48:46.027288-06:00"
+modified_timestamps = ["2024-11-15T00:48:46.028061-06:00", "2024-11-15T00:48:49.099451-06:00", "2024-11-15T00:48:50.422462-06:00"]
 
 ["Chocolate mk3 I"]
 name = "Chocolate mk3 I"
-ID = "8c12d127-08d4-43a1-8484-5b4e98cdcd8d"
+ID = "53ce578a-fc5f-4529-9323-fb05d3656500"
 deleted = false
-path = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/8c12d127_Chocolate mk3 I.toml"
+path = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/53ce578a_Chocolate mk3 I.toml"

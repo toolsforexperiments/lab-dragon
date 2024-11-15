@@ -1,0 +1,16 @@
+["Chocolate mk3 I Tune-up"]
+type = "Notebook"
+user = "Smuag"
+ID = "639b5952-2d0c-45d4-838f-68a9cf3740ca"
+name = "Chocolate mk3 I Tune-up"
+previous_names = []
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/53ce578a_Chocolate mk3 I.toml"
+deleted = false
+description = ""
+comments = []
+children = ["/Users/smital/Desktop/lab-dragon/test/tmp/resource/2e553fc3_Chocolate mk.toml", "/Users/smital/Desktop/lab-dragon/test/tmp/resource/d04a85ea_New Project.toml"]
+params = []
+data_buckets = []
+bookmarked = false
+start_time = "2024-11-15T00:48:46.029309-06:00"
+end_time = "2024-11-15T00:48:46.029317-06:00"

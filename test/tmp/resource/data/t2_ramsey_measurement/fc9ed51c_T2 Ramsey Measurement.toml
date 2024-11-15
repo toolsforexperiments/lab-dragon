@@ -1,10 +1,10 @@
 ["T2 Ramsey Measurement"]
 type = "Instance"
 user = "Smuag"
-ID = "f3777e4d-4bce-452c-ab09-c01240fcf995"
+ID = "fc9ed51c-c7db-462c-8aed-57a3f3c68899"
 name = "T2 Ramsey Measurement"
 previous_names = []
-parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/bd0415d6_Measurements.toml"
+parent = "/Users/smital/Desktop/lab-dragon/test/tmp/resource/data/b11fa98e_Measurements.toml"
 deleted = false
 description = ""
 comments = []
@@ -12,8 +12,8 @@ children = []
 params = []
 data_buckets = []
 bookmarked = false
-start_time = "2024-11-13T08:29:43.566157-06:00"
-end_time = "2024-11-13T08:29:43.566181-06:00"
+start_time = "2024-11-15T00:48:48.049773-06:00"
+end_time = "2024-11-15T00:48:48.049796-06:00"
 version = 0
 stored_params = []
 tags = ["star"]
