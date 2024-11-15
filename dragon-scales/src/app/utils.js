@@ -96,14 +96,7 @@ export async function createLibrary(name, user) {
     return response.status === 201;
 }
 
-// utils.js
 
-// utils.js
-
-// utils.js
-
-// Send as plain text
-// utils.js
 
 export async function updateEntity(entityId, updates, username, isHTML = false, sendAsString = false) {
     try {
