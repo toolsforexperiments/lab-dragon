@@ -2,22 +2,7 @@
 
 import { useState, useEffect, useRef, useContext } from "react";
 import { styled } from "@mui/material/styles";
-import {
-    Typography,
-    Paper,
-    Stack,
-    Breadcrumbs,
-    Box,
-    Divider,
-    IconButton,
-    Button,
-    Dialog,
-    DialogActions,
-    DialogContent,
-    DialogContentText,
-    DialogTitle,
-    Input,
-} from "@mui/material";
+import { Typography, Paper, Stack, Breadcrumbs, Box, IconButton, Button } from "@mui/material";
 import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
 import ViewCompactIcon from "@mui/icons-material/ViewCompact";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -26,18 +11,13 @@ import EditIcon from "@mui/icons-material/Edit";
 import Tiptap from "@/app/components/TiptapEditor/Tiptap";
 import StepViewer from "../StepViewerComponents/StepViewer";
 import TaskContentViewer from "./TaskContentViewer";
-import {
-    deleteEntity,
-    getEntity,
-    sortAndFilterChildren,
-    submitNewContentBlock,
-    updateEntity,
-} from "@/app/utils";
+import { deleteEntity, getEntity, sortAndFilterChildren, submitNewContentBlock} from "@/app/utils";
 import NewEntityDialog from "@/app/components/dialogs/NewEntityDialog";
-import EditEntityDialog from "@/app/components/dialogs/NewEntityDialog";
+import EditEntityDialog from "@/app/components/dialogs/EditEntityDialog";
 import DeleteEntityDialog from "@/app/components/dialogs/DeleteEntityDialog";
 import { ExplorerContext } from "@/app/contexts/explorerContext";
 
+// Styled components remain the same...
 const StyledTaskPaper = styled(Paper)(({ theme }) => ({
     position: "relative",
     display: "flex",
@@ -82,14 +62,13 @@ const StyledEditButton = styled(IconButton)(({ theme }) => ({
 export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject }) {
     const { entitySectionIdRef } = useContext(ExplorerContext);
 
-    const [task, setTask] = useState(taskEntity); // Task state
-    const [steps, setSteps] = useState([]); // Task steps state
+    const [task, setTask] = useState(taskEntity);
+    const [steps, setSteps] = useState([]);
     const [sortedStepsAndContent, setSortedStepsAndContent] = useState([]);
     const [reloadEditor, setReloadEditor] = useState(0);
     const [newEntityDialogOpen, setNewEntityDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [editTaskDialogOpen, setEditTaskDialogOpen] = useState(false);
-    const [tempTaskName, setTempTaskName] = useState("");
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
 
     const taskRef = useRef(null);
     const newContentBlockRef = useRef(null);
@@ -103,18 +82,11 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
     const handleOpenDeleteDialog = () => setDeleteDialogOpen(true);
     const handleCloseDeleteDialog = () => setDeleteDialogOpen(false);
 
-    const handleOpenEditTaskDialog = () => {
-        setTempTaskName(task.name); // Initialize dialog with current task name
-        setEditTaskDialogOpen(true);
-    };
-
-    const handleCloseEditTaskDialog = () => {
-        setTempTaskName(""); // Clear dialog state
-        setEditTaskDialogOpen(false);
-    };
+    const handleOpenEditDialog = () => setEditDialogOpen(true);
+    const handleCloseEditDialog = () => setEditDialogOpen(false);
 
     const handleNewContentBlockChange = (content) => {
-        newContentBlockRef.current = content; // Track new content in ref
+        newContentBlockRef.current = content;
     };
 
     const handleSubmitNewContent = async (e) => {
@@ -125,7 +97,7 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
             const success = await submitNewContentBlock(task.ID, "marcos", newContent);
             if (success) {
                 newContentBlockRef.current = null;
-                setReloadEditor((prev) => prev + 1); // Force editor reload
+                setReloadEditor((prev) => prev + 1);
                 reloadTask();
             } else {
                 console.error("Error submitting content block.");
@@ -135,35 +107,20 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
 
     const reloadTask = () => {
         getEntity(task.ID).then((t) => {
-            setTask(JSON.parse(t)); // Reload task data
+            setTask(JSON.parse(t));
         });
     };
 
     const handleDeleteTask = async () => {
         try {
             const success = await deleteEntity(task.ID);
-            if (success) reloadProject();
-        } catch (error) {
-            console.error("Error deleting task:", error);
-        } finally {
-            handleCloseDeleteDialog();
-        }
-    };
-
-    const handleUpdateTaskName = async () => {
-        try {
-            const updates = { new_name: tempTaskName };
-            const success = await updateEntity(task.ID, updates, "marcos");
-
             if (success) {
-                setTask((prev) => ({ ...prev, name: tempTaskName })); // Update local task name
-                reloadTask();
+                reloadProject();
             }
         } catch (error) {
-            console.error("Error updating task name:", error);
-        } finally {
-            handleCloseEditTaskDialog();
+            console.error("Error deleting task:", error);
         }
+        handleCloseDeleteDialog();
     };
 
     // Load task steps when the task changes
@@ -193,7 +150,7 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
                 <Stack direction="row" alignItems="center" justifyContent="space-between" paddingX={2}>
                     <StyledTaskTitleTypography>{task.name}</StyledTaskTitleTypography>
                     <StyledButtonStack direction="row" spacing={1}>
-                        <StyledEditButton onClick={handleOpenEditTaskDialog} aria-label="edit task">
+                        <StyledEditButton onClick={handleOpenEditDialog} aria-label="edit task">
                             <EditIcon />
                         </StyledEditButton>
                         <StyledDeleteButton onClick={handleOpenDeleteDialog} aria-label="delete task">
@@ -241,6 +198,8 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
                     </IconButton>
                 </Box>
             </StyledTaskPaper>
+
+            {/* Dialogs */}
             <NewEntityDialog
                 user="marcos"
                 type="Step"
@@ -250,27 +209,23 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
                 onClose={handleCloseNewEntityDialog}
                 reloadParent={reloadTask}
             />
-            <Dialog open={deleteDialogOpen} onClose={handleCloseDeleteDialog}>
-                <DialogTitle>Confirm Task Deletion</DialogTitle>
-                <DialogContent>
-                    <DialogContentText>
-                        Are you sure you want to delete this task? This action cannot be undone.
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
-                    <Button onClick={handleDeleteTask} color="error">
-                        Delete
-                    </Button>
-                </DialogActions>
-            </Dialog>
+            
+            <DeleteEntityDialog
+                entityName={task.name}
+                open={deleteDialogOpen}
+                onClose={handleCloseDeleteDialog}
+                onDelete={handleDeleteTask}
+            />
+            
             <EditEntityDialog
                 user="marcos"
                 type="Task"
                 entityName={task.name}
                 entityID={task.ID}
-                open={editTaskDialogOpen}
-                onClose={handleCloseEditTaskDialog}
+                parentID={task.parent}
+                parentName={breadcrumbsText[breadcrumbsText.length - 2] || "Project"}
+                open={editDialogOpen}
+                onClose={handleCloseEditDialog}
                 reloadParent={reloadTask}
             />
         </Box>

@@ -1,30 +1,16 @@
 import { useState, useEffect, useContext, useRef } from "react";
 import { styled } from '@mui/material/styles';
-import {
-    Typography,
-    Paper,
-    IconButton,
-    InputAdornment,
-    Input,
-    Box,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogContentText,
-    DialogActions,
-    Button,
-} from "@mui/material";
+import { Typography, Paper, IconButton, InputAdornment, Input, Box } from "@mui/material";
 import TaskViewer from "@/app/components/TaskViewerComponents/TaskViewer";
 import SearchIcon from '@mui/icons-material/Search';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
 
-import { deleteEntity, getEntity, updateEntity } from "@/app/utils";
+import { deleteEntity, getEntity } from "@/app/utils";
 import NewEntityDialog from "@/app/components/dialogs/NewEntityDialog";
-import EditEntityDialog from "@/app/components/dialogs/NewEntityDialog";
 import DeleteEntityDialog from "@/app/components/dialogs/DeleteEntityDialog";
+import EditEntityDialog from "@/app/components/dialogs/EditEntityDialog";
 import { ExplorerContext } from "@/app/contexts/explorerContext";
 
 const StyledDeleteButton = styled(IconButton)(({ theme }) => ({
@@ -58,8 +44,8 @@ export default function ProjectViewer({ projectEntity, notebookName, reloadNoteb
     const [newEntityDialogOpen, setNewEntityDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [editProjectDialogOpen, setEditProjectDialogOpen] = useState(false);
-    const [tempProjectName, setTempProjectName] = useState('');
 
+    // Ref to track the current project section
     const projectRef = useRef(null);
     entitySectionIdRef.current[project.ID] = projectRef;
 
@@ -67,17 +53,10 @@ export default function ProjectViewer({ projectEntity, notebookName, reloadNoteb
     const handleCloseNewEntityDialog = () => setNewEntityDialogOpen(false);
     const handleOpenDeleteDialog = () => setDeleteDialogOpen(true);
     const handleCloseDeleteDialog = () => setDeleteDialogOpen(false);
+    const handleOpenEditProjectDialog = () => setEditProjectDialogOpen(true);
+    const handleCloseEditProjectDialog = () => setEditProjectDialogOpen(false);
 
-    const handleOpenEditProjectDialog = () => {
-        setTempProjectName(project.name);
-        setEditProjectDialogOpen(true);
-    };
-
-    const handleCloseEditProjectDialog = () => {
-        setEditProjectDialogOpen(false);
-        setTempProjectName('');
-    };
-
+    // Reloads project data from the server
     const reloadProject = async () => {
         try {
             const newProjectData = await getEntity(project.ID);
@@ -87,6 +66,7 @@ export default function ProjectViewer({ projectEntity, notebookName, reloadNoteb
         }
     };
 
+    // Handles the deletion of the current project
     const handleDeleteProject = async () => {
         try {
             const success = await deleteEntity(project.ID);
@@ -100,28 +80,7 @@ export default function ProjectViewer({ projectEntity, notebookName, reloadNoteb
         }
     };
 
-    const handleUpdateProjectName = async () => {
-        try {
-            const updates = { new_name: tempProjectName };
-            const success = await updateEntity(project.ID, updates, "Smuag", false, false);
-            if (success) {
-                setProject(prev => ({ ...prev, name: tempProjectName }));
-                await reloadProject();
-            }
-        } catch (error) {
-            console.error("Error updating project name:", error);
-            alert(`Failed to update project name: ${error.message}`);
-        } finally {
-            handleCloseEditProjectDialog();
-        }
-    };
-
-    const handleSaveOnEnter = (e) => {
-        if (e.key === 'Enter') {
-            handleUpdateProjectName();
-        }
-    };
-
+    // Fetch and update top-level tasks on project changes
     useEffect(() => {
         Promise.all(project.children.map(child => getEntity(child))).then(tasks => {
             const newTasks = tasks.map(task => JSON.parse(task));
@@ -171,6 +130,7 @@ export default function ProjectViewer({ projectEntity, notebookName, reloadNoteb
                     </IconButton>
                 </Box>
             </StyledProjectPaper>
+
             <NewEntityDialog
                 user="marcos"
                 type="Task"
@@ -180,48 +140,25 @@ export default function ProjectViewer({ projectEntity, notebookName, reloadNoteb
                 onClose={handleCloseNewEntityDialog}
                 reloadParent={reloadProject}
             />
+
+            <EditEntityDialog
+                user="marcos"
+                type="Project"
+                entityName={project.name}
+                entityID={project.ID}
+                parentID={project.parent}
+                parentName={notebookName}
+                open={editProjectDialogOpen}
+                onClose={handleCloseEditProjectDialog}
+                reloadParent={reloadProject}
+            />
+
             <DeleteEntityDialog
-                entityName="Project" // Pass the entity type or name dynamically
+                entityName="Project"
                 open={deleteDialogOpen}
                 onClose={handleCloseDeleteDialog}
                 onDelete={handleDeleteProject}
             />
-            <Dialog
-                open={editProjectDialogOpen}
-                onClose={handleCloseEditProjectDialog}
-                aria-labelledby="edit-project-dialog-title"
-            >
-                <DialogTitle id="edit-project-dialog-title">Edit Project Name</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="edit-project-dialog-description">
-                        Enter the new name for the project:
-                    </DialogContentText>
-                    <Input
-                        autoFocus
-                        margin="dense"
-                        fullWidth
-                        variant="standard"
-                        value={tempProjectName}
-                        onChange={(e) => setTempProjectName(e.target.value)}
-                        // Add error handling for empty input
-                        error={tempProjectName.trim() === ''}
-                        helperText={tempProjectName.trim() === '' ? 'Project name cannot be empty' : ''}
-                    />
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseEditProjectDialog}>Cancel</Button>
-                    <Button
-                        onClick={handleUpdateProjectName}
-                        color="primary"
-                        autoFocus
-                        // Disable if empty or unchanged
-                        disabled={!tempProjectName.trim() || tempProjectName === project.name}
-                    >
-                        Save
-                    </Button>
-                </DialogActions>
-            </Dialog>
-
         </Box>
     );
 }
