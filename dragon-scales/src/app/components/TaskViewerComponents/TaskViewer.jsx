@@ -123,7 +123,8 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
         handleCloseDeleteDialog();
     };
 
-    // Load task steps when the task changes
+    // Loads the children, Load task steps when the task changes
+
     useEffect(() => {
         Promise.all(task.children.map((child) => getEntity(child))).then((steps) => {
             const newSteps = steps.map((s) => JSON.parse(s));
@@ -131,11 +132,13 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
         });
     }, [task]);
 
-    // Sort and filter task steps and content blocks
+    // Sorts the children with content blocks
     useEffect(() => {
+        // goes through task.comments parsing any strings
         const parsedComments = task.comments.map((comment) =>
             typeof comment === "string" ? JSON.parse(comment) : comment
         );
+        // using a new variables instead of state because I cannot guarantee that state updates in time
         const taskWithParsedComments = { ...task, comments: parsedComments };
 
         if (taskWithParsedComments.comments && steps) {

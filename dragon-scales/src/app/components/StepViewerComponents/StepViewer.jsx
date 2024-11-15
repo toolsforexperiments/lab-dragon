@@ -82,7 +82,7 @@ function StepViewer({
 }) {
     const { entitySectionIdRef } = useContext(ExplorerContext);
 
-    // State management
+    // Holds as keys the ids of contentBlocks and as values their corresponding refs
     const [step, setStep] = useState(stepEntity);
     const [isActive, setIsActive] = useState(false);
     const [parsedContentBlocksEnt, setParsedContentBlocksEnt] = useState([]);
@@ -90,7 +90,6 @@ function StepViewer({
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [editDialogOpen, setEditDialogOpen] = useState(false);
     
-    // Refs
     const contentBlocksRefs = useRef({});
     const activeContentBlockRef = useRef(null);
     const newContentBlockRef = useRef(null);

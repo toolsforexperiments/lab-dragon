@@ -38,6 +38,7 @@ async function getLibraryStructure(id) {
 }
 
 // Helper to create tree structure for items
+// The first item sent to this function will not be included in the return
 function createTreeStructure(item) {
   if (!item.children || item.children.length === 0) return [];
   return item.children.map((child) => ({
@@ -155,7 +156,7 @@ export default function ExplorerDrawer({ open, name, id }) {
     });
   };
 
-  // Fetch library structure and notebooks on component mount
+  // initial load 
   useEffect(() => {
     getLibraryStructure(id).then((data) => {
       setLibraryStructure(data);

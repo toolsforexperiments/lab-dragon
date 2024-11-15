@@ -1,4 +1,3 @@
-
 // Function to arrange the comments and child entities in order of their creation time.
 export const sortAndFilterChildren = (entity, displayChildren, onlyShowBookmarked) => {
     let combinedArray = [];
@@ -51,7 +50,10 @@ export async function submitNewContentBlock(entID, user, newContent) {
 
 export async function createEntity(name, user, type, parent) {
     const newEntity = {
-        name, user, type, parent
+        name,
+        user,
+        type,
+        parent
     }
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities`, {
@@ -82,7 +84,8 @@ export async function deleteEntity(entID) {
 
 export async function createLibrary(name, user) {
     const newLibrary = {
-        name, user
+        name,
+        user
     }
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/add_library`, {
@@ -102,10 +105,7 @@ export async function updateEntity(entityId, updates, username, isHTML = false, 
     try {
         const bodyContent = sendAsString ? updates : JSON.stringify(updates);
         const url = `${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${entityId}?username=${encodeURIComponent(username)}&HTML=${isHTML}`;
-        
-        console.log('Making PATCH request to:', url);
-        console.log('With body:', bodyContent);
-        
+
         const response = await fetch(url, {
             method: 'PATCH',
             headers: {
@@ -114,18 +114,12 @@ export async function updateEntity(entityId, updates, username, isHTML = false, 
             body: bodyContent,
         });
 
-        console.log('Response status:', response.status);
-        console.log('Response headers:', Object.fromEntries(response.headers));
-
-        // Log the raw response
         const responseText = await response.text();
-        console.log('Raw response:', responseText);
 
         if (!response.ok) {
             throw new Error(`Failed to update entity with status: ${response.status}. Response: ${responseText}`);
         }
 
-        // Try to parse as JSON if it's JSON content
         let result;
         try {
             result = JSON.parse(responseText);
@@ -135,11 +129,6 @@ export async function updateEntity(entityId, updates, username, isHTML = false, 
         return result;
 
     } catch (error) {
-        console.error("Detailed error in updateEntity:", {
-            message: error.message,
-            stack: error.stack,
-            status: error.response?.status,
-        });
         throw error;
     }
 }
