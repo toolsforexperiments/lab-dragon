@@ -1,146 +1,136 @@
-"use client"
-
 import { useState, useEffect, useContext, useRef } from "react";
 import { styled } from '@mui/material/styles';
-import {
-    Typography,
-    Paper,
-    Stack,
-    IconButton,
-    InputAdornment,
-    Input,
-    Box,
-    DialogTitle,
-    DialogContent, DialogContentText, DialogActions, Button, Dialog
-} from "@mui/material";
+import { Typography, Paper, IconButton, InputAdornment, Input, Box } from "@mui/material";
 import TaskViewer from "@/app/components/TaskViewerComponents/TaskViewer";
 import SearchIcon from '@mui/icons-material/Search';
-import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import {deleteEntity, getEntity} from "@/app/utils";
-import NewEntityDialog from "@/app/components/dialogs/NewEntityDialog";
-import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
-import { ExplorerContext } from "@/app/contexts/explorerContext";
+import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
 
+import { deleteEntity, getEntity } from "@/app/utils";
+import NewEntityDialog from "@/app/components/dialogs/NewEntityDialog";
+import DeleteEntityDialog from "@/app/components/dialogs/DeleteEntityDialog";
+import EditEntityDialog from "@/app/components/dialogs/EditEntityDialog";
+import { ExplorerContext } from "@/app/contexts/explorerContext";
 
 const StyledDeleteButton = styled(IconButton)(({ theme }) => ({
-    position: 'relative',
     color: theme.palette.error.main,
 }));
 
+const StyledEditButton = styled(IconButton)(({ theme }) => ({
+    color: theme.palette.primary.main,
+}));
 
 const StyledProjectPaper = styled(Paper)(({ theme }) => ({
-    position: 'relative',
     display: 'flex',
     flexDirection: 'column',
     backgroundColor: "#CEE5FF",
-    paddingLeft: theme.spacing(1),
-    paddingRight: theme.spacing(1),
-    // paddingTop: theme.spacing(0.2),
-    paddingBottom: theme.spacing(1),
+    padding: theme.spacing(2),
     width: '100%',
-    // height: '90%',
-    zIndex: theme.zIndex.drawer + 1,
-    color: '#005BC7'
-}));
-
-const StyledProjectName = styled(Typography)(({ theme }) => ({
-    margin: theme.spacing(2),
     color: '#005BC7',
 }));
 
-export default function ProjectViewer( { projectEntity, notebookName, reloadNotebook } ) {
+const StyledProjectName = styled(Typography)(({ theme }) => ({
+    margin: theme.spacing(2, 0),
+    color: '#005BC7',
+    fontWeight: "bold",
+    fontSize: theme.typography.h5.fontSize,
+}));
 
+export default function ProjectViewer({ projectEntity, notebookName, reloadNotebook }) {
     const { entitySectionIdRef } = useContext(ExplorerContext);
-
     const [project, setProject] = useState(projectEntity);
     const [topLevelTasks, setTopLevelTasks] = useState([]);
     const [newEntityDialogOpen, setNewEntityDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [editProjectDialogOpen, setEditProjectDialogOpen] = useState(false);
 
+    // Ref to track the current project section
     const projectRef = useRef(null);
     entitySectionIdRef.current[project.ID] = projectRef;
 
-    const handleOpenNewEntityDialog = () => {
-        setNewEntityDialogOpen(true);
-    }
+    const handleOpenNewEntityDialog = () => setNewEntityDialogOpen(true);
+    const handleCloseNewEntityDialog = () => setNewEntityDialogOpen(false);
+    const handleOpenDeleteDialog = () => setDeleteDialogOpen(true);
+    const handleCloseDeleteDialog = () => setDeleteDialogOpen(false);
+    const handleOpenEditProjectDialog = () => setEditProjectDialogOpen(true);
+    const handleCloseEditProjectDialog = () => setEditProjectDialogOpen(false);
 
-    const handleCloseNewEntityDialog = () => {
-        setNewEntityDialogOpen(false);
-    }
-
-    const reloadProject = () => {
-        getEntity(project.ID).then(newProject => {
-            setProject(JSON.parse(newProject));
-        });
-    }
-
-    const handleOpenDeleteDialog = () => {
-        setDeleteDialogOpen(true);
+    // Reloads project data from the server
+    const reloadProject = async () => {
+        try {
+            const newProjectData = await getEntity(project.ID);
+            setProject(JSON.parse(newProjectData));
+        } catch (error) {
+            console.error("Error reloading project:", error);
+        }
     };
 
-    const handleCloseDeleteDialog = () => {
-        setDeleteDialogOpen(false);
-    };
-
+    // Handles the deletion of the current project
     const handleDeleteProject = async () => {
         try {
             const success = await deleteEntity(project.ID);
-            handleCloseDeleteDialog();
             if (success) {
                 reloadNotebook();
             }
         } catch (error) {
-            console.error("Error deleting task:", error);
+            console.error("Error deleting project:", error);
+        } finally {
+            handleCloseDeleteDialog();
         }
     };
 
+    // Fetch and update top-level tasks on project changes
     useEffect(() => {
         Promise.all(project.children.map(child => getEntity(child))).then(tasks => {
-            const newTopLevelTasks = tasks.map(t => JSON.parse(t));
-            setTopLevelTasks(newTopLevelTasks);
-        })
-    }, [project])
+            const newTasks = tasks.map(task => JSON.parse(task));
+            setTopLevelTasks(newTasks);
+        });
+    }, [project]);
 
     return (
         <Box ref={projectRef}>
             <StyledProjectPaper>
-                 <Stack direction="row" alignItems="center" justifyContent="space-between">
-                    <StyledProjectName fontWeight="bold" fontSize="1.5rem">{project.name}</StyledProjectName>
-                    <Stack direction="row" spacing={1} alignItems="center">
-                        <IconButton variant="outlined" color="#FFFFFF">
-                                <ChevronLeftIcon />
-                        </IconButton>
+                <Box display="flex" justifyContent="space-between" alignItems="center">
+                    <StyledProjectName>{project.name}</StyledProjectName>
+                    <Box display="flex" alignItems="center" gap={1}>
                         <Input
-                            variant="filled"
+                            placeholder="Search"
                             size="small"
                             endAdornment={
-                                <InputAdornment color="#4C9DFC">
+                                <InputAdornment>
                                     <IconButton>
                                         <SearchIcon />
                                     </IconButton>
                                 </InputAdornment>
-                            }/>
-                        <StyledDeleteButton onClick={handleOpenDeleteDialog} aria-label="delete task">
+                            }
+                        />
+                        <StyledEditButton onClick={handleOpenEditProjectDialog}>
+                            <EditIcon />
+                        </StyledEditButton>
+                        <StyledDeleteButton onClick={handleOpenDeleteDialog}>
                             <DeleteIcon />
                         </StyledDeleteButton>
-                    </Stack>
-                </Stack>
-                <Stack flexGrow={1} spacing={2} direction='column' alignItems="center" width="100%">
+                    </Box>
+                </Box>
+                <Box>
                     {topLevelTasks.map(task => (
-                        <Box key={task.ID}  width="100%" ref={entitySectionIdRef.current[task.ID]}>
-                            <TaskViewer taskEntity={task}
-                                        breadcrumbsText={[notebookName, project.name, task.name]}
-                                        reloadProject={reloadProject} />
+                        <Box key={task.ID} ref={entitySectionIdRef.current[task.ID]}>
+                            <TaskViewer
+                                taskEntity={task}
+                                breadcrumbsText={[notebookName, project.name, task.name]}
+                                reloadProject={reloadProject}
+                            />
                         </Box>
                     ))}
-                </Stack>
-                <Box display="flex" flexDirection="column" alignItems="center" paddingTop={2}>
+                </Box>
+                <Box display="flex" justifyContent="center" mt={2}>
                     <IconButton onClick={handleOpenNewEntityDialog}>
-                        <AddBoxOutlinedIcon sx={{color: "#4C9DFC"}} />
+                        <AddBoxOutlinedIcon sx={{ color: "#4C9DFC" }} />
                     </IconButton>
                 </Box>
             </StyledProjectPaper>
+
             <NewEntityDialog
                 user="marcos"
                 type="Task"
@@ -150,27 +140,24 @@ export default function ProjectViewer( { projectEntity, notebookName, reloadNote
                 onClose={handleCloseNewEntityDialog}
                 reloadParent={reloadProject}
             />
-            <Dialog
+
+            <EditEntityDialog
+                user="marcos"
+                type="Project"
+                entityName={project.name}
+                entityID={project.ID}
+                parentName={notebookName}
+                open={editProjectDialogOpen}
+                onClose={handleCloseEditProjectDialog}
+                reloadParent={reloadProject}
+            />
+
+            <DeleteEntityDialog
+                entityName="Project"
                 open={deleteDialogOpen}
                 onClose={handleCloseDeleteDialog}
-                aria-labelledby="alert-dialog-title"
-                aria-describedby="alert-dialog-description"
-            >
-                <DialogTitle id="alert-dialog-title">{"Confirm Project Deletion"}</DialogTitle>
-                <DialogContent>
-                    <DialogContentText id="alert-dialog-description">
-                        Are you sure you want to delete this Project?
-                    </DialogContentText>
-                </DialogContent>
-                <DialogActions>
-                    <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
-                    <Button onClick={handleDeleteProject} color="error" autoFocus>
-                        Delete
-                    </Button>
-                </DialogActions>
-            </Dialog>
+                onDelete={handleDeleteProject}
+            />
         </Box>
-    )
+    );
 }
-
-

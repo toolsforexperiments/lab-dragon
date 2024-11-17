@@ -93,10 +93,3 @@ export default function TaskContentViewer( { contentBlock, entID, reloadTask } )
     }
 
 }
-
-
-
-
-
-
-

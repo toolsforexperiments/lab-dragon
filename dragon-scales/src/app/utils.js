@@ -1,4 +1,3 @@
-
 // Function to arrange the comments and child entities in order of their creation time.
 export const sortAndFilterChildren = (entity, displayChildren, onlyShowBookmarked) => {
     let combinedArray = [];
@@ -51,7 +50,10 @@ export async function submitNewContentBlock(entID, user, newContent) {
 
 export async function createEntity(name, user, type, parent) {
     const newEntity = {
-        name, user, type, parent
+        name,
+        user,
+        type,
+        parent
     }
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities`, {
@@ -82,7 +84,8 @@ export async function deleteEntity(entID) {
 
 export async function createLibrary(name, user) {
     const newLibrary = {
-        name, user
+        name,
+        user
     }
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/add_library`, {
@@ -98,12 +101,34 @@ export async function createLibrary(name, user) {
 
 
 
+export async function updateEntity(entityId, updates, username, isHTML = false, sendAsString = false) {
+    try {
+        const bodyContent = sendAsString ? updates : JSON.stringify(updates);
+        const url = `${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${entityId}?username=${encodeURIComponent(username)}&HTML=${isHTML}`;
 
+        const response = await fetch(url, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: bodyContent,
+        });
 
+        const responseText = await response.text();
 
+        if (!response.ok) {
+            throw new Error(`Failed to update entity with status: ${response.status}. Response: ${responseText}`);
+        }
 
+        let result;
+        try {
+            result = JSON.parse(responseText);
+        } catch {
+            result = responseText;
+        }
+        return result;
 
-
-
-
-
+    } catch (error) {
+        throw error;
+    }
+}
