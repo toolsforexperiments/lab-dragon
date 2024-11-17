@@ -30,7 +30,6 @@ export default function EditEntityDialog({
     type, 
     entityName, 
     entityID,
-    parentID,
     parentName,
     open, 
     onClose, 
@@ -68,7 +67,6 @@ export default function EditEntityDialog({
         try {
             const updates = { 
                 new_name: name,
-                parent: parentID 
             };
             
             const success = await updateEntity(

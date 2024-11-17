@@ -92,17 +92,23 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
     const handleSubmitNewContent = async (e) => {
         e.preventDefault();
         const newContent = newContentBlockRef.current;
-
         if (newContent) {
             const success = await submitNewContentBlock(task.ID, "marcos", newContent);
             if (success) {
                 newContentBlockRef.current = null;
-                setReloadEditor((prev) => prev + 1);
+                setReloadEditor(reloadEditor + 1);
                 reloadTask();
             } else {
-                console.error("Error submitting content block.");
+                console.error("Error submitting content block edition");
             }
         }
+    };
+
+    const updateStepActiveStatus = (stepId, isActive) => {
+        setActiveSteps(prevState => ({
+            ...prevState,
+            [stepId]: isActive,
+        }));
     };
 
     const reloadTask = () => {
@@ -225,7 +231,6 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
                 type="Task"
                 entityName={task.name}
                 entityID={task.ID}
-                parentID={task.parent}
                 parentName={breadcrumbsText[breadcrumbsText.length - 2] || "Project"}
                 open={editDialogOpen}
                 onClose={handleCloseEditDialog}

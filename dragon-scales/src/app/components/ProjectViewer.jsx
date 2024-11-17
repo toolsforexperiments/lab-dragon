@@ -146,7 +146,6 @@ export default function ProjectViewer({ projectEntity, notebookName, reloadNoteb
                 type="Project"
                 entityName={project.name}
                 entityID={project.ID}
-                parentID={project.parent}
                 parentName={notebookName}
                 open={editProjectDialogOpen}
                 onClose={handleCloseEditProjectDialog}

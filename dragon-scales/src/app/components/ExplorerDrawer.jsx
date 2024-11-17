@@ -1,6 +1,7 @@
 "use client";
 
-// TODO: Ensure only one item is selected at a time across all trees.
+// TODO: Only 1 thing across all of the trees should be selected at a time. If an item is not selected and the user clicks it once, it should not expand but instead scroll there
+
 
 import { useEffect, useState, useContext } from "react";
 import { styled } from "@mui/material/styles";

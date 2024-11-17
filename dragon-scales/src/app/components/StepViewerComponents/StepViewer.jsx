@@ -15,7 +15,6 @@ import DeleteEntityDialog from "@/app/components/dialogs/DeleteEntityDialog";
 import EditEntityDialog from "@/app/components/dialogs/EditEntityDialog";
 import { getEntity, submitContentBlockEdition, submitNewContentBlock, deleteEntity } from "@/app/utils";
 
-// Styled components
 const StyledStepPaper = styled(Paper)(({ theme }) => ({
     position: 'relative',
     display: 'flex',
@@ -56,33 +55,33 @@ const StyledStepPaperActive = styled(Paper)(({ theme }) => ({
     paddingLeft: theme.spacing(2),
     paddingTop: theme.spacing(1),
     paddingBottom: theme.spacing(1),
-}));
+}))
+
+const StyledStepTittleTypography = styled(Typography)(({ theme }) => ({
+    fontWeight: 'bold',
+    fontSize: theme.typography.h6.fontSize,
+}))
+
+const StyledStepContentBlocksTypography = styled(Typography)(({ theme }) => ({
+    fontSize: theme.typography.body1.fontSize,
+}))
+
+const StyledNewContentBox = styled(Box)(({ theme }) => ({
+    display: "flex",
+    alignItems: "center",
+    paddingTop: "10px"
+}))
 
 const StyledStepTitleTypography = styled(Typography)(({ theme }) => ({
     fontWeight: 'bold',
     fontSize: theme.typography.h6.fontSize,
 }));
 
-const StyledStepContentBlocksTypography = styled(Typography)(({ theme }) => ({
-    fontSize: theme.typography.body1.fontSize,
-}));
 
-const StyledNewContentBox = styled(Box)(({ theme }) => ({
-    display: "flex",
-    alignItems: "center",
-    paddingTop: "10px",
-}));
 
-function StepViewer({ 
-    stepEntity, 
-    markStepState = () => {}, 
-    reloadTask = () => {}, 
-    parentID = '', 
-    parentName = '', 
-}) {
+function StepViewer({ stepEntity, markStepState, reloadTask, parentID, parentName }) {
     const { entitySectionIdRef } = useContext(ExplorerContext);
 
-    // Holds as keys the ids of contentBlocks and as values their corresponding refs
     const [step, setStep] = useState(stepEntity);
     const [isActive, setIsActive] = useState(false);
     const [parsedContentBlocksEnt, setParsedContentBlocksEnt] = useState([]);
@@ -98,12 +97,10 @@ function StepViewer({
 
     entitySectionIdRef.current[step.ID] = stepRef;
 
-    // Update step when stepEntity changes
     useEffect(() => {
         setStep(stepEntity);
     }, [stepEntity]);
 
-    // Parse content blocks when step changes
     useEffect(() => {
         if (step?.comments) {
             const parsedBlocks = step.comments.map(comment => JSON.parse(comment));
@@ -115,14 +112,12 @@ function StepViewer({
         }
     }, [step]);
 
-    // Update entitySectionIdRef when step ID changes
     useEffect(() => {
         if (step?.ID && entitySectionIdRef?.current) {
             entitySectionIdRef.current[step.ID] = stepRef;
         }
     }, [step?.ID, entitySectionIdRef]);
 
-    // Handle click outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (stepViewerRef.current && !stepViewerRef.current.contains(event.target)) {
@@ -148,20 +143,12 @@ function StepViewer({
 
     const activateStepViewer = () => {
         setIsActive(true);
-        try {
-            markStepState(step.ID, true);
-        } catch (error) {
-            console.error('Error in markStepState:', error);
-        }
+        markStepState(step.ID, true);
     };
 
     const deactivateStepViewer = async () => {
         setIsActive(false);
-        try {
-            markStepState(step.ID, false);
-        } catch (error) {
-            console.error('Error in markStepState:', error);
-        }
+        markStepState(step.ID, false);
 
         const contBlock = parsedContentBlocksEnt.find(block => block.ID === activeContentBlockRef.current);
         const newContent = contentBlocksRefs.current[activeContentBlockRef.current];
@@ -204,6 +191,7 @@ function StepViewer({
         }
     };
 
+    // Dialog handlers
     const handleOpenDeleteDialog = (event) => {
         event.stopPropagation();
         setDeleteDialogOpen(true);
@@ -234,9 +222,9 @@ function StepViewer({
         setEditDialogOpen(false);
     };
 
-    // Handle successful edit
     const handleEditSuccess = (updatedStep) => {
         setStep(updatedStep);
+        reloadTask();
     };
 
     return (
@@ -346,10 +334,10 @@ StepViewer.propTypes = {
         name: PropTypes.string.isRequired,
         comments: PropTypes.arrayOf(PropTypes.string).isRequired,
     }).isRequired,
-    markStepState: PropTypes.func,
-    reloadTask: PropTypes.func,
-    parentID: PropTypes.string,
-    parentName: PropTypes.string,
+    markStepState: PropTypes.func.isRequired,
+    reloadTask: PropTypes.func.isRequired,
+    parentID: PropTypes.string.isRequired,
+    parentName: PropTypes.string.isRequired,
 };
 
 export default StepViewer;
