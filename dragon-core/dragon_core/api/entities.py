@@ -86,7 +86,7 @@ IMAGEINDEX = {}
 INSTANCEIMAGE = {}
 
 # Holds all of the users that exists in the notebook
-USERS: set = set()
+USERS = []
 
 
 def set_initial_indices():
@@ -115,7 +115,7 @@ def set_initial_indices():
         RESOURCEPATH = Path(CONFIG['resource_path'])
         
         # Holds all of the users that exists in the notebook
-        USERS = set(copy.copy(CONFIG['users']))
+        USERS = copy.copy(CONFIG['users'])
 
         # Used for images
         api_url_prefix = CONFIG['api_url_prefix']
@@ -129,7 +129,7 @@ def set_initial_indices():
         RESOURCEPATH = Path(os.getenv("RESOURCE_PATH"))
         
         # Holds all of the users that exists in the notebook
-        USERS = set(copy.copy(os.getenv("USERS")))
+        USERS = copy.copy(os.getenv("USERS"))
         if isinstance(USERS, str):
             USERS = json.loads(USERS)
 
@@ -241,6 +241,14 @@ def comment_path_to_uuid(content: str):
     return replaced_s
 
 
+def _parse_and_validate_user(users_str) -> list[str]:
+    users = users_str.replace(" ", "").split(",")
+    for user in users:
+        if user not in USERS:
+            abort(403, f"User '{user}' not found")
+    return users
+
+
 class MediaTypes(Enum):
     """
     Enum that contains the different types of images that are supported
@@ -284,9 +292,6 @@ def add_ent_to_index(entity: Entity, entity_path: Union[Path, str]) -> None:
 
     if entity.ID not in UUID_TO_PATH_INDEX:
         UUID_TO_PATH_INDEX[entity.ID] = str(entity_path)
-
-    # Add the user to the user index
-    USERS.add(entity.user)
 
     # Add the entity type to the entity type index
     # ENTITY_TYPES.add(entity.__class__.__name__)
@@ -389,9 +394,6 @@ def recursively_load_entity(entity_path: Path):
     ent = read_from_TOML(entity_path)
 
     add_ent_to_index(ent, entity_path)
-
-    # Add the user to the user index
-    USERS.add(ent.user)
 
     child_list = []
     if len(ent.children) > 0:
@@ -695,13 +697,13 @@ def read_entity_info(ID):
     return make_response(json.dumps({"rank": rank, "num_children": num_children}), 201)
 
 
-def add_comment(ID, body, username: Optional[str] = None, HTML: bool = False):
+def add_comment(ID, body, user: str, HTML: bool = False):
     """
     Adds a comment to the indicated entity. It does not handle images or tables yet.
 
     :param ID: The id of the entity the comment should be added to.
     :param body: The text of the comment itself.
-    :param username: Optional argument. If passed, the author of the comment will be that username instead of the
+    :param user: Optional argument. If passed, the author of the comment will be that username instead of the
      user of the entity.
     :param HTML: If true, the comment text is assumed to be in html form and is converted to markdown.
     """
@@ -710,15 +712,15 @@ def add_comment(ID, body, username: Optional[str] = None, HTML: bool = False):
         abort(404, f"Entity with ID {ID} not found")
 
     ent = INDEX[ID]
-    if username is None:
-        username = ent.user
+
+    user = _parse_and_validate_user(user)
 
     if HTML:
         content = html_to_markdown.convert(body)
     else:
         content = body
 
-    ent.add_comment(content, username)
+    ent.add_comment(content, user)
 
     # After adding the comment update the file location
     ent_path = Path(UUID_TO_PATH_INDEX[ID])
@@ -728,10 +730,12 @@ def add_comment(ID, body, username: Optional[str] = None, HTML: bool = False):
     return make_response("Comment added", 201)
 
 
-def edit_comment(ID, commentID, body, username: Optional[str] = None, HTML: bool = False):
+def edit_comment(ID, commentID, body, user, HTML: bool = False):
 
     if ID not in INDEX:
         abort(404, f"Entity with ID {ID} not found")
+
+    user = _parse_and_validate_user(user)
 
     ent = INDEX[ID]
 
@@ -739,7 +743,7 @@ def edit_comment(ID, commentID, body, username: Optional[str] = None, HTML: bool
         body = html_to_markdown.convert(body)
 
     try:
-        ret = ent.modify_comment(commentID, body, username)
+        ret = ent.modify_comment(commentID, body, user)
         if ret:
             # Convert uuids in the entity to paths
             path_copy = create_path_entity_copy(ent)
@@ -764,7 +768,9 @@ def add_library(body):
     if "user" not in body or body['user'] == "":
         abort(400, "User of library is required")
 
-    library = Library(name=body['name'], user=body['user'])
+    user = _parse_and_validate_user(body['user'])
+
+    library = Library(name=body['name'], user=user)
     lib_path = LAIRSPATH.joinpath(library.ID[:8] + '_' + library.name + '.toml')
 
     path_copy = create_path_entity_copy(library)
@@ -797,6 +803,11 @@ def add_entity(body):
     if "user" not in body or body['user'] == "":
         abort(400, "User of entity is required")
 
+    user = _parse_and_validate_user(body['user'])
+
+    if body["parent"] not in INDEX:
+        abort(404, f"Parent entity with ID {body['parent']} not found")
+
     if body["type"] == "Library":
         abort(401, "You cannot add a library through this endpoint")
 
@@ -808,7 +819,7 @@ def add_entity(body):
         abort(403, f"The parent of type: {parent.__class__.__name__} cannot have children of type: {body['type']}")
 
     cls = ALL_TYPES[body["type"]]
-    ent = cls(name=body["name"], parent=body["parent"], user=body["user"])
+    ent = cls(name=body["name"], parent=body["parent"], user=user)
     parent_path = Path(UUID_TO_PATH_INDEX[parent.ID])
     ent_path = parent_path.parent.joinpath(ent.ID[:8] + "_" + ent.name + ".toml")
 
@@ -1146,7 +1157,7 @@ def add_instance(body):
     data_path = body['data_loc']
     if "username" not in body or body['username'] == "":
         abort(404, f"Username is required")
-    username = body['username']
+    username = _parse_and_validate_user(body['username'])
 
     start_time = body.get('start_time', None)
     end_time = body.get('end_time', None)

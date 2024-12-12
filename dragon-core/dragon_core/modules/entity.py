@@ -166,7 +166,8 @@ class Entity(object):
             self.children = []
         self.children.append(child)
 
-    def add_comment(self, comment: Union[str, Comment, Table, List[Table], List[Comment], List[str]], user: Optional[str] = None) -> None:
+    def add_comment(self, comment: Union[str, Comment, Table, List[Table], List[Comment], List[str]],
+                    user: str | list[str] | None = None) -> None:
         """
         Add a comment to the entity. If a directory is passed, this function will go through the directory and add a
         comment to every supported file in it in alphabetical order. It will **NOT** go through subdirectories.
@@ -220,7 +221,7 @@ class Entity(object):
             else:
                 raise TypeError(f"Comment must be a string, Table object, or a Comment object, not {type(comment)}")
 
-    def modify_comment(self, comment_id, content, user=None):
+    def modify_comment(self, comment_id, content, user):
 
         comment = None
         for com in self.comments:
@@ -229,9 +230,6 @@ class Entity(object):
                 break
         if comment is None:
             raise ValueError(f"Comment with id {comment_id} does not exist.")
-
-        if user is None:
-            user = comment.authors[-1]
 
         comment.modify(content=content, user=user)
         return True

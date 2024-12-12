@@ -76,10 +76,10 @@ class Comment:
     :param content: The content of the comment. This can be a string or a path.
     :param user: The user that created the comment.
     """
-    def __init__(self, content: Union[List[Union[str, Path, Table]], Union[str, Path, Table]], user: str, **kwargs):
+    def __init__(self, content: Union[List[Union[str, Path, Table]], Union[str, Path, Table]], creation_user: str, **kwargs):
         if len(kwargs) != 0:
             self.ID = kwargs['ID']
-            self.user = user
+            self.creation_user = creation_user
             self.created = kwargs['created']
             self.deleted = kwargs['deleted']
             self.dates = kwargs['dates']
@@ -94,13 +94,13 @@ class Comment:
 
         else:
             self.ID = str(uuid.uuid4())
-            self.user = user
+            self.creation_user = creation_user
             time = create_timestamp()
             self.created = time
             self.deleted = False
             self.content = [content if isinstance(content, Table) else str(content)]
             self.dates = [time]
-            self.authors = [user]
+            self.authors = [creation_user]
             self.com_type = [SupportedCommentType.classify(content)]
 
     def modify(self, content: Union[str, Path, Table], user: str) -> None:
