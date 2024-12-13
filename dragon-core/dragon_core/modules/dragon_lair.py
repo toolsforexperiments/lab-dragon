@@ -3,7 +3,7 @@ from typing import List
 from pathlib import Path
 from dataclasses import dataclass
 
-from tomlkit import document, comment, table, dump, load
+from tomlkit import document, comment, table, dump, load, aot, item
 
 from .library import Library
 from dragon_core.utils import create_timestamp
@@ -16,6 +16,13 @@ class DragonLibrary:
     deleted: bool
     path: Path
     instance: Library
+
+
+@dataclass
+class User:
+    email: str  # This is the unique identifier for the user.
+    name: str
+    profile_color: str = ""
 
 
 class DragonLair:
@@ -44,6 +51,13 @@ class DragonLair:
     _FILENAME: str = '_dragon_lair.toml'
 
     def __init__(self, dir_path: Path):
+        """
+        Class that helps manage the _dragon_lair.toml file. This is used a central place for the whole system.
+        It includes all the available Libraries as well as user information for now.
+
+        While users can be specified in the config, we need to keep track of other information about them such as
+        profile pictures, etc.
+        """
 
         self._intro_warning = ('COMPUTER MANAGED FILE, PLEASE DO NOT EDIT MANUALLY \n# This is the central management '
                                'file for the Lab Dragon system')
@@ -54,6 +68,8 @@ class DragonLair:
         self.ID = None
         self.creation_timestamp = None
         self.modified_timestamps = None
+        # keys, email of the user; value the User dataclass
+        self.users: dict[str, User] = {}
 
         self.libraries: List[DragonLibrary] = []
 
@@ -82,6 +98,9 @@ class DragonLair:
         meta['modified_timestamps'] = [create_timestamp()]
         doc.add("meta", meta)
 
+        users_aot = aot()
+        doc.append("users", users_aot)
+
         if not self.file_path.exists():
             self.file_path.touch()
         else:
@@ -103,21 +122,51 @@ class DragonLair:
             t = load(f)
 
         for tab_name, tab in t.items():
-            if tab_name == 'meta':
-                self.ID = tab['ID']
-                self.creation_timestamp = tab['creation_timestamp']
-                self.modified_timestamps = tab['modified_timestamps']
-            else:
-                self.libraries.append(DragonLibrary(name=tab['name'],
-                                                    ID=tab['ID'],
-                                                    deleted=tab['deleted'],
-                                                    path=tab['path'],
-                                                    instance=None))
+            match tab_name:
+                case "meta":
+                    self.ID = tab['ID']
+                    self.creation_timestamp = tab['creation_timestamp']
+                    self.modified_timestamps = tab['modified_timestamps']
 
-    def insert_instance(self, instance: Library):
+                # so nested, so ugly
+                case "users":
+                    for user in tab:
+                        self.users[user['email']] = User(email=user['email'],
+                                                         name=user['name'],
+                                                         profile_color=user['profile_color'])
+
+                case _:
+                    self.libraries.append(DragonLibrary(name=tab['name'],
+                                                        ID=tab['ID'],
+                                                        deleted=tab['deleted'],
+                                                        path=tab['path'],
+                                                        instance=None))
+
+    def add_user(self, email, name, profile_color=""):
+        if email in self.users:
+            raise ValueError(f"User with email {email} already exists in the lair")
+
+        self.users[email] = User(email=email, name=name, profile_color=profile_color)
+        self.to_file()
+
+    def delete_user(self, email):
+        if email not in self.users:
+            raise ValueError(f"User with email {email} does not exist in the lair")
+
+        del self.users[email]
+        self.to_file()
+
+    def change_user_color(self, email, color):
+        if email not in self.users:
+            raise ValueError(f"User with email {email} does not exist in the lair")
+
+        self.users[email].profile_color = color
+        self.to_file()
+
+    def insert_library_instance(self, library_instance: Library):
         for lib in self.libraries:
-            if lib.ID == instance.ID:
-                lib.instance = instance
+            if lib.ID == library_instance.ID:
+                lib.instance = library_instance
                 break
         self.to_file()
 
@@ -144,7 +193,6 @@ class DragonLair:
         self.to_file()
 
     def to_file(self):
-
         doc = document()
         doc.add(comment(self._intro_warning))
 
@@ -155,6 +203,16 @@ class DragonLair:
         meta['modified_timestamps'] = self.modified_timestamps
         doc.add("meta", meta)
 
+        users = aot()
+        for user in self.users.values():
+            tab = table()
+            tab['email'] = user.email
+            tab['name'] = user.name
+            tab['profile_color'] = user.profile_color
+
+            users.append(tab)
+
+        doc.append("users", users)
         for library in self.libraries:
             tab = table()
             tab['name'] = library.name

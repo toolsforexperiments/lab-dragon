@@ -85,9 +85,6 @@ IMAGEINDEX = {}
 
 INSTANCEIMAGE = {}
 
-# Holds all of the users that exists in the notebook
-USERS = []
-
 
 def set_initial_indices():
     global LOADING_FROM_ENV
@@ -105,7 +102,6 @@ def set_initial_indices():
     global UUID_TO_PATH_INDEX
     global IMAGEINDEX
     global INSTANCEIMAGE
-    global USERS
 
     if not LOADING_FROM_ENV:
         ROOTPATH = Path()
@@ -115,7 +111,7 @@ def set_initial_indices():
         RESOURCEPATH = Path(CONFIG['resource_path'])
         
         # Holds all of the users that exists in the notebook
-        USERS = copy.copy(CONFIG['users'])
+        config_users = copy.copy(CONFIG['users'])
 
         # Used for images
         api_url_prefix = CONFIG['api_url_prefix']
@@ -129,9 +125,9 @@ def set_initial_indices():
         RESOURCEPATH = Path(os.getenv("RESOURCE_PATH"))
         
         # Holds all of the users that exists in the notebook
-        USERS = copy.copy(os.getenv("USERS"))
-        if isinstance(USERS, str):
-            USERS = json.loads(USERS)
+        config_users = copy.copy(os.getenv("USERS"))
+        if isinstance(config_users, str):
+            config_users = json.loads(config_users)
 
         # Used for images
         api_url_prefix = os.getenv("API_URL_PREFIX")
@@ -140,7 +136,11 @@ def set_initial_indices():
     set_api_url_prefix_and_host(api_url_prefix, url_host)
 
     DRAGONLAIR = DragonLair(LAIRSPATH)
-    # FIXME: This can be refactored in a way that I don't need 4 different global variables.
+
+    # Handles users that are in the config.
+    for user_email, user_name in config_users.items():
+        if user_email not in DRAGONLAIR.users:
+            DRAGONLAIR.add_user(user_email, user_name)
 
     # List of classes that can contain children. Only Project and Task can contain children for now.
     PARENT_TYPES = ["Library", "Notebook", "Project", "Task"]
@@ -176,7 +176,7 @@ def set_initial_indices():
 
 def reset():
     set_initial_indices()
-    load_system()
+    load_all_entities()
 
 
 def get_indices():
@@ -242,11 +242,11 @@ def comment_path_to_uuid(content: str):
 
 
 def _parse_and_validate_user(users_str) -> list[str]:
-    users = users_str.replace(" ", "").split(",")
-    for user in users:
-        if user not in USERS:
+    input_users = users_str.replace(" ", "").split(",")
+    for user in input_users:
+        if user not in DRAGONLAIR.users:
             abort(403, f"User '{user}' not found")
-    return users
+    return input_users
 
 
 class MediaTypes(Enum):
@@ -431,7 +431,7 @@ def health_check():
     return make_response("Server is running", 201)
 
 
-def load_system():
+def load_all_entities():
     """
     Function that reads all the entities and return a dictionary with nested entities
     :return:
@@ -439,7 +439,7 @@ def load_system():
 
     for dragon_library in DRAGONLAIR.libraries:
         ret_dict, library = recursively_load_entity(dragon_library.path)
-        DRAGONLAIR.insert_instance(library)
+        DRAGONLAIR.insert_library_instance(library)
 
     # We replace the parent and children after we are done going through all identities to make sure that
     # the parent is already in the index, there might be edge cases where a lower entity in the tree has a parent
@@ -492,7 +492,7 @@ def read_one(ID, name_only=False):
         abort(405, "That ID belongs to the lair, you should not be accessing it directly.")
 
     if ID not in INDEX:
-        load_system()
+        load_all_entities()
 
     if ID in INDEX:
         ent = INDEX[ID]
@@ -1010,7 +1010,6 @@ def get_notebook_parent(ID):
     return str(_check_for_notebook_parent(ent)), 201
 
 
-
 def get_all_libraries():
 
     libraries = {}
@@ -1020,12 +1019,23 @@ def get_all_libraries():
     return make_response(json.dumps(libraries), 201)
 
 
+def add_user(email, name):
+    """
+    Adds a user to the system
+    """
+    try:
+        DRAGONLAIR.add_user(email, name)
+        return make_response("User added", 201)
+    except ValueError as e:
+        abort(400, str(e))
+
+
 def get_users():
     """
     API function that returns the list of users
     :return: json representation of a list of all the users in the system.
     """
-    return json.dumps(list(USERS)), 201
+    return json.dumps([u.__dict__ for u in DRAGONLAIR.users.values()]), 201
 
 
 def get_types():

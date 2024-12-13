@@ -510,10 +510,35 @@ paths:
       operationId: "dragon_core.api.entities.get_users"
       tags:
         - Properties
+        - Users
       summary: "Returns all users present in the notebook"
       responses:
         "200":
           description: "Successfully read users"
+
+    post:
+      operationId: "dragon_core.api.entities.add_user"
+      tags:
+        - Properties
+        - Users
+      summary: "Adds a new user to the system"
+      parameters:
+        - in: query
+          name: "email"
+          schema:
+            type: "string"
+          description: "The email of the user to add"
+        - in: query
+          name: "name"
+          schema:
+            type: "string"
+          description: "The name of the user to add"
+      responses:
+        "201":
+          description: "Successfully added user"
+        "400":
+          description: "User email already present in the system"
+
 
   /properties/types:
     get:
