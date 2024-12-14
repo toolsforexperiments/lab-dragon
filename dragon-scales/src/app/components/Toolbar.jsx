@@ -32,12 +32,8 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
     zIndex: theme.zIndex.drawer + 1,
 }));
 
-
-
-
 const StyledLink = styled(Link)(({ theme, active }) => ({
     width: '100%',
-
     padding: theme.spacing(1.5),
     display: 'flex',
     justifyContent: 'center',
@@ -160,9 +156,9 @@ export default function Toolbar() {
 
             {/* Profile */}
             <Box p={1.5} display="flex" justifyContent="center">
-                <IconContainer>
-                    <IconButton color="default" size="small">
-                        <AccountCircle />
+                <IconContainer sx={{backgroundColor: "grey"}}>
+                    <IconButton sx={{color:"white"}}>
+                        MF
                     </IconButton>
                 </IconContainer>
             </Box>

@@ -79,21 +79,32 @@ export async function deleteEntity(entID) {
 }
 
 
-
 export async function createLibrary(name, user) {
     const newLibrary = {
         name, user
     }
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/add_library`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(newLibrary)
-    });
+    try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/add_library`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(newLibrary)
+        });
 
-    return response.status === 201;
+        if (response.status === 201) {
+            return True
+        } else {
+            const errorDetails = await response.json();
+            console.log("Error creating new Library", errorDetails);
+            return errorDetails.detail;
+        }
+
+    } catch (error) {
+        console.error("Error creating new Library", error);
+        return error.message;
+    }
 }
 
 
