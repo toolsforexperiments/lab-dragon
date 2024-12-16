@@ -1,6 +1,6 @@
 "use client"
 
-import {useState, useRef, useEffect} from "react";
+import {useState, useRef, useEffect, useContext} from "react";
 import {styled} from "@mui/material/styles";
 import {Box, Typography} from "@mui/material";
 import ViewCompactIcon from "@mui/icons-material/ViewCompact";
@@ -9,6 +9,9 @@ import parse from "html-react-parser";
 
 
 import {submitContentBlockEdition} from "@/app/calls";
+import ErrorSnackbar from "@/app/components/ErrorSnackbar";
+import {UserContext} from "@/app/contexts/userContext";
+
 
 const StyledStepContentBlocksTypography = styled(Typography)(({ theme }) => ({
     fontSize: theme.typography.body1.fontSize,
@@ -28,9 +31,13 @@ const StyledContentBox = styled(Box)(({ theme }) => ({
 
 export default function TaskContentViewer( { contentBlock, entID, reloadTask } ) {
     const [isActive, setActive] = useState(false)
+    const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("Undefined error");
 
     const contentBlockRef = useRef(null); // used to track active state
     const textRef = useRef(contentBlock.content[contentBlock.content.length - 1]); // used to track editor text
+
+    const { activeUsersEmailStr } = useContext(UserContext);
 
     const handleContentChange = (content) => {
         textRef.current = content;
@@ -43,10 +50,15 @@ export default function TaskContentViewer( { contentBlock, entID, reloadTask } )
     const deactivateContentBlock = () => {
         setActive(false);
         if (textRef.current !== contentBlock.content[contentBlock.content.length - 1]) {
-            const success = submitContentBlockEdition(entID, "marcos", contentBlock, textRef.current).then(() => {
-                if (success) {
+            const success = submitContentBlockEdition(entID,
+                activeUsersEmailStr,
+                contentBlock,
+                textRef.current).then((success) => {
+                if (success === true) {
                     reloadTask();
                 } else {
+                    setErrorMessage("Error submitting content block edition")
+                    setErrorSnackbarOpen(true)
                     console.error("Error submitting content block edition")
                 }
             })
@@ -77,6 +89,7 @@ export default function TaskContentViewer( { contentBlock, entID, reloadTask } )
                 <Tiptap onContentChange={handleContentChange}
                         entID={entID}
                         initialContent={textRef.current} />
+                <ErrorSnackbar open={errorSnackbarOpen} message={errorMessage} onClose={() => setErrorSnackbarOpen(false)}/>
             </StyledContentBox>
         )
     } else {
@@ -89,6 +102,7 @@ export default function TaskContentViewer( { contentBlock, entID, reloadTask } )
                 <StyledStepContentBlocksTypography key={contentBlock.ID}>
                     {parse(contentBlock.content[contentBlock.content.length - 1])}
                 </StyledStepContentBlocksTypography>
+                <ErrorSnackbar open={errorSnackbarOpen} message={errorMessage} onClose={() => setErrorSnackbarOpen(false)}/>
             </StyledContentBox>
         )
     }

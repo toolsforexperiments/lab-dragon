@@ -242,7 +242,14 @@ def comment_path_to_uuid(content: str):
 
 
 def _parse_and_validate_user(users_str) -> list[str]:
-    input_users = users_str.replace(" ", "").split(",")
+    if "'" in users_str or '"' in users_str:
+        input_users = json.loads(users_str)
+        input_users = [str(user).replace(" ", "") for user in input_users]
+    elif isinstance(users_str, str):
+        input_users = users_str.replace(" ", "").split(",")
+    else:
+        raise ValueError("User input is not a string")
+
     for user in input_users:
         if user not in DRAGONLAIR.users:
             abort(403, f"User '{user}' not found")

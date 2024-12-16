@@ -1,11 +1,13 @@
 "use client"
 
-import { useState } from "react";
+import { useState, useContext } from "react";
 import Draggable from 'react-draggable';
-import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Paper, Box, Snackbar, Alert} from "@mui/material";
-
+import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Paper, Box } from "@mui/material";
 
 import {createLibrary} from "@/app/calls";
+import ErrorSnackbar from "@/app/components/ErrorSnackbar";
+
+import {UserContext} from "@/app/contexts/userContext";
 
 function PaperComponent(props) {
     return (
@@ -24,14 +26,16 @@ export default function NewLibraryDialog({ user, open, onClose, reloadParent }) 
     const [errorMessage, setErrorMessage] = useState("");
     const [openErrorSnack, setOpenErrorSnack] = useState(false);
 
+    const { activeUsersEmailStr } = useContext(UserContext);
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const success = await createLibrary(e.target.name.value, user);
+        const success = await createLibrary(e.target.name.value, activeUsersEmailStr);
         if (success === true) {
             reloadParent();
             onClose();
         } else {
-            setErrorMessage(success);
+            setErrorMessage("Error creating a new Library");
             setOpenErrorSnack(true);
         }
     }
@@ -72,16 +76,10 @@ export default function NewLibraryDialog({ user, open, onClose, reloadParent }) 
                     <Button onClick={onClose}>Cancel</Button>
                     <Button type="submit">Create</Button>
                 </DialogActions>
-                <Snackbar 
-                    sx={{zIndex: 1400}}
-                    open={openErrorSnack}
-                    onClose={() => setOpenErrorSnack(false)}
-                    autoHideDuration={6000}
-                >
-                    <Alert onClose={() => setOpenErrorSnack(false)} severity="error" sx={{ width: '100%' }}>
-                        {errorMessage}
-                    </Alert>
-                </Snackbar>
+                <ErrorSnackbar open={openErrorSnack}
+                               message={errorMessage}
+                               onClose={() => setOpenErrorSnack(false)}
+                               sx={{zIndex: 1400}}/>
             </Dialog>
             
         </Box>

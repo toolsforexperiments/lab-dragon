@@ -1,12 +1,11 @@
 "use client"
 
 import React, { createContext, useState, useEffect } from 'react';
-import Snackbar from '@mui/material/Snackbar';
-import Alert from '@mui/material/Alert';
 
 import { defaultUserColors } from '@/app/constants';
 import SelectUserDialog from '@/app/components/dialogs/SelectUserDialog';
 import {getUsers, setUserColor} from "@/app/calls";
+import ErrorSnackbar from "@/app/components/ErrorSnackbar";
 
 export const UserContext = createContext();
 
@@ -14,6 +13,7 @@ export const UserProvider = ({ children }) => {
     
     const [userList, setUserList] = useState([]);
     const [activeUsers, setActiveUsers] = useState([]);
+    const [activeUsersEmailStr, setActiveUsersEmailStr] = useState("");
     const [selectUserDialogOpen, setSelectUserDialogOpen] = useState(false);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
 
@@ -35,9 +35,12 @@ export const UserProvider = ({ children }) => {
                             const colorStatus = setUserColor(user.email, randomColor);
                             if (colorStatus === null) {
                                 setSnackbarOpen(true);
+                            } else {
+                                user.profile_color = randomColor;
                             }
                         }
                     });
+
                     setUserList(data);
                 }
             } catch (error) {
@@ -56,11 +59,18 @@ export const UserProvider = ({ children }) => {
         }
     }, [userList, activeUsers]);
 
+    // Updates the email string
+    useEffect(() => {
+        setActiveUsersEmailStr(JSON.stringify(Object.keys(activeUsers)));
+    }, [activeUsers]);
+
+
     return <UserContext.Provider value={{ 
         userList,
         setUserList,
         activeUsers,
-        setActiveUsers }}>
+        setActiveUsers,
+        activeUsersEmailStr}}>
         {children}
         <SelectUserDialog
             userList={userList}
@@ -70,16 +80,7 @@ export const UserProvider = ({ children }) => {
             setOpen={setSelectUserDialogOpen}
             onClose={() => setSelectUserDialogOpen(false)}
         />
-        <Snackbar
-                open={snackbarOpen}
-                autoHideDuration={6000}
-                onClose={handleCloseSnackbar}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-                <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: '100%' }}>
-                    Error retrieving users. Please reload the page and try again.
-                </Alert>
-        </Snackbar>
+        <ErrorSnackbar open={snackbarOpen} message="Error retrieving users. Please reload the page and try again." onClose={handleCloseSnackbar} />
         </UserContext.Provider>;
 };
 

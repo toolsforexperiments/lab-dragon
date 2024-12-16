@@ -7,15 +7,13 @@ import {
     Dialog,
     DialogActions,
     DialogContent,
-    DialogContentText,
     DialogTitle,
-    TextField,
     Paper,
-    Snackbar, Alert
 } from "@mui/material";
 
 
 import UserSelect from "@/app/components/UserSelect";
+import ErrorSnackbar from "@/app/components/ErrorSnackbar";
 
 function PaperComponent(props) {
     return (
@@ -63,13 +61,9 @@ export default function SelectUserDialog({ userList, activeUsers, setActiveUsers
             <DialogActions>
                 <Button type="submit" onClick={handleCloseDialog}>Done</Button>
             </DialogActions>
-            <Snackbar open={openSnackBar}
-                      autoHideDuration={6000}
-                      onClose={handleCloseSnackbar}>
-                <Alert severity="error">
-                    Please select at least one user
-                </Alert>
-            </Snackbar>
+            <ErrorSnackbar open={openSnackBar}
+                           handleClose={handleCloseSnackbar}
+                           message="Please select at least one user"/>
         </Dialog>
     );
 };
