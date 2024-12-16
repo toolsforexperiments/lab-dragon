@@ -1,10 +1,12 @@
 import localFont from "next/font/local";
-import { Box } from "@mui/material";
+import {Box, createTheme, ThemeProvider} from "@mui/material";
 
 import "./globals.css";
 import Toolbar from "./components/Toolbar";
 import { ExplorerProvider } from "@/app/contexts/explorerContext";
 import { UserProvider } from "@/app/contexts/userContext";
+
+import LDThemeProvider from "./theme";
 
 const geistSans = localFont({
     src: "./fonts/GeistVF.woff",
@@ -28,16 +30,18 @@ export default function RootLayout({ children }) {
             <body
                 className={`${geistSans.variable} ${geistMono.variable} antialiased`}
             >
-                <UserProvider>
-                    <ExplorerProvider>
-                        <Box sx={{ display: "flex", height: "100vh" }}>
-                            <Toolbar />
-                            <Box sx={{ flexGrow: 1, overflow: "auto", pl: "64px" }}>
-                                {children}
+                <LDThemeProvider>
+                    <UserProvider>
+                        <ExplorerProvider>
+                            <Box sx={{ display: "flex", height: "100vh" }}>
+                                <Toolbar />
+                                <Box sx={{ flexGrow: 1, overflow: "auto", pl: "64px" }}>
+                                    {children}
+                                </Box>
                             </Box>
-                        </Box>
-                    </ExplorerProvider>
-                </UserProvider>
+                        </ExplorerProvider>
+                    </UserProvider>
+                </LDThemeProvider>
             </body>
         </html>
     );
