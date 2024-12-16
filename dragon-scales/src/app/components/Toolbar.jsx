@@ -20,6 +20,7 @@ const StyledPaper = styled(Paper)(({ theme }) => ({
     position: 'fixed',
     left: 0,
     top: 0,
+    borderRadius: 0,
     height: '100%',
     width: 64,
     display: 'flex',
