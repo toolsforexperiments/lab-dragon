@@ -1038,6 +1038,14 @@ def get_users():
     return json.dumps([u.__dict__ for u in DRAGONLAIR.users.values()]), 201
 
 
+def set_user_color(email, color, *args, **kwargs):
+    try:
+        DRAGONLAIR.set_user_color(email, color)
+        return make_response("User color set", 201)
+    except ValueError as e:
+        abort(404, str(e))
+
+
 def get_types():
     return json.dumps(list(ENTITY_TYPES)), 201
 

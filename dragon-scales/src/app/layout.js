@@ -2,7 +2,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import Toolbar from "./components/Toolbar";
 import { ExplorerProvider } from "@/app/contexts/explorerContext";
-
+import { UserProvider } from "@/app/contexts/userContext";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -26,10 +26,12 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-      <ExplorerProvider>
-        <Toolbar/>
-        {children}
-      </ExplorerProvider>
+        <UserProvider>
+          <ExplorerProvider>
+              <Toolbar/>
+              {children}
+        </ExplorerProvider>
+      </UserProvider>
       </body>
     </html>
   );

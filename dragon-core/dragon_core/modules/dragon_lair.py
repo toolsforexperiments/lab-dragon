@@ -156,7 +156,7 @@ class DragonLair:
         del self.users[email]
         self.to_file()
 
-    def change_user_color(self, email, color):
+    def set_user_color(self, email: str, color: str):
         if email not in self.users:
             raise ValueError(f"User with email {email} does not exist in the lair")
 

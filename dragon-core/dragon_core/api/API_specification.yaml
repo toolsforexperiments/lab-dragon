@@ -62,6 +62,14 @@ components:
         schema:
             type: "string"
 
+    email:
+      name: "email"
+      description: "Email of the user to get"
+      in: path
+      required: true
+      schema:
+        type: "string"
+
     user:
       name: "user"
       description: "The user adding content"
@@ -539,6 +547,28 @@ paths:
         "400":
           description: "User email already present in the system"
 
+  /properties/users/{email}:
+    put:
+      operationId: "dragon_core.api.entities.set_user_color"
+      tags:
+        - Properties
+        - Users
+      summary: "Sets the color of the user with the given email"
+      parameters:
+        - $ref: "#/components/parameters/email"
+        - in: query
+          name: "color"
+          required: true
+          schema:
+            type: "string"
+          description: "The color to set for the user"
+      responses:
+        "201":
+          description: "Successfully changed user color"
+        "400":
+          description: "Invalid color"
+        "404":
+          description: "User not found"
 
   /properties/types:
     get:
