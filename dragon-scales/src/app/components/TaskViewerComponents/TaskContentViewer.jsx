@@ -7,7 +7,8 @@ import ViewCompactIcon from "@mui/icons-material/ViewCompact";
 import Tiptap from "@/app/components/TiptapEditor/Tiptap";
 import parse from "html-react-parser";
 
-import {submitContentBlockEdition} from "@/app/utils";
+
+import {submitContentBlockEdition} from "@/app/calls";
 
 const StyledStepContentBlocksTypography = styled(Typography)(({ theme }) => ({
     fontSize: theme.typography.body1.fontSize,

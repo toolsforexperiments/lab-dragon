@@ -4,9 +4,9 @@ import React, { createContext, useState, useEffect } from 'react';
 import Snackbar from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 
-import { getUsers, setUserColor } from '@/app/utils';
 import { defaultUserColors } from '@/app/constants';
 import SelectUserDialog from '@/app/components/dialogs/SelectUserDialog';
+import {getUsers, setUserColor} from "@/app/calls";
 
 export const UserContext = createContext();
 

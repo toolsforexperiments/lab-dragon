@@ -1,25 +1,20 @@
 "use client"
-import React, { useEffect, useState, useContext } from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { MenuBook } from '@mui/icons-material';
+import {usePathname} from 'next/navigation';
+import {MenuBook} from '@mui/icons-material';
 import Image from 'next/image';
-import { Box, IconButton, Paper, Stack } from '@mui/material';
-import { styled } from '@mui/material/styles';
+import {Box, IconButton, Paper, Stack} from '@mui/material';
+import {styled} from '@mui/material/styles';
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 
 
 import ExplorerDrawer from './ExplorerDrawer';
-import { UserContext } from '../contexts/userContext';
-import { ExplorerContext } from '../contexts/explorerContext';
+import {UserContext} from '../contexts/userContext';
+import {ExplorerContext} from '../contexts/explorerContext';
 import NewLibraryDialog from './dialogs/NewLibraryDialog';
 import ToolbarAvatarGroup from './ToolbarAvatarGroup';
-
-// FIXME: Handle errors properly
-async function getLibraries() {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/get_all_libraries`);
-    return await res.json();
-}
+import {getLibraries} from "@/app/calls";
 
 const StyledPaper = styled(Paper)(({ theme }) => ({
     position: 'fixed',

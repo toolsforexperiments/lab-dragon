@@ -4,7 +4,8 @@
 import Draggable from 'react-draggable';
 import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Paper} from "@mui/material";
 
-import {createEntity} from "@/app/utils";
+
+import {createEntity} from "@/app/calls";
 
 function PaperComponent(props) {
     return (

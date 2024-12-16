@@ -12,7 +12,7 @@ import Tiptap from "@/app/components/TiptapEditor/Tiptap";
 import {ExplorerContext} from "@/app/contexts/explorerContext";
 
 
-import {getEntity, submitContentBlockEdition, submitNewContentBlock, deleteEntity} from "@/app/utils";
+import {deleteEntity, getEntity, submitContentBlockEdition, submitNewContentBlock} from "@/app/calls";
 
 const StyledStepPaper = styled(Paper)(({ theme }) => ({
     position: 'relative',

@@ -2,36 +2,31 @@
 
 // TODO: Only 1 thing across all of the trees should be selected at a time. If an item is not selected and the user clicks it once, it should not expand but instead scroll there
 
-import { useEffect, useState, useContext } from 'react';
-import { styled } from '@mui/material/styles';
+import {useContext, useEffect, useState} from 'react';
+import {styled} from '@mui/material/styles';
 import {
-  Box,
-  Typography,
-  Drawer,
-  Divider,
   Accordion,
   AccordionDetails,
-  IconButton,
   AccordionSummary,
-  Stack
+  Box,
+  Divider,
+  Drawer,
+  IconButton,
+  Stack,
+  Typography
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import AddIcon from '@mui/icons-material/Add';
 import SortIcon from '@mui/icons-material/Sort';
 import SearchIcon from '@mui/icons-material/Search';
-import { ExplorerContext } from '../contexts/explorerContext';
-import { RichTreeView } from '@mui/x-tree-view/RichTreeView';
-import {getEntity} from "@/app/utils";
+import {ExplorerContext} from '../contexts/explorerContext';
+import {RichTreeView} from '@mui/x-tree-view/RichTreeView';
 import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
 import NewEntityDialog from "@/app/components/dialogs/NewEntityDialog";
+import {getEntity, getLibraryStructure} from "@/app/calls";
 
 const drawerWidth = 240;
-
-async function getLibraryStructure(id) {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities?ID=${id}`);
-  return await res.json();
-}
 
 function createTreeStructure(item) {
   // The first item sent to this function will not be included in the return

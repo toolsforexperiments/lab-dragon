@@ -8,9 +8,10 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import Tiptap from "@/app/components/TiptapEditor/Tiptap";
 import StepViewer from "../StepViewerComponents/StepViewer";
 import TaskContentViewer from "./TaskContentViewer";
-import {deleteEntity, getEntity, sortAndFilterChildren, submitNewContentBlock} from "@/app/utils";
+import {sortAndFilterChildren} from "@/app/utils";
 import NewEntityDialog from "@/app/components/dialogs/NewEntityDialog";
 import { ExplorerContext } from "@/app/contexts/explorerContext";
+import {deleteEntity, getEntity, submitNewContentBlock} from "@/app/calls";
 
 const StyledDeleteButton = styled(IconButton)(({ theme }) => ({
     position: 'absolute',
