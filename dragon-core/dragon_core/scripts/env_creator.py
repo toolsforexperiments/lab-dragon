@@ -114,9 +114,12 @@ def create_simple_test_env(target: Optional[Union[Path, str]] = None, create_md:
                              user='testUser2',
                              parent=get_panda_path, )
     found_pandas_path = Path(path, f"{found_pandas_step.ID[:8]}_Found Pandas.toml").resolve()
-    found_pandas_step.add_comment(f"Here is the first panda I found online: ![giant_panda]({env_creator_path.parent.parent.parent.joinpath('test', 'testing_images', 'pandas' ,'Giant_panda.jpg')}) \n\n This one is really big!")
-    found_pandas_step.add_comment(f"Here are some other ones: ![baby_pandas]({env_creator_path.parent.parent.parent.joinpath('test', 'testing_images', 'pandas', 'baby_pandas.png')}) \n\n These ones are really cute!")
-    found_pandas_step.add_comment(f"Here is another one: ![panda_eating]({env_creator_path.parent.parent.parent.joinpath('test', 'testing_images', 'pandas', 'panda_eating.png')}) \n\n omg look at this one eat")
+    found_pandas_step.add_comment(
+        f"Here is the first panda I found online: ![giant_panda]({env_creator_path.parent.parent.parent.joinpath('test', 'testing_images', 'pandas', 'Giant_panda.jpg')}) \n\n This one is really big!", )
+    found_pandas_step.add_comment(
+        f"Here are some other ones: ![baby_pandas]({env_creator_path.parent.parent.parent.joinpath('test', 'testing_images', 'pandas', 'baby_pandas.png')}) \n\n These ones are really cute!", )
+    found_pandas_step.add_comment(
+        f"Here is another one: ![panda_eating]({env_creator_path.parent.parent.parent.joinpath('test', 'testing_images', 'pandas', 'panda_eating.png')}) \n\n omg look at this one eat", )
 
     to_be_created.append((found_pandas_step, found_pandas_path))
 
@@ -172,9 +175,12 @@ def create_simple_test_env(target: Optional[Union[Path, str]] = None, create_md:
                              user='testUser3',
                              parent=get_koala_path, )
     found_koalas_path = Path(path, f"{found_koalas_step.ID[:8]}_Found Koalas.toml").resolve()
-    found_koalas_step.add_comment(f"Here is the first koala I found online: ![creepy_koala]({env_creator_path.parent.parent.parent.joinpath('test', 'testing_images', 'koalas', 'creepy_koala.jpg')}) \n\n This one is freakishly creepy!")
-    found_koalas_step.add_comment(f"Here are some other ones: ![baby_koala]({env_creator_path.parent.parent.parent.joinpath('test', 'testing_images', 'koalas', 'baby_koala.png')}) \n\n These ones are really cute!")
-    found_koalas_step.add_comment(f"Here is another one: ![sleepy_koala]({env_creator_path.parent.parent.parent.joinpath('test', 'testing_images', 'koalas', 'sleepy_koala.png')}) \n\n omg look at this one sleep")
+    found_koalas_step.add_comment(
+        f"Here is the first koala I found online: ![creepy_koala]({env_creator_path.parent.parent.parent.joinpath('test', 'testing_images', 'koalas', 'creepy_koala.jpg')}) \n\n This one is freakishly creepy!", )
+    found_koalas_step.add_comment(
+        f"Here are some other ones: ![baby_koala]({env_creator_path.parent.parent.parent.joinpath('test', 'testing_images', 'koalas', 'baby_koala.png')}) \n\n These ones are really cute!", )
+    found_koalas_step.add_comment(
+        f"Here is another one: ![sleepy_koala]({env_creator_path.parent.parent.parent.joinpath('test', 'testing_images', 'koalas', 'sleepy_koala.png')}) \n\n omg look at this one sleep", )
 
     to_be_created.append((found_koalas_step, found_koalas_path))
 

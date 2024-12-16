@@ -1,9 +1,6 @@
-["config"]
-
-
 # If true the pytest fixture to create a testing environment will be run to create a fresh testing notebook.
 # The path of the notebook is the parent of the value NOTEBOOK_ROOT
-create_testing_environment = true
+create_testing_environment = false
 
 # Path of the directory containg the lair.
 # No one should ever touch it.
@@ -13,11 +10,6 @@ lairs_directory = "./test/tmp/resource"
 # Resource path. This is a path to a directory where all of the uploaded images and content will go on disk.
 # It is good practice to have it inside the volume origin to not have any unintended consequences.
 resource_path = "./test/tmp/resource"
-
-
-# Specifies the users that will be available to select in the notebook.
-# Note that this has no relation to the user and password required to login to the notebook.
-users=["Smaug", "Spyro", "Drogon", "Charizard"]
 
 # Address where the API is hosted. If deploying it on a machine this should match the URL_HOST.
 api_url_prefix="http://localhost:8000"
@@ -29,3 +21,21 @@ url_host="http://localhost:3000"
 # hostname of erver
 traefik_host="localhost"
 
+
+# Specifies the users that will be available to select in the notebook.
+# Note that this has no relation to the user and password required to login to the notebook.
+[[users]]
+name = "Smaug"
+email = "hoardmaster@lonelymountain.com"
+
+[[users]]
+name = "Spyro"
+email = "flamebro@dragonrealms.com"
+
+[[users]]
+name = "Drogon"
+email = "wingedfury@targaryenfire.com"
+
+[[users]]
+name = "Charizard"
+email = "firebreather@pokemontower.com"

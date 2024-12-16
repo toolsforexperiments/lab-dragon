@@ -10,9 +10,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import ActiveStepContentBlock from "@/app/components/StepViewerComponents/ActiveStepContentBlock";
 import Tiptap from "@/app/components/TiptapEditor/Tiptap";
 import {ExplorerContext} from "@/app/contexts/explorerContext";
+import {UserContext} from "@/app/contexts/userContext";
 
 
-import {getEntity, submitContentBlockEdition, submitNewContentBlock, deleteEntity} from "@/app/utils";
+import {deleteEntity, getEntity, submitContentBlockEdition, submitNewContentBlock} from "@/app/calls";
+import ErrorSnackbar from "@/app/components/ErrorSnackbar";
 
 const StyledStepPaper = styled(Paper)(({ theme }) => ({
     position: 'relative',
@@ -67,18 +69,16 @@ const StyledNewContentBox = styled(Box)(({ theme }) => ({
 }))
 
 
-
-
 export default function StepViewer( { stepEntity, markStepState, reloadTask } ) {
 
-    const { entitySectionIdRef } = useContext(ExplorerContext);
 
     const [step, setStep] = useState(stepEntity);
     const [isActive, setIsActive] = useState(false);
     const [parsedContentBlocksEnt, setParsedContentBlocksEnt] = useState([]);
     const [reloadEditor, setReloadEditor] = useState(0);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("Undetermined error occurred");
 
     // Holds as keys the ids of contentBlocks and as values their corresponding refs
     const contentBlocksRefs = useRef({});
@@ -86,6 +86,9 @@ export default function StepViewer( { stepEntity, markStepState, reloadTask } ) 
     const newContentBlockRef = useRef(null);  // Used to keep track of the up-to-date content of tiptap
     const stepViewerRef = useRef(null); // used to keep track of active state
     const stepRef = useRef(null);
+
+    const { activeUsersEmailStr } = useContext(UserContext);
+    const { entitySectionIdRef } = useContext(ExplorerContext);
 
     entitySectionIdRef.current[step.ID] = stepRef;
 
@@ -110,24 +113,25 @@ export default function StepViewer( { stepEntity, markStepState, reloadTask } ) 
         const newContent = contentBlocksRefs.current[activeContentBlockRef.current]
 
         if (newContent && contBlock) {
-            // FIXME: Change the user here to use the context of the selected user
             // FIXME: there is probably a more efficient way of finding the contentBlock but oh well
             const success = submitContentBlockEdition(
                 step.ID,
-                "marcos",
+                activeUsersEmailStr,
                 contBlock,
                 newContent,
             ).then(response => {
-                    if (success) {
-                        activeContentBlockRef.current = null;
-                        getEntity(step.ID).then(entity => {
-                            setStep(JSON.parse(entity));
-                        })
-                    } else {
-                        console.log("Error: content block edition failed")
-                    }
+                if (success === true) {
+                    activeContentBlockRef.current = null;
+                    getEntity(step.ID).then(entity => {
+                        setStep(JSON.parse(entity));
+                    })
+                } else {
+                    setSnackbarMessage(`Error: content block edition failed`);
+                    setSnackbarOpen(true);
+                    console.log("Error: content block edition failed")
                 }
-            )
+            }
+        )
         }
     }
 
@@ -135,15 +139,19 @@ export default function StepViewer( { stepEntity, markStepState, reloadTask } ) 
         e.preventDefault();
         const newContent = newContentBlockRef.current;
         if (newContent) {
-            const success = submitNewContentBlock(step.ID, "marcos", newContent).then(response => {
-                if (success) {
+            const success = submitNewContentBlock(step.ID,
+                activeUsersEmailStr,
+                newContent).then(response => {
+                if (response === true) {
                     getEntity(step.ID).then(entity => {
                         newContentBlockRef.current = null;
                         setReloadEditor(prev => prev+1);
                         setStep(JSON.parse(entity));
                     })
                 } else {
-                    console.log("Error: new content block submission failed")
+                    setSnackbarMessage(`Error: new content block submission failed`);
+                    setSnackbarOpen(true);
+                    console.error("Error: new content block submission failed")
                 }
             })
         }
@@ -258,6 +266,7 @@ export default function StepViewer( { stepEntity, markStepState, reloadTask } ) 
                         </Button>
                     </DialogActions>
                 </Dialog>
+            <ErrorSnackbar open={snackbarOpen} message={snackbarMessage} onClose={() => setSnackbarOpen(false)} />
             </Box>
         )
     } else {
@@ -281,6 +290,7 @@ export default function StepViewer( { stepEntity, markStepState, reloadTask } ) 
                         </Box>
                     </Box>
                 </StyledStepPaper>
+                <ErrorSnackbar open={snackbarOpen} message={snackbarMessage} onClose={() => setSnackbarOpen(false)} />
             </Box>
         )
     }

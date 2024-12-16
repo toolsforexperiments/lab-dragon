@@ -62,9 +62,17 @@ components:
         schema:
             type: "string"
 
-    username:
-      name: "username"
-      description: "The username adding content"
+    email:
+      name: "email"
+      description: "Email of the user to get"
+      in: path
+      required: true
+      schema:
+        type: "string"
+
+    user:
+      name: "user"
+      description: "The user adding content"
       in: query
       required: false
       schema:
@@ -156,7 +164,9 @@ paths:
 #        "402":
 #          description: "Cannot addd Buckets directly, use /data/buckets instead"
         "403":
-          description: "Parent cannot hold children of this type"
+          description: "Parent cannot hold children of this type or user is not in the system"
+        "404":
+          description: "Parent not found"
 
   /entities/{ID}:
     get:
@@ -190,11 +200,13 @@ paths:
       summary: "Add a comment to the entity with the given ID"
       parameters:
         - $ref: "#/components/parameters/ID"
-        - $ref: "#/components/parameters/username"
+        - $ref: "#/components/parameters/user"
         - $ref: "#/components/parameters/HTML"
       responses:
         "200":
             description: "Successfully added comment"
+        "403":
+            description: "User not found"
         "404":
             description: "Entity not found"
       requestBody:
@@ -273,7 +285,7 @@ paths:
       parameters:
           - $ref: "#/components/parameters/ID"
           - $ref: "#/components/parameters/commentID"
-          - $ref: "#/components/parameters/username"
+          - $ref: "#/components/parameters/user"
           - in: query
             name: "HTML"
             schema:
@@ -424,7 +436,7 @@ paths:
                     type: "string"
                   data_loc:
                     type: "string"
-                  username:
+                  user:
                     type: "string"
                   start_time:
                     type: "string"
@@ -433,7 +445,7 @@ paths:
                 required:
                   - bucket_ID
                   - data_loc
-                  - username
+                  - user
       responses:
         "200":
           description: "Successfully added instance"
@@ -506,10 +518,57 @@ paths:
       operationId: "dragon_core.api.entities.get_users"
       tags:
         - Properties
+        - Users
       summary: "Returns all users present in the notebook"
       responses:
         "200":
           description: "Successfully read users"
+
+    post:
+      operationId: "dragon_core.api.entities.add_user"
+      tags:
+        - Properties
+        - Users
+      summary: "Adds a new user to the system"
+      parameters:
+        - in: query
+          name: "email"
+          schema:
+            type: "string"
+          description: "The email of the user to add"
+        - in: query
+          name: "name"
+          schema:
+            type: "string"
+          description: "The name of the user to add"
+      responses:
+        "201":
+          description: "Successfully added user"
+        "400":
+          description: "User email already present in the system"
+
+  /properties/users/{email}:
+    put:
+      operationId: "dragon_core.api.entities.set_user_color"
+      tags:
+        - Properties
+        - Users
+      summary: "Sets the color of the user with the given email"
+      parameters:
+        - $ref: "#/components/parameters/email"
+        - in: query
+          name: "color"
+          required: true
+          schema:
+            type: "string"
+          description: "The color to set for the user"
+      responses:
+        "201":
+          description: "Successfully changed user color"
+        "400":
+          description: "Invalid color"
+        "404":
+          description: "User not found"
 
   /properties/types:
     get:

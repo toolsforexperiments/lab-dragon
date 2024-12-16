@@ -1,18 +1,13 @@
 "use client";
-import React, { useContext, useEffect, useState } from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import {Box, IconButton, Stack, Typography} from '@mui/material';
-import { styled } from '@mui/material/styles';
+import {styled} from '@mui/material/styles';
 
 import ProjectViewer from '../../components/ProjectViewer';
-import { ExplorerContext } from '../../contexts/explorerContext';
-import { getEntity } from "@/app/utils";
+import {ExplorerContext} from '../../contexts/explorerContext';
 import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
 import NewEntityDialog from "@/app/components/dialogs/NewEntityDialog";
-
-async function getNotebookParent(id) {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${id}/notebook_parent`);
-    return res.json();
-}
+import {getEntity, getNotebookParent} from "@/app/calls";
 
 const MainContent = styled(Box)(({ theme }) => ({
     minHeight: '100vh',

@@ -287,6 +287,8 @@ def create_simulated_env(target: Path) -> Path:
     """
     pages_to_create = []
     target = target.resolve()
+    user = ["hoardmaster@lonelymountain.com"]
+    user2 = ["firebreather@pokemontower.com", "wingedfury@targaryenfire.com"]
 
     if not target.exists():
         target.mkdir(parents=True, exist_ok=True)
@@ -301,28 +303,18 @@ def create_simulated_env(target: Path) -> Path:
     data_path.mkdir(exist_ok=True)
 
     bucket = Bucket(name='Measurements',
-                    user='Smuag')
+                    user=user)
     bucket_path = data_path / f"{bucket.ID[:8]}_Measurements.toml"
     pages_to_create.append((bucket, bucket_path))
 
-    # root = Project(name='Demo Notebook',
-    #                user='Smuag',
-    #                data_buckets=[str(bucket_path)],
-    #                comments=[
-    #                    'The following is a demo notebook written by the superconductor dragon called Smuag (any similarities with other dragons is merely a coincidence). \n'
-    #                    'Please feel free to edit as much as you want. Instructions on how to reset this notebook are in the quickstart section of the README'])
-    #
-    # root_path = Path(target, f"{root.ID[:8]}_Demo Notebook.toml").resolve()
-    # pages_to_create.append((root, root_path))
-
     library_1 = Library(name='Chocolate mk3 I',
-                        user='Smuag',
+                        user=user,
                         data_buckets=[str(bucket_path)],)
     library_1_path = target / f"{library_1.ID[:8]}_Chocolate mk3 I.toml"
     pages_to_create.append((library_1, library_1_path))
 
     notebook_1 = Notebook(name='Chocolate mk3 I Tune-up',
-                          user='Smuag',
+                          user=user,
                           parent=library_1_path,)
 
     notebook_1_path = Path(target, f"{notebook_1.ID[:8]}_Chocolate mk3 I Tune-up.toml").resolve()
@@ -330,7 +322,7 @@ def create_simulated_env(target: Path) -> Path:
     pages_to_create.append((notebook_1, notebook_1_path))
 
     qubit_characterization_project = Project(name='Chocolate mk3 I Tune-up',
-                                             user='Smuag',
+                                             user=user2,
                                              parent=notebook_1_path,
                                              # comments=['Summary of findings from the Chocolate mk3 I Tune-up:']# \n \n'
                                                        # '| Property | Value | Notes |\n'
@@ -353,7 +345,7 @@ def create_simulated_env(target: Path) -> Path:
     pages_to_create.append((qubit_characterization_project, qubit_characterization_project_path))
 
     finding_resonator_freq_task = Task(name='Finding Resonator Frequency',
-                                       user='Smuag',
+                                       user=user,
                                        parent=qubit_characterization_project_path,
                                        )
 
@@ -372,7 +364,7 @@ def create_simulated_env(target: Path) -> Path:
                                                                                     f_start=5e9, f_end=5.05e9,
                                                                                     path=finding_resonator_1_path)
     finding_resonator_1_instance = Instance(name='Finding Resonator 1',
-                                            user='Smuag',
+                                            user=user2,
                                             parent=bucket_path,
                                             data=[str(data_path_1)],
                                             )
@@ -382,7 +374,7 @@ def create_simulated_env(target: Path) -> Path:
     bucket.add_instance(finding_resonator_1_instance_path, finding_resonator_1_instance.ID)
 
     measuring_resonator_first_try_step = Step(name='First resonator measurement',
-                                              user='Smuag',
+                                              user=user,
                                               parent=finding_resonator_freq_task_path,
                                               comments=[f'Could not seem to find anything: \n ![]({raw_figure_path_1})'],
                                              )
@@ -401,7 +393,7 @@ def create_simulated_env(target: Path) -> Path:
                                                                                     f_start=5e9, f_end=5.05e9,
                                                                                     path=finding_resonator_2_path)
     finding_resonator_2_instance = Instance(name='Finding Resonator 2',
-                                            user='Smuag',
+                                            user=user,
                                             parent=bucket_path,
                                             data=[str(data_path_2)],
                                             )
@@ -411,7 +403,7 @@ def create_simulated_env(target: Path) -> Path:
     bucket.add_instance(finding_resonator_2_instance_path, finding_resonator_2_instance.ID)
 
     measuring_resonator_second_try_step = Step(name='Second resonator measurement',
-                                               user='Smuag',
+                                               user=user2,
                                                parent=finding_resonator_freq_task_path,
                                                comments=[f'Found it at 5.025GHz! \n ![]({fit_figure_path_2})'],
                                                 )
@@ -421,7 +413,7 @@ def create_simulated_env(target: Path) -> Path:
     pages_to_create.append((measuring_resonator_second_try_step, measuring_resonator_second_try_step_path))
 
     time.sleep(0.5)
-    finding_resonator_freq_task.add_comment(f'Done with frequency, moving on to optimizing pi-pulse')
+    finding_resonator_freq_task.add_comment(f'Done with frequency, moving on to optimizing pi-pulse', )
 
     power_rabi_path = data_path / 'power_rabi'
     power_rabi_path.mkdir(exist_ok=True)
@@ -432,7 +424,7 @@ def create_simulated_env(target: Path) -> Path:
     data_path_power_rabi, raw_figure_path_power_rabi, fit_figure_path_power_rabi = simulate_power_rabi(t_start=-1.9, t_end=1.9, path=power_rabi_path)
 
     power_rabi_instance = Instance(name='Power Rabi',
-                                   user='Smuag',
+                                   user=user,
                                    parent=bucket_path,
                                    data=[str(data_path_power_rabi)],)
 
@@ -441,7 +433,7 @@ def create_simulated_env(target: Path) -> Path:
     bucket.add_instance(power_rabi_instance_path, power_rabi_instance.ID)
 
     # calibrating_power_rabi_step = Step(name='Calibrating Power Rabi',
-    #                                    user='Smuag',
+    #                                    user=user,
     #                                    parent=qubit_characterization_project_path,
     #                                    comments=[f"![]({fit_figure_path_power_rabi}) \n"
     #                                              f"Looks good. Pi pulse amp at 0.065 a,p. With pi pulse sigma of 40 "
@@ -453,7 +445,7 @@ def create_simulated_env(target: Path) -> Path:
     # pages_to_create.append((calibrating_power_rabi_step, calibrating_power_rabi_step_path))
 
     coherence_times_measurements_task = Task(name='Doing coherence measurements now',
-                                             user='Smuag',
+                                             user=user,
                                              parent=qubit_characterization_project_path,
                                              )
 
@@ -471,7 +463,7 @@ def create_simulated_env(target: Path) -> Path:
     data_path_t1, raw_figure_path_t1, fit_figure_path_t1 = simulate_t1(t_start=0, t_end=300, A=5.82e-05, of=-6.33e-06, tau=3.12e01, path=t1_measurement_path)
 
     t1_measurement_instance = Instance(name='T1 Measurement',
-                                       user='Smuag',
+                                       user=user2,
                                        parent=bucket_path,
                                        data=[str(data_path_t1)],)
 
@@ -480,7 +472,7 @@ def create_simulated_env(target: Path) -> Path:
     bucket.add_instance(t1_measurement_instance_path, t1_measurement_instance.ID)
 
     t1_measurement_step = Step(name='T1 Measurement',
-                                 user='Smuag',
+                                 user=user,
                                  parent=coherence_times_measurements_path,
                                  comments=[f"![]({fit_figure_path_t1}) \n"
                                           f"31.2 us. Comparable to last time, and I can live with this"],)
@@ -499,7 +491,7 @@ def create_simulated_env(target: Path) -> Path:
     data_path_t2_ramsey, raw_figure_path_t2_ramsey, fit_figure_path_t2_ramsey = simulate_t2(t_start=0, t_end=80, A=3.00e-5, of=-1.11e-07, phi=8.10e01, f=2.95e-01, tau=2.87e01, path=t2_ramsey_measurement_path)
 
     t2_ramsey_measurement_instance = Instance(name='T2 Ramsey Measurement',
-                                              user='Smuag',
+                                              user=user,
                                               parent=bucket_path,
                                               data=[str(data_path_t2_ramsey)],)
 
@@ -509,7 +501,7 @@ def create_simulated_env(target: Path) -> Path:
     bucket.add_instance(t2_ramsey_measurement_instance_path, t2_ramsey_measurement_instance.ID)
 
     t2_ramsey_measurement_step = Step(name='T2 Ramsey Measurement',
-                                      user='Smuag',
+                                      user=user,
                                       parent=coherence_times_measurements_path,
                                       comments=[f"!Now for the real moment of truth. Last time it was like 6 us at "
                                                 f"best \n[]({fit_figure_path_t2_ramsey}) \n"
@@ -528,7 +520,7 @@ def create_simulated_env(target: Path) -> Path:
                                                   "as many of the screws for the clamps as I could, and moved the "
                                                   "copper braid to the top clamp (because I was worried putting it on "
                                                   "the bottom clamp would not allow for use to really tighten the "
-                                                  "screw on for the bottom clamp and cause it be loose)")
+                                                  "screw on for the bottom clamp and cause it be loose)", )
 
     t2_echo_measurement_path = data_path / 't2_echo_measurement'
     t2_echo_measurement_path.mkdir(exist_ok=True)
@@ -539,7 +531,7 @@ def create_simulated_env(target: Path) -> Path:
     data_path_t2_echo, raw_figure_path_t2_echo, fit_figure_path_t2_echo = simulate_t2(t_start=0, t_end=80, A=3.00e-05, of=-1.11e-07, phi=8.10e01, f=2.95e-01, tau=2.87e01, path=t2_echo_measurement_path)
 
     t2_echo_measurement_instance = Instance(name='T2 Echo Measurement',
-                                            user='Smuag',
+                                            user=user,
                                             parent=bucket_path,
                                             data=[str(data_path_t2_echo)],)
 
@@ -549,7 +541,7 @@ def create_simulated_env(target: Path) -> Path:
     bucket.add_instance(t2_echo_measurement_instance_path, t2_echo_measurement_instance.ID)
 
     t2_echo_measurement_step = Step(name='T2 Echo Measurement',
-                                    user='Smuag',
+                                    user=user,
                                     parent=coherence_times_measurements_path,
                                     comments=[f"![]({fit_figure_path_t2_echo}) \n"
                                               f"37 us, not badd. Seems like there is still some slow noise limiting "
@@ -559,7 +551,7 @@ def create_simulated_env(target: Path) -> Path:
     pages_to_create.append((t2_echo_measurement_step, t2_echo_measurement_step_path))
 
     qubit_characterization_project.add_comment("Now let's check Van IV, the other qubit connected,"
-                                               " to see if it is still good")
+                                               " to see if it is still good", )
 
     for item, item_path in pages_to_create:
         item.to_TOML(item_path)

@@ -1,10 +1,13 @@
 "use client"
 
-
+import { useState, useContext } from 'react';
 import Draggable from 'react-draggable';
 import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Paper} from "@mui/material";
 
-import {createEntity} from "@/app/utils";
+
+import {createEntity} from "@/app/calls";
+import {UserContext} from "@/app/contexts/userContext";
+import ErrorSnackbar from "@/app/components/ErrorSnackbar";
 
 function PaperComponent(props) {
     return (
@@ -18,6 +21,11 @@ function PaperComponent(props) {
   }
 
 export default function NewEntityDialog({ user, type, parentName, parentID,  open, onClose, reloadParent }) {
+    const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("Undefined error");
+
+    const { activeUsersEmailStr } = useContext(UserContext);
+
 
     return (
         <Dialog
@@ -30,11 +38,16 @@ export default function NewEntityDialog({ user, type, parentName, parentID,  ope
                 component: 'form',
                 onSubmit: (e) => {
                     e.preventDefault();
-                    const success = createEntity(e.target.name.value, user, type, parentID).then(() => {
-                        if (success) {
+                    const success = createEntity(e.target.name.value,
+                        activeUsersEmailStr,
+                        type,
+                        parentID).then((response) => {
+                        if (response === true) {
                             reloadParent();
                             onClose();
                         } else {
+                            setErrorMessage("Error creating new entity");
+                            setErrorSnackbarOpen(true);
                             console.error("Error creating new entity");
                         }
                     });
@@ -61,6 +74,7 @@ export default function NewEntityDialog({ user, type, parentName, parentID,  ope
                 <Button onClick={onClose}>Cancel</Button>
                 <Button type="submit">Create</Button>
             </DialogActions>
+            <ErrorSnackbar open={errorSnackbarOpen} message={errorMessage} onClose={() => setErrorSnackbarOpen(false)}/>
         </Dialog>
     )
 }

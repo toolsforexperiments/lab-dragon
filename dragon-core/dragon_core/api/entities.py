@@ -85,9 +85,6 @@ IMAGEINDEX = {}
 
 INSTANCEIMAGE = {}
 
-# Holds all of the users that exists in the notebook
-USERS: set = set()
-
 
 def set_initial_indices():
     global LOADING_FROM_ENV
@@ -105,7 +102,6 @@ def set_initial_indices():
     global UUID_TO_PATH_INDEX
     global IMAGEINDEX
     global INSTANCEIMAGE
-    global USERS
 
     if not LOADING_FROM_ENV:
         ROOTPATH = Path()
@@ -115,7 +111,7 @@ def set_initial_indices():
         RESOURCEPATH = Path(CONFIG['resource_path'])
         
         # Holds all of the users that exists in the notebook
-        USERS = set(copy.copy(CONFIG['users']))
+        config_users = copy.copy(CONFIG['users'])
 
         # Used for images
         api_url_prefix = CONFIG['api_url_prefix']
@@ -129,9 +125,9 @@ def set_initial_indices():
         RESOURCEPATH = Path(os.getenv("RESOURCE_PATH"))
         
         # Holds all of the users that exists in the notebook
-        USERS = set(copy.copy(os.getenv("USERS")))
-        if isinstance(USERS, str):
-            USERS = json.loads(USERS)
+        config_users = copy.copy(os.getenv("USERS"))
+        if isinstance(config_users, str):
+            config_users = json.loads(config_users)
 
         # Used for images
         api_url_prefix = os.getenv("API_URL_PREFIX")
@@ -140,7 +136,11 @@ def set_initial_indices():
     set_api_url_prefix_and_host(api_url_prefix, url_host)
 
     DRAGONLAIR = DragonLair(LAIRSPATH)
-    # FIXME: This can be refactored in a way that I don't need 4 different global variables.
+
+    # Handles users that are in the config.
+    for user_email, user_name in config_users.items():
+        if user_email not in DRAGONLAIR.users:
+            DRAGONLAIR.add_user(user_email, user_name)
 
     # List of classes that can contain children. Only Project and Task can contain children for now.
     PARENT_TYPES = ["Library", "Notebook", "Project", "Task"]
@@ -176,7 +176,7 @@ def set_initial_indices():
 
 def reset():
     set_initial_indices()
-    load_system()
+    load_all_entities()
 
 
 def get_indices():
@@ -241,6 +241,21 @@ def comment_path_to_uuid(content: str):
     return replaced_s
 
 
+def _parse_and_validate_user(users_str) -> list[str]:
+    if "'" in users_str or '"' in users_str:
+        input_users = json.loads(users_str)
+        input_users = [str(user).replace(" ", "") for user in input_users]
+    elif isinstance(users_str, str):
+        input_users = users_str.replace(" ", "").split(",")
+    else:
+        raise ValueError("User input is not a string")
+
+    for user in input_users:
+        if user not in DRAGONLAIR.users:
+            abort(403, f"User '{user}' not found")
+    return input_users
+
+
 class MediaTypes(Enum):
     """
     Enum that contains the different types of images that are supported
@@ -284,9 +299,6 @@ def add_ent_to_index(entity: Entity, entity_path: Union[Path, str]) -> None:
 
     if entity.ID not in UUID_TO_PATH_INDEX:
         UUID_TO_PATH_INDEX[entity.ID] = str(entity_path)
-
-    # Add the user to the user index
-    USERS.add(entity.user)
 
     # Add the entity type to the entity type index
     # ENTITY_TYPES.add(entity.__class__.__name__)
@@ -390,9 +402,6 @@ def recursively_load_entity(entity_path: Path):
 
     add_ent_to_index(ent, entity_path)
 
-    # Add the user to the user index
-    USERS.add(ent.user)
-
     child_list = []
     if len(ent.children) > 0:
         for child in ent.children:
@@ -429,7 +438,7 @@ def health_check():
     return make_response("Server is running", 201)
 
 
-def load_system():
+def load_all_entities():
     """
     Function that reads all the entities and return a dictionary with nested entities
     :return:
@@ -437,7 +446,7 @@ def load_system():
 
     for dragon_library in DRAGONLAIR.libraries:
         ret_dict, library = recursively_load_entity(dragon_library.path)
-        DRAGONLAIR.insert_instance(library)
+        DRAGONLAIR.insert_library_instance(library)
 
     # We replace the parent and children after we are done going through all identities to make sure that
     # the parent is already in the index, there might be edge cases where a lower entity in the tree has a parent
@@ -490,7 +499,7 @@ def read_one(ID, name_only=False):
         abort(405, "That ID belongs to the lair, you should not be accessing it directly.")
 
     if ID not in INDEX:
-        load_system()
+        load_all_entities()
 
     if ID in INDEX:
         ent = INDEX[ID]
@@ -695,13 +704,13 @@ def read_entity_info(ID):
     return make_response(json.dumps({"rank": rank, "num_children": num_children}), 201)
 
 
-def add_comment(ID, body, username: Optional[str] = None, HTML: bool = False):
+def add_comment(ID, body, user: str, HTML: bool = False):
     """
     Adds a comment to the indicated entity. It does not handle images or tables yet.
 
     :param ID: The id of the entity the comment should be added to.
     :param body: The text of the comment itself.
-    :param username: Optional argument. If passed, the author of the comment will be that username instead of the
+    :param user: Optional argument. If passed, the author of the comment will be that username instead of the
      user of the entity.
     :param HTML: If true, the comment text is assumed to be in html form and is converted to markdown.
     """
@@ -710,15 +719,15 @@ def add_comment(ID, body, username: Optional[str] = None, HTML: bool = False):
         abort(404, f"Entity with ID {ID} not found")
 
     ent = INDEX[ID]
-    if username is None:
-        username = ent.user
+
+    user = _parse_and_validate_user(user)
 
     if HTML:
         content = html_to_markdown.convert(body)
     else:
         content = body
 
-    ent.add_comment(content, username)
+    ent.add_comment(content, user)
 
     # After adding the comment update the file location
     ent_path = Path(UUID_TO_PATH_INDEX[ID])
@@ -728,10 +737,12 @@ def add_comment(ID, body, username: Optional[str] = None, HTML: bool = False):
     return make_response("Comment added", 201)
 
 
-def edit_comment(ID, commentID, body, username: Optional[str] = None, HTML: bool = False):
+def edit_comment(ID, commentID, body, user, HTML: bool = False):
 
     if ID not in INDEX:
         abort(404, f"Entity with ID {ID} not found")
+
+    user = _parse_and_validate_user(user)
 
     ent = INDEX[ID]
 
@@ -739,7 +750,7 @@ def edit_comment(ID, commentID, body, username: Optional[str] = None, HTML: bool
         body = html_to_markdown.convert(body)
 
     try:
-        ret = ent.modify_comment(commentID, body, username)
+        ret = ent.modify_comment(commentID, body, user)
         if ret:
             # Convert uuids in the entity to paths
             path_copy = create_path_entity_copy(ent)
@@ -764,7 +775,9 @@ def add_library(body):
     if "user" not in body or body['user'] == "":
         abort(400, "User of library is required")
 
-    library = Library(name=body['name'], user=body['user'])
+    user = _parse_and_validate_user(body['user'])
+
+    library = Library(name=body['name'], user=user)
     lib_path = LAIRSPATH.joinpath(library.ID[:8] + '_' + library.name + '.toml')
 
     path_copy = create_path_entity_copy(library)
@@ -797,6 +810,11 @@ def add_entity(body):
     if "user" not in body or body['user'] == "":
         abort(400, "User of entity is required")
 
+    user = _parse_and_validate_user(body['user'])
+
+    if body["parent"] not in INDEX:
+        abort(404, f"Parent entity with ID {body['parent']} not found")
+
     if body["type"] == "Library":
         abort(401, "You cannot add a library through this endpoint")
 
@@ -808,7 +826,7 @@ def add_entity(body):
         abort(403, f"The parent of type: {parent.__class__.__name__} cannot have children of type: {body['type']}")
 
     cls = ALL_TYPES[body["type"]]
-    ent = cls(name=body["name"], parent=body["parent"], user=body["user"])
+    ent = cls(name=body["name"], parent=body["parent"], user=user)
     parent_path = Path(UUID_TO_PATH_INDEX[parent.ID])
     ent_path = parent_path.parent.joinpath(ent.ID[:8] + "_" + ent.name + ".toml")
 
@@ -999,7 +1017,6 @@ def get_notebook_parent(ID):
     return str(_check_for_notebook_parent(ent)), 201
 
 
-
 def get_all_libraries():
 
     libraries = {}
@@ -1009,12 +1026,31 @@ def get_all_libraries():
     return make_response(json.dumps(libraries), 201)
 
 
+def add_user(email, name):
+    """
+    Adds a user to the system
+    """
+    try:
+        DRAGONLAIR.add_user(email, name)
+        return make_response("User added", 201)
+    except ValueError as e:
+        abort(400, str(e))
+
+
 def get_users():
     """
     API function that returns the list of users
     :return: json representation of a list of all the users in the system.
     """
-    return json.dumps(list(USERS)), 201
+    return json.dumps([u.__dict__ for u in DRAGONLAIR.users.values()]), 201
+
+
+def set_user_color(email, color, *args, **kwargs):
+    try:
+        DRAGONLAIR.set_user_color(email, color)
+        return make_response("User color set", 201)
+    except ValueError as e:
+        abort(404, str(e))
 
 
 def get_types():
@@ -1146,7 +1182,7 @@ def add_instance(body):
     data_path = body['data_loc']
     if "username" not in body or body['username'] == "":
         abort(404, f"Username is required")
-    username = body['username']
+    username = _parse_and_validate_user(body['username'])
 
     start_time = body.get('start_time', None)
     end_time = body.get('end_time', None)

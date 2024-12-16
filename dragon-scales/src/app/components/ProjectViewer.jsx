@@ -16,11 +16,11 @@ import {
 import TaskViewer from "@/app/components/TaskViewerComponents/TaskViewer";
 import SearchIcon from '@mui/icons-material/Search';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
-import {deleteEntity, getEntity} from "@/app/utils";
 import NewEntityDialog from "@/app/components/dialogs/NewEntityDialog";
 import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
 import { ExplorerContext } from "@/app/contexts/explorerContext";
 import DeleteIcon from "@mui/icons-material/Delete";
+import {deleteEntity, getEntity} from "@/app/calls";
 
 
 const StyledDeleteButton = styled(IconButton)(({ theme }) => ({

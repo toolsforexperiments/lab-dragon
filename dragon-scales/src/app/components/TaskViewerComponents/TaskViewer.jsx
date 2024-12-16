@@ -5,12 +5,16 @@ import { Typography, Paper, Stack, Breadcrumbs, Box, Divider, IconButton, Button
 import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 import ViewCompactIcon from "@mui/icons-material/ViewCompact";
 import DeleteIcon from '@mui/icons-material/Delete';
+
 import Tiptap from "@/app/components/TiptapEditor/Tiptap";
 import StepViewer from "../StepViewerComponents/StepViewer";
 import TaskContentViewer from "./TaskContentViewer";
-import {deleteEntity, getEntity, sortAndFilterChildren, submitNewContentBlock} from "@/app/utils";
+import {sortAndFilterChildren} from "@/app/utils";
 import NewEntityDialog from "@/app/components/dialogs/NewEntityDialog";
+import {deleteEntity, getEntity, submitNewContentBlock} from "@/app/calls";
+import {UserContext} from "@/app/contexts/userContext";
 import { ExplorerContext } from "@/app/contexts/explorerContext";
+import ErrorSnackbar from "@/app/components/ErrorSnackbar";
 
 const StyledDeleteButton = styled(IconButton)(({ theme }) => ({
     position: 'absolute',
@@ -49,8 +53,6 @@ const StyledNewContentBox = styled(Box)(({ theme }) => ({
 
 export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject }) {
 
-    const { entitySectionIdRef } = useContext(ExplorerContext);
-
     const [task, setTask] = useState(taskEntity);
     const [steps, setSteps] = useState([]);
     const [activeSteps, setActiveSteps] = useState({});
@@ -58,8 +60,14 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
     const [reloadEditor, setReloadEditor] = useState(0);
     const [newEntityDialogOpen, setNewEntityDialogOpen] = useState(false);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [snackbarOpen, setSnackbarOpen] = useState(false);
+    const [snackbarMessage, setSnackbarMessage] = useState("Undefined error");
+
     const taskRef = useRef(null);
     const newContentBlockRef = useRef(null);
+
+    const { entitySectionIdRef } = useContext(ExplorerContext);
+    const { activeUsersEmailStr } = useContext(UserContext)
 
     entitySectionIdRef.current[task.ID] = taskRef;
 
@@ -79,12 +87,16 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
         e.preventDefault()
         const newContent = newContentBlockRef.current;
         if (newContent) {
-            const success = submitNewContentBlock(task.ID, "marcos", newContent).then(() => {
-                if (success) {
+            const success = submitNewContentBlock(task.ID,
+                activeUsersEmailStr,
+                newContent).then((response) => {
+                if (response === true) {
                     newContentBlockRef.current = null;
                     setReloadEditor(reloadEditor + 1);
                     reloadTask();
                 } else {
+                    setSnackbarMessage("Error submitting new content block");
+                    setSnackbarOpen(true);
                     console.error("Error submitting content block edition");
                 }
             })
@@ -246,6 +258,7 @@ export default function TaskViewer({ taskEntity, breadcrumbsText, reloadProject 
                     </Button>
                 </DialogActions>
             </Dialog>
+            <ErrorSnackbar open={snackbarOpen} message={snackbarMessage} onClose={() => setSnackbarOpen(false)} />
         </Box>
     )
 }
