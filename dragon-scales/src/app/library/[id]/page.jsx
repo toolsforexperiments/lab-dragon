@@ -1,116 +1,63 @@
 "use client";
-import React, {useContext, useEffect, useState} from 'react';
-import {Box, IconButton, Stack, Typography} from '@mui/material';
-import {styled} from '@mui/material/styles';
+import { useEffect, useState } from "react";
 
-import ProjectViewer from '../../components/ProjectViewer';
-import {ExplorerContext} from '../../contexts/explorerContext';
-import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
-import NewEntityDialog from "@/app/components/dialogs/NewEntityDialog";
-import {getEntity, getNotebookParent} from "@/app/calls";
+import { Box, Typography } from "@mui/material";
 
-const MainContent = styled(Box)(({ theme }) => ({
-    minHeight: '100vh',
-    padding: theme.spacing(2),
-    paddingBottom: theme.spacing(10),
-    paddingLeft: 64,
-    backgroundColor: '#4C9DFC',
-    [theme.breakpoints.up('sm')]: {
-        padding: theme.spacing(10),
-        paddingLeft: `calc(64px + ${theme.spacing(10)})`,
-    },
-    transition: theme.transitions.create(['margin', 'width'], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
-    }),
-}));
+import ErrorSnackbar from "@/app/components/ErrorSnackbar";
+import { getEntity } from "@/app/calls";
 
 
-export default function Library() {
+export default function Library({ params }) {
 
-    const openDrawerWidth = 24;
-    const closedDrawerWidth = -8;
+    const [library, setLibrary] = useState({});
 
-    const { drawerOpen, currentlySelectedItem, entitySectionIdRef } = useContext(ExplorerContext);
-    const [ notebook, setNotebook ] = useState({ID: null});
-    const [ topLevelProjects, setTopLevelProjects ] = useState(null);
-    const [ newProjectDialogOpen, setNewProjectDialogOpen ] = useState(false);
+    const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
+    const [errorSnackbarMessage, setErrorSnackbarMessage] = useState("");
 
-    const handleOpenNewProjectDialog = () => {
-        setNewProjectDialogOpen(true);
-    }
-
-    const handleCloseNewProjectDialog = () => {
-        setNewProjectDialogOpen(false);
-    }
-
-    const reloadNotebook = () => {
-        getEntity(notebook.ID).then(newNotebook => {
-            setNotebook(JSON.parse(newNotebook));
-        });
-    }
 
     useEffect(() => {
-        if (currentlySelectedItem) {
-            getNotebookParent(currentlySelectedItem).then(data => {
-                if (data && data !== notebook.ID) {
-                    getEntity(data).then(notebookData => {
-                        setNotebook(JSON.parse(notebookData));
-                    })
-                }
-            });
-            if (entitySectionIdRef.current[currentlySelectedItem]) {
-                const itemRef = entitySectionIdRef.current[currentlySelectedItem];
-                if (itemRef.current) itemRef.current.scrollIntoView({ behavior: 'smooth' });
+        getEntity(params.id).then((data) => {
+            if (data) {
+                setLibrary(JSON.parse(data));
+            } else {
+                setLibrary(null)
+                setErrorSnackbarOpen(true);
+                setErrorSnackbarMessage("Error getting library");
+
             }
-
-        }
-    }, [currentlySelectedItem]);
-
-  useEffect(() => {
-        if (notebook.ID) {
-          Promise.all(notebook.children.map(child => getEntity(child))).then(projects => {
-            const newTopLevelProjects = projects.map(project => JSON.parse(project));
-            setTopLevelProjects(newTopLevelProjects);
-          })
-        }
-      }, [notebook]);
+        });
+    }, [params.id]);
 
 
-    return(
-        // marginLeft is here because it is dynamically set by the drawer state so it needs to be set in the component.
-        <MainContent marginLeft={drawerOpen ? openDrawerWidth : closedDrawerWidth}>
-            {notebook.name ? (
-                <Typography variant="h3" paddingTop={-10} marginTop={-5} paddingBottom={2}>Currently Looking at Notebook: <em>{notebook.name}</em></Typography>
+    console.log(library);
+    return (
+        <Box>
+            {library === null ? (
+                <Typography variant="h1">Error loading library. Please try again.</Typography>
+            ) : Object.keys(library).length === 0 ? (
+                <Typography variant="h6">Loading...</Typography>
             ) : (
-                <Typography variant="h3" paddingTop={-10} marginTop={-5} paddingBottom={2}>Please select a Notebook</Typography>
+                <Box>
+                    <Typography variant="h1">{library.name}</Typography>
+                    <Typography variant="h3">{JSON.stringify(library)}</Typography>
+                </Box>
             )}
-            <Stack flexGrow={2} spacing={2} direction='column'>
-                {topLevelProjects && topLevelProjects.map(project => (
-                    <ProjectViewer key={project.ID}
-                                   projectEntity={project}
-                                   notebookName={notebook.name}
-                                    reloadNotebook={reloadNotebook}/>
-                ))}
-                {notebook.ID && (
-                    <Box>
-                        <Box display="flex" flexDirection="column" alignItems="center" paddingTop={2}>
-                            <IconButton onClick={handleOpenNewProjectDialog}>
-                                <AddBoxOutlinedIcon sx={{color: "white"}} />
-                            </IconButton>
-                        </Box>
-                        <NewEntityDialog
-                            user="marcos"
-                            type="Project"
-                            parentName={notebook.name}
-                            parentID={notebook.ID}
-                            open={newProjectDialogOpen}
-                            onClose={handleCloseNewProjectDialog}
-                            reloadParent={reloadNotebook}
-                        />
-                    </Box>
-                )}
-            </Stack>
-        </MainContent>
+            <ErrorSnackbar
+                open={errorSnackbarOpen}
+                message={errorSnackbarMessage}
+                onClose={() => setErrorSnackbarOpen(false)}
+            />
+        </Box>
     )
+
+
+
 }
+
+
+
+
+
+
+
+

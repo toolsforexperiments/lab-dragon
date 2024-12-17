@@ -1,6 +1,12 @@
 export async function getEntity(id) {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${id}`);
-    return await res.json();
+    
+    if (res.status === 201) {
+        return await res.json();
+    } else {
+        return null;
+    }
+
 }
 
 export async function submitContentBlockEdition(entID, user, contentBlock, newContent) {
