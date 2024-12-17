@@ -93,7 +93,7 @@ export default function NotebookAccordion({ notebookStructure, onSelectedItemsCh
         <NotebookAccordions key={notebookStructure.id}>
             <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
                 <EntIcon type={notebookStructure.type} />
-                <Typography variant="h6">{notebookStructure.name}</Typography>
+                <Typography variant="h5">{notebookStructure.name}</Typography>
             </AccordionSummary>
             <AccordionDetails>
                 {Object.keys(notebookStructure.children).length === 0 ? (

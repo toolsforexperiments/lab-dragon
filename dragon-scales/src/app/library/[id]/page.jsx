@@ -33,6 +33,7 @@ const DraggableBox = styled(Box)(({ theme }) => ({
     width: '8px',
     backgroundColor: 'grey.300',
     cursor: 'col-resize',
+    marginRight: "10px",
     '&:hover': {
         backgroundColor: theme.palette.primary.main,
     },

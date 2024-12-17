@@ -69,14 +69,11 @@ export default function ExplorerDrawer({libraryId, open, onClose, drawerWidth}) 
             ) : Object.keys(libraryStructure).length === 0 ? (
                 <Typography variant="h6">Loading...</Typography>
             ) : (
-                <Stack flexGrow={1}>
-                    <Typography variant="h6">Explorer</Typography>
-                    <Stack spacing={2}>
-                        {libraryStructure.children && libraryStructure.children.map(child => (
-                            <NotebookAccordion notebookStructure={child} onSelectedItemsChange={handleEntitySelect} selectedEntity={selectedEntity} />
-                        ))}
+                <Stack flexGrow={2}>
+                    {libraryStructure.children && libraryStructure.children.map(child => (
+                        <NotebookAccordion notebookStructure={child} onSelectedItemsChange={handleEntitySelect} selectedEntity={selectedEntity} />
+                    ))}
                 </Stack>
-            </Stack>
             )}
         </StyledDrawer>
     )
