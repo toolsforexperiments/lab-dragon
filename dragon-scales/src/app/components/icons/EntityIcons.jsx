@@ -2,7 +2,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import MenuBookIcon from '@mui/icons-material/MenuBook';
 import AssignmentIcon from '@mui/icons-material/Assignment';
 import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
-
+import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
 
 export function LibraryIcon(props) {
     return (
@@ -51,7 +51,7 @@ export function EntityIcon({type, sx, ...props}) {
         case "Step":
             return <StepIcon {...iconProps}/>
         default:
-            return null
+            return <QuestionMarkIcon {...iconProps}/>
     }
 }
 

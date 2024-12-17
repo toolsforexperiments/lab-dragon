@@ -1,24 +1,13 @@
-import { useEffect } from "react";
-import {Accordion, AccordionDetails, AccordionSummary, Typography} from "@mui/material";
+import { useRef, useEffect } from "react";
+import {Accordion, AccordionDetails, AccordionSummary, Typography, IconButton, Box} from "@mui/material";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import {styled} from "@mui/material/styles";
-import {EntityIcon} from "@/app/components/icons/EntityIcons";
 import {RichTreeView} from "@mui/x-tree-view/RichTreeView";
 import { useTreeViewApiRef } from '@mui/x-tree-view/hooks/useTreeViewApiRef';
+import { TreeItem2 } from "@mui/x-tree-view";
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 
-
-function createTreeStructure(item) {
-    // The first item sent to this function will not be included in the return
-    let ret = [];
-    if (item.children && item.children.length > 0) {
-        ret = item.children.map(child => ({
-            id: child.id,
-            label: child.name,
-            children: createTreeStructure(child)
-        }));
-    }
-    return ret;
-}
+import {EntityIcon} from "@/app/components/icons/EntityIcons";
 
 
 const EntIcon = styled(EntityIcon)(({theme}) => ({
@@ -37,9 +26,59 @@ const NotebookTree = styled(RichTreeView)(({ theme }) => ({
 }));
 
 
+const CustomTreeItem = (props) => {
+    const { label, type, selected, itemId } = props;
+
+    return (
+        <TreeItem2
+            {...props}
+            slots={{
+                label: () => (
+                    <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        width: '100%',
+                        py: 0.5
+                    }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                            <EntIcon type={type} />
+                            <Typography>{label}</Typography>
+                        </Box>
+                        {selected !== null && selected === itemId && (
+                            <IconButton size="small" onClick={(e) => e.stopPropagation()}>
+                                <MoreVertIcon fontSize="small" />
+                            </IconButton>
+                        )}
+                    </Box>
+                )
+            }}
+        />
+    );
+};
+
+
 export default function NotebookAccordion({ notebookStructure, onSelectedItemsChange, selectedEntity }) {
 
+    // Holds the ID of items as keys and all of the values needed for that item as values
+    const itemsIndex = useRef({});
     const treeApiRef = useTreeViewApiRef();
+
+    function createTreeStructure(item) {
+        // The first item sent to this function will not be included in the return
+        let ret = [];
+        itemsIndex.current[item.id] = item;
+        if (item.children && item.children.length > 0) {
+            ret = item.children.map(child => ({
+                id: child.id,
+                label: child.name,
+                type: child.type,
+                children: createTreeStructure(child)
+            }));
+            
+        }
+        return ret;
+    }
 
     useEffect(() => {
         if (selectedEntity && treeApiRef.current) {
@@ -49,7 +88,6 @@ export default function NotebookAccordion({ notebookStructure, onSelectedItemsCh
             }
         }
     }, [selectedEntity]);
-
 
     return (
         <NotebookAccordions key={notebookStructure.id}>
@@ -66,6 +104,15 @@ export default function NotebookAccordion({ notebookStructure, onSelectedItemsCh
                         items={createTreeStructure(notebookStructure)}
                         onSelectedItemsChange={onSelectedItemsChange}
                         apiRef={treeApiRef}
+                        slots={{
+                            item: CustomTreeItem,
+                        }}
+                        slotProps={{
+                            item: (itemData) => ({
+                                type: itemsIndex.current[itemData.itemId].type,
+                                selected: selectedEntity,
+                            })
+                        }}
                     />
                 )}
             </AccordionDetails>
