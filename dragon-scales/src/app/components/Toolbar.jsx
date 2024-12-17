@@ -41,7 +41,7 @@ const ToolbarButton = styled(Button)(({theme, isActive}) => ({
     padding: '0px',
     minWidth: '42px',
     color: isActive ? theme.palette.primary.darker : theme.palette.primary.main,
-    backgroundColor: isActive ? theme.palette.primary.light : theme.palette.primary.contrast,
+    backgroundColor: isActive ? theme.palette.primary.light : theme.palette.background.default,
     boxShadow: theme.shadows[2],
     '&:hover': {
         boxShadow: theme.shadows[4],
@@ -81,7 +81,6 @@ export default function Toolbar() {
             </Link>
 
             <Stack justifyContent="center" spacing={2}>
-
                 {Object.entries(libraries).map(([key, value]) => {
                     return (    
                         <Link key={value} href={`/library/${value}`}>
@@ -100,7 +99,6 @@ export default function Toolbar() {
                     <SearchIcon/>
                 </ToolbarButton>
             </Stack>
-
 
             <ToolbarAvatarGroup activeUsers={activeUsers} />
         </VerticalBar>
