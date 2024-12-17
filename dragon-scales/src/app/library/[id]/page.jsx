@@ -7,7 +7,7 @@ import { styled } from "@mui/material/styles";
 
 import ErrorSnackbar from "@/app/components/ErrorSnackbar";
 import { getEntity } from "@/app/calls";
-import ExplorerDrawer from "@/app/components/ExplorerDrawer";
+import ExplorerDrawer from "@/app/components/ExplorerDrawerComponents/ExplorerDrawer";
 
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' && prop !== 'drawerWidth' })(
@@ -96,7 +96,6 @@ export default function Library({ params }) {
             display: 'flex',
             marginLeft: '12px',
             marginTop: '12px',
-            overflow: 'hidden',
         }}>
             {library === null ? (
                 <Typography variant="h1">Error loading library. Please try again.</Typography>
