@@ -4,6 +4,7 @@ import { useEffect, useState, useRef } from "react";
 import { Box, IconButton, Stack, Typography, Button } from "@mui/material";
 import { Settings } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
+
 import ErrorSnackbar from "@/app/components/ErrorSnackbar";
 import { getEntity } from "@/app/calls";
 import ExplorerDrawer from "@/app/components/ExplorerDrawer";
@@ -42,8 +43,8 @@ export default function Library({ params }) {
 
     const [library, setLibrary] = useState({});
 
-    const [drawerWidth, setDrawerWidth] = useState(240);
-    const [drawerOpen, setDrawerOpen] = useState(false);
+    const [drawerWidth, setDrawerWidth] = useState(410);
+    const [drawerOpen, setDrawerOpen] = useState(true);
     const isDraggingRef = useRef(false);
 
     const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
@@ -113,7 +114,7 @@ export default function Library({ params }) {
 
                     <Main open={drawerOpen} drawerWidth={drawerWidth}>
                         <Stack direction="row">
-                            <ExplorerDrawer open={drawerOpen} onClose={() => { setDrawerOpen(false) }} drawerWidth={drawerWidth}/>
+                            <ExplorerDrawer libraryId={params.id} open={drawerOpen} onClose={() => { setDrawerOpen(false) }} drawerWidth={drawerWidth}/>
                             {drawerOpen && <DraggableBox onMouseDown={handleMouseDown} />}
                             <Typography variant="h3" sx={{ height: '100%', display: 'flex' }}>{JSON.stringify(library)}</Typography>
                         </Stack>

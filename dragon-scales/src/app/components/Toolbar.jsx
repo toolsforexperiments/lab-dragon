@@ -10,7 +10,7 @@ import SearchIcon from '@mui/icons-material/Search';
 import ToolbarAvatarGroup from './ToolbarAvatarGroup';
 import LogoIcon from './icons/Logo';
 import DenLogo from './icons/DenLogo';
-import LibraryIcon from './icons/LibraryIcon';
+import {LibraryIcon} from './icons/EntityIcons';
 
 import {getLibraries} from "@/app/calls";
 

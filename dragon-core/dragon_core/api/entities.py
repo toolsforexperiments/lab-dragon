@@ -486,7 +486,7 @@ def generate_structure(ID=None):
             abort(404, f"Entity with ID {ID} not found")
         ret = _generate_structure_helper(ID)
 
-    return make_response(json.dumps(ret), 201)
+    return make_response(json.dumps(ret), 200)
 
 
 # FIXME: This is a bad name, it should probably be read entity or something like that instead.

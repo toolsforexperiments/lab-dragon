@@ -22,6 +22,8 @@ export const theme = createTheme({
         background: {
             default: '#FFFFFF',
             paper: '#F9FAFB',
+            notebookAccordion: '#F3F4F6',
+            notebookAccordionDarker: '#cccccc'
         }
     },
 
