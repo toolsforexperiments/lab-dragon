@@ -1,31 +1,26 @@
 
 
 import Link from 'next/link';
-import { Box, Tooltip, Avatar } from "@mui/material";
+import { Box, Tooltip, Avatar, Button } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
 import LDAvatar from './AvatarStyled';
 import {usePathname} from "next/navigation";
 
 
-const StyledVerticalAvatars = styled(Box)(({ theme }) => ({
+const StyledVerticalAvatars = styled(Button)(({ theme }) => ({
+    width: '50px',
+    minWidth: '50px',
     display: 'flex',
     flexDirection: 'column',
     gap: theme.spacing(1),
     justifyContent: 'center',
     alignItems: 'center',
     padding: theme.spacing(1.5),
-}));
-
-const StyledLink = styled(Link)(({ theme, active }) => ({
-    width: '100%',
-    padding: theme.spacing(1.5),
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: active ? "#10B981" : 'transparent',
+    marginTop: 'auto',
+    marginBottom: '12px',
     '&:hover': {
-        backgroundColor: active ? theme.palette.primary.main : "#10B981",
+        boxShadow: theme.shadows[6],
     },
 }));
 
@@ -38,22 +33,29 @@ export default function ToolbarAvatarGroup({ activeUsers }) {
     const extraNames = extraUsers.map(([_, value]) => value.name).join(', ');
 
     return (
-        <StyledLink
-            href="/users"
-            active={pathname === '/users'}>
-            <StyledVerticalAvatars>
-                {extraCount > 0 && (
-                    <Tooltip title={extraNames}>
-                        <Avatar key="extra" bgColor="grey" name={`+${extraCount}`} alt={`+${extraCount}`}>
-                            +{extraCount}
-                        </Avatar>
-                    </Tooltip>
-                )}
-                {displayUsers.map(([key, value]) => (
-                    <LDAvatar key={key} bgColor={value.profile_color} name={value.name} alt={value.name} />
-                ))}
-            </StyledVerticalAvatars>
-        </StyledLink>
+        <Box sx={{
+                marginTop: 'auto',  // This pushes it to the bottom
+                marginBottom: '12px',
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+        }}>
+            <Link href="/users">
+                <StyledVerticalAvatars title="User Management">
+                    {extraCount > 0 && (
+                        <Tooltip title={extraNames}>
+                            <Avatar key="extra" bgColor="grey" name={`+${extraCount}`} alt={`+${extraCount}`}>
+                                +{extraCount}
+                            </Avatar>
+                        </Tooltip>
+                    )}
+                    {displayUsers.map(([key, value]) => (
+                        <LDAvatar key={key} bgColor={value.profile_color} name={value.name} alt={value.name} />
+                    ))}
+                </StyledVerticalAvatars>
+            </Link>
+        </Box>
     );
 }
 

@@ -1,10 +1,16 @@
 "use client"
 
 import Link from 'next/link';
+import {useContext} from 'react';
 import {styled} from '@mui/material/styles';
-import { Box, SvgIcon, IconButton } from "@mui/material";
+import { Box, SvgIcon, IconButton, Button, Stack } from "@mui/material";
+import SearchIcon from '@mui/icons-material/Search';
 
-import LogoIcon from './logo';
+import ToolbarAvatarGroup from './ToolbarAvatarGroup';
+import LogoIcon from './icons/Logo';
+import DenLogo from './icons/DenLogo';
+
+import {UserContext} from '../contexts/userContext';
 
 
 const VerticalBar = styled(Box)(( {theme }) => ({
@@ -21,19 +27,48 @@ const HomeButton = styled(IconButton)(({theme}) => ({
     width: '42px',
     height: '42px',
     marginTop: '12px',
+    marginBottom: '36px',
     backgroundColor: theme.palette.primary.main,
 }));
 
-export default function Toolbar() {
+const ToolbarButton = styled(Button)(({theme}) => ({
+    width: '42px',
+    height: '42px',
+    padding: '0px',
+    minWidth: '42px',
+    color: theme.palette.primary.main,
+    backgroundColor: theme.palette.primary.contrast,
+    boxShadow: theme.shadows[2],
+    '&:hover': {
+        boxShadow: theme.shadows[4],
+        backgroundColor: theme.palette.primary.light,
+    },
+}));
 
+export default function Toolbar() {
+    const { activeUsers } = useContext(UserContext);
 
     return (
         <VerticalBar>
+            
+            {/* Home Button */}
             <Link href="/">
-                <HomeButton>
+                <HomeButton title="Home">
                     <SvgIcon component={LogoIcon} />
                 </HomeButton>
             </Link>
+
+            <Stack justifyContent="center" spacing={2}>
+                <ToolbarButton title="Data Den">
+                    <DenLogo />
+                </ToolbarButton>
+                <ToolbarButton title="Search">
+                    <SearchIcon/>
+                </ToolbarButton>
+            </Stack>
+
+
+            <ToolbarAvatarGroup activeUsers={activeUsers} />
         </VerticalBar>
     );
 
