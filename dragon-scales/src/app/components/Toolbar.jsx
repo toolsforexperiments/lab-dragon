@@ -1,162 +1,85 @@
 "use client"
-import React, {useContext, useEffect, useState} from 'react';
+
 import Link from 'next/link';
-import {usePathname} from 'next/navigation';
-import {MenuBook} from '@mui/icons-material';
-import Image from 'next/image';
-import {Box, IconButton, Paper, Stack} from '@mui/material';
+import {useContext} from 'react';
 import {styled} from '@mui/material/styles';
-import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
+import { Box, SvgIcon, IconButton, Button, Stack } from "@mui/material";
+import SearchIcon from '@mui/icons-material/Search';
 
-
-import ExplorerDrawer from './ExplorerDrawer';
-import {UserContext} from '../contexts/userContext';
-import {ExplorerContext} from '../contexts/explorerContext';
-import NewLibraryDialog from './dialogs/NewLibraryDialog';
 import ToolbarAvatarGroup from './ToolbarAvatarGroup';
-import {getLibraries} from "@/app/calls";
+import LogoIcon from './icons/Logo';
+import DenLogo from './icons/DenLogo';
 
-const StyledPaper = styled(Paper)(({ theme }) => ({
+import {UserContext} from '../contexts/userContext';
+
+
+const VerticalBar = styled(Box)(( {theme }) => ({
     position: 'fixed',
-    left: 0,
-    top: 0,
-    borderRadius: 0,
-    height: '100%',
-    width: 64,
+    width: '68px',
+    height: '100vh',
     display: 'flex',
     flexDirection: 'column',
-    justifyContent: 'space-between',
-    backgroundColor: '#065F46',
-    boxShadow: theme.shadows[3],
-    zIndex: theme.zIndex.drawer + 1,
+    alignItems: 'center',
+    backgroundColor: theme.palette.primary.darker,
 }));
 
-const StyledLink = styled(Link)(({ theme, active }) => ({
-    width: '100%',
-    padding: theme.spacing(1.5),
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: active ? theme.palette.primary.main : 'transparent',
+const HomeButton = styled(IconButton)(({theme}) => ({
+    width: '42px',
+    height: '42px',
+    marginTop: '12px',
+    marginBottom: '36px',
+    backgroundColor: theme.palette.primary.main,
+}));
+
+const ToolbarButton = styled(Button)(({theme}) => ({
+    width: '42px',
+    height: '42px',
+    padding: '0px',
+    minWidth: '42px',
+    color: theme.palette.primary.main,
+    backgroundColor: theme.palette.primary.contrast,
+    boxShadow: theme.shadows[2],
     '&:hover': {
-        backgroundColor: active ? theme.palette.primary.main : theme.palette.primary.light,
+        boxShadow: theme.shadows[4],
+        backgroundColor: theme.palette.primary.light,
     },
 }));
 
-const IconContainer = styled(Box)(({ theme, active }) => ({
-    width: 40,
-    height: 40,
-    borderRadius: active ? theme.shape.borderRadius : '50%',
-    backgroundColor: theme.palette.background.paper,
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: theme.shadows[1],
-}));
-
-
 export default function Toolbar() {
-    const pathname = usePathname();
-    const [libraries, setLibraries] = useState([]);
-    const [newLibraryDialogOpen, setNewLibraryDialogOpen] = useState(false);
-    const [triggerReload, setTriggerReload] = useState(0);
-
     const { activeUsers } = useContext(UserContext);
-    const { drawerOpen, setDrawerOpen } = useContext(ExplorerContext);
-
-    const handleOpenNewLibraryDialog = () => {
-        setNewLibraryDialogOpen(true)
-    }
-
-    const handleCloseNewLibraryDialog = () => {
-        setNewLibraryDialogOpen(false);
-    }
-
-    const reloadLibraries = () => {
-        setTriggerReload(triggerReload + 1);
-    }
-
-    useEffect(() => {
-        getLibraries().then(data => {
-            setLibraries(data);
-        });
-    }, [triggerReload]);
 
     return (
-        <StyledPaper elevation={3}>
-            {/* Logo */}
-            <StyledLink href="/" active={pathname === '/' ? 1 : 0}>
-                <IconContainer active={pathname === '/' ? 1 : 0}>
-                    <Image
-                        src="/logo.png"
-                        alt="Logo"
-                        width={40}
-                        height={40}
-                        style={{ objectFit: 'cover' }}
-                    />
-                </IconContainer>
-            </StyledLink>
+        <VerticalBar>
+            
+            {/* Home Button */}
+            <Link href="/">
+                <HomeButton title="Home">
+                    <SvgIcon component={LogoIcon} />
+                </HomeButton>
+            </Link>
 
-            {/* Libraries */}
-            <Stack flexGrow={1}>
-                {Object.entries(libraries).map(([key, value]) => {
-                    const isActive = pathname === `/library/${value}`;
-                    return (
-                        <Box key={value}>
-                            <StyledLink href={`/library/${value}`} active={isActive ? 1 : 0}>
-                                <IconContainer active={isActive ? 1 : 0}>
-                                    <IconButton
-                                        title={key}
-                                        color={isActive ? 'primary' : 'default'}
-                                        size="small"
-                                        onClick={() => {
-                                            if (isActive) {
-                                                setDrawerOpen(!drawerOpen);
-                                            } else {
-                                                setDrawerOpen(true);
-                                            }
-                                        }}
-                                    >
-                                        <MenuBook />
-                                    </IconButton>
-                                </IconContainer>
-                            </StyledLink>
-                            {isActive && drawerOpen && <ExplorerDrawer open={drawerOpen} name={key} id={value} />}
-                        </Box>
-                    );
-                })}
-                <Box sx={{
-                    width: '100%',
-                    padding: 1.5,
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    backgroundColor: 'transparent',
-                    '&:hover': {
-                        backgroundColor: '#42a5f5',
-                    },
-                }}>
-                    <IconContainer active={0}>
-                        <IconButton
-                            title="Add new Library"
-                            color={'default'}
-                            size="small"
-                            onClick={handleOpenNewLibraryDialog}
-                        >
-                            <AddBoxOutlinedIcon />
-                        </IconButton>
-                    </IconContainer>
-                    <NewLibraryDialog
-                        user="marcos"
-                        open={newLibraryDialogOpen}
-                        onClose={handleCloseNewLibraryDialog}
-                        reloadParent={reloadLibraries}
-                    />
-                </Box>
-
+            <Stack justifyContent="center" spacing={2}>
+                <ToolbarButton title="Data Den">
+                    <DenLogo />
+                </ToolbarButton>
+                <ToolbarButton title="Search">
+                    <SearchIcon/>
+                </ToolbarButton>
             </Stack>
-            <ToolbarAvatarGroup activeUsers={activeUsers} />
 
-        </StyledPaper>
+
+            <ToolbarAvatarGroup activeUsers={activeUsers} />
+        </VerticalBar>
     );
+
 }
+
+
+
+
+
+
+
+
+
+

@@ -20,7 +20,7 @@ function PaperComponent(props) {
     );
   }
 
-export default function NewLibraryDialog({ user, open, onClose, reloadParent }) {
+export default function NewLibraryDialog({open, onClose, reloadParent }) {
 
 
     const [errorMessage, setErrorMessage] = useState("");
