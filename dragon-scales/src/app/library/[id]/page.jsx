@@ -1,116 +1,143 @@
 "use client";
-import React, {useContext, useEffect, useState} from 'react';
-import {Box, IconButton, Stack, Typography} from '@mui/material';
-import {styled} from '@mui/material/styles';
+import { useEffect, useState, useRef } from "react";
 
-import ProjectViewer from '../../components/ProjectViewer';
-import {ExplorerContext} from '../../contexts/explorerContext';
-import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
-import NewEntityDialog from "@/app/components/dialogs/NewEntityDialog";
-import {getEntity, getNotebookParent} from "@/app/calls";
+import { Box, IconButton, Stack, Typography, Button } from "@mui/material";
+import { Settings } from "@mui/icons-material";
+import { styled } from "@mui/material/styles";
 
-const MainContent = styled(Box)(({ theme }) => ({
-    minHeight: '100vh',
-    padding: theme.spacing(2),
-    paddingBottom: theme.spacing(10),
-    paddingLeft: 64,
-    backgroundColor: '#4C9DFC',
-    [theme.breakpoints.up('sm')]: {
-        padding: theme.spacing(10),
-        paddingLeft: `calc(64px + ${theme.spacing(10)})`,
-    },
-    transition: theme.transitions.create(['margin', 'width'], {
-        easing: theme.transitions.easing.sharp,
-        duration: theme.transitions.duration.leavingScreen,
+import ErrorSnackbar from "@/app/components/ErrorSnackbar";
+import { getEntity } from "@/app/calls";
+import ExplorerDrawer from "@/app/components/ExplorerDrawerComponents/ExplorerDrawer";
+
+
+const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' && prop !== 'drawerWidth' })(
+    ({ theme, open, drawerWidth }) => ({
+        flexGrow: 1,
+        // Controls the animations for the drawer opening and closing
+        transition: theme.transitions.create('margin', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+        }),
+        marginLeft: `-${drawerWidth}px`,
+        ...(open && {
+            marginLeft: 0,
+            transition: theme.transitions.create('margin', {
+                easing: theme.transitions.easing.easeOut,
+                duration: theme.transitions.duration.enteringScreen,
+            }),
+        }),
     }),
+);
+
+const DraggableBox = styled(Box)(({ theme }) => ({
+    width: '8px',
+    backgroundColor: 'grey.300',
+    cursor: 'col-resize',
+    marginRight: "10px",
+    '&:hover': {
+        backgroundColor: theme.palette.primary.main,
+    },
 }));
 
 
-export default function Library() {
+export default function Library({ params }) {
 
-    const openDrawerWidth = 24;
-    const closedDrawerWidth = -8;
+    const [library, setLibrary] = useState({});
 
-    const { drawerOpen, currentlySelectedItem, entitySectionIdRef } = useContext(ExplorerContext);
-    const [ notebook, setNotebook ] = useState({ID: null});
-    const [ topLevelProjects, setTopLevelProjects ] = useState(null);
-    const [ newProjectDialogOpen, setNewProjectDialogOpen ] = useState(false);
+    const [drawerWidth, setDrawerWidth] = useState(410);
+    const [drawerOpen, setDrawerOpen] = useState(true);
+    const isDraggingRef = useRef(false);
 
-    const handleOpenNewProjectDialog = () => {
-        setNewProjectDialogOpen(true);
+    const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
+    const [errorSnackbarMessage, setErrorSnackbarMessage] = useState("");
+
+    const handleDrawerOpen = () => {
+        setDrawerOpen(true);
     }
 
-    const handleCloseNewProjectDialog = () => {
-        setNewProjectDialogOpen(false);
+    const handleDrawerClose = () => {
+        setDrawerOpen(false);
     }
 
-    const reloadNotebook = () => {
-        getEntity(notebook.ID).then(newNotebook => {
-            setNotebook(JSON.parse(newNotebook));
-        });
+    const handleMouseDown = (e) => {
+        isDraggingRef.current = true;
+        document.addEventListener('mousemove', handleMouseMove);
+        document.addEventListener('mouseup', handleMouseUp);
     }
+
+    const handleMouseMove = (e) => {
+        if (isDraggingRef.current) {
+          const newWidth = e.clientX;
+          // the 80 is the width of the toolbar and the 12px margin, this needs to change if any of that changes.
+          setDrawerWidth(newWidth - 80);
+        }
+      };
+      
+      const handleMouseUp = () => {
+        isDraggingRef.current = false;
+        document.removeEventListener('mousemove', handleMouseMove);
+        document.removeEventListener('mouseup', handleMouseUp);
+      };
 
     useEffect(() => {
-        if (currentlySelectedItem) {
-            getNotebookParent(currentlySelectedItem).then(data => {
-                if (data && data !== notebook.ID) {
-                    getEntity(data).then(notebookData => {
-                        setNotebook(JSON.parse(notebookData));
-                    })
-                }
-            });
-            if (entitySectionIdRef.current[currentlySelectedItem]) {
-                const itemRef = entitySectionIdRef.current[currentlySelectedItem];
-                if (itemRef.current) itemRef.current.scrollIntoView({ behavior: 'smooth' });
+        getEntity(params.id).then((data) => {
+            if (data) {
+                setLibrary(JSON.parse(data));
+            } else {
+                setLibrary(null)
+                setErrorSnackbarOpen(true);
+                setErrorSnackbarMessage("Error getting library");
+
             }
+        });
+    }, [params.id]);
 
-        }
-    }, [currentlySelectedItem]);
-
-  useEffect(() => {
-        if (notebook.ID) {
-          Promise.all(notebook.children.map(child => getEntity(child))).then(projects => {
-            const newTopLevelProjects = projects.map(project => JSON.parse(project));
-            setTopLevelProjects(newTopLevelProjects);
-          })
-        }
-      }, [notebook]);
-
-
-    return(
-        // marginLeft is here because it is dynamically set by the drawer state so it needs to be set in the component.
-        <MainContent marginLeft={drawerOpen ? openDrawerWidth : closedDrawerWidth}>
-            {notebook.name ? (
-                <Typography variant="h3" paddingTop={-10} marginTop={-5} paddingBottom={2}>Currently Looking at Notebook: <em>{notebook.name}</em></Typography>
+    return (
+        <Box sx={{
+            display: 'flex',
+            marginLeft: '12px',
+            marginTop: '12px',
+        }}>
+            {library === null ? (
+                <Typography variant="h1">Error loading library. Please try again.</Typography>
+            ) : Object.keys(library).length === 0 ? (
+                <Typography variant="h6">Loading...</Typography>
             ) : (
-                <Typography variant="h3" paddingTop={-10} marginTop={-5} paddingBottom={2}>Please select a Notebook</Typography>
+                <Box>
+                    <Stack direction="row">
+                        <Typography variant="h3">{library.name}</Typography>
+                        <IconButton sx={{ fontSize: '2rem', color: 'black' }}>
+                            <Settings fontSize="inherit" />
+                        </IconButton>
+                        <Button onClick={() => { setDrawerOpen(!drawerOpen) }}>Open Drawer</Button>
+                    </Stack>
+
+                    <Main open={drawerOpen} drawerWidth={drawerWidth}>
+                        <Stack direction="row">
+                            <ExplorerDrawer libraryId={params.id} open={drawerOpen} onClose={() => { setDrawerOpen(false) }} drawerWidth={drawerWidth}/>
+                            {drawerOpen && <DraggableBox onMouseDown={handleMouseDown} />}
+                            <Typography variant="h3" sx={{ height: '100%', display: 'flex' }}>{JSON.stringify(library)}</Typography>
+                        </Stack>
+                    </Main>
+
+                </Box>
             )}
-            <Stack flexGrow={2} spacing={2} direction='column'>
-                {topLevelProjects && topLevelProjects.map(project => (
-                    <ProjectViewer key={project.ID}
-                                   projectEntity={project}
-                                   notebookName={notebook.name}
-                                    reloadNotebook={reloadNotebook}/>
-                ))}
-                {notebook.ID && (
-                    <Box>
-                        <Box display="flex" flexDirection="column" alignItems="center" paddingTop={2}>
-                            <IconButton onClick={handleOpenNewProjectDialog}>
-                                <AddBoxOutlinedIcon sx={{color: "white"}} />
-                            </IconButton>
-                        </Box>
-                        <NewEntityDialog
-                            user="marcos"
-                            type="Project"
-                            parentName={notebook.name}
-                            parentID={notebook.ID}
-                            open={newProjectDialogOpen}
-                            onClose={handleCloseNewProjectDialog}
-                            reloadParent={reloadNotebook}
-                        />
-                    </Box>
-                )}
-            </Stack>
-        </MainContent>
+            <ErrorSnackbar
+                open={errorSnackbarOpen}
+                message={errorSnackbarMessage}
+                onClose={() => setErrorSnackbarOpen(false)}
+            />
+        </Box>
     )
+
+
+
 }
+
+
+
+
+
+
+
+
