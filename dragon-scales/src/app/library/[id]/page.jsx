@@ -109,10 +109,10 @@ export default function Library({ params }) {
             ) : Object.keys(library).length === 0 ? (
                 <Typography variant="h6">Loading...</Typography>
             ) : (
-                <Box sx={{height: "100%", flexGrow: 1, display: "flex", flexDirection: "column"}}>
-                    <Stack direction="row">
-                        <Typography variant="h3">{library.name}</Typography>
-                        <IconButton sx={{ fontSize: '2rem', color: 'black' }}>
+                <Box sx={{height: "100%", flexGrow: 1, display: "flex", flexDirection: "column", marginLeft: "35px"}}>
+                    <Stack direction="row" alignItems="center">
+                        <Typography variant="h6">{library.name}</Typography>
+                        <IconButton sx={{ fontSize: '1rem', color: 'black' }}>
                             <Settings fontSize="inherit" />
                         </IconButton>
                         <Button onClick={() => { setDrawerOpen(!drawerOpen) }}>Open Drawer</Button>
@@ -122,9 +122,9 @@ export default function Library({ params }) {
                         <Stack direction="row" sx={{ width: "100%" }}>
                             <ExplorerDrawer libraryId={params.id} open={drawerOpen} onClose={() => { setDrawerOpen(false) }} drawerWidth={drawerWidth}/>
                             {drawerOpen && <DraggableBox onMouseDown={handleMouseDown} />}
-                            <Stack spacing={5}flexGrow={1} justifyContent="flex-start" sx={{ marginLeft: '12px', width: "100%", flexGrow: 1, minWidth: 0, overflow: "hidden" }}>
+                            <Stack spacing={5} flexGrow={1} justifyContent="flex-start" sx={{ marginLeft: '12px', width: "100%", flexGrow: 1, minWidth: 0, overflow: "hidden" }}>
                                 {library.children && library.children.map(child => (
-                                    <NotebookDisplay notebookId={child} libraryName={library.name} libraryId={library.ID} />
+                                    <NotebookDisplay key={child + "-NotebookDisplay"} notebookId={child} libraryName={library.name} libraryId={library.ID} />
                                 ))}
                             </Stack>
                         </Stack>

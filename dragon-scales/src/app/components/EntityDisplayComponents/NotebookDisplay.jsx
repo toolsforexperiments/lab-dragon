@@ -62,7 +62,7 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName }) 
                     </Stack>
                     <Stack spacing={2}>
                         {notebook.children && notebook.children.map(child => (
-                            <EntityDisplay key={child} entityId={child} />
+                            <EntityDisplay key={child + "-EntityDisplay"} entityId={child} />
                             ))}
                     </Stack>
                 </Box>

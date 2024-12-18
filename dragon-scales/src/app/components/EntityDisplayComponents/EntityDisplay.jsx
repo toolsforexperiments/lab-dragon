@@ -5,6 +5,7 @@ import { getEntity } from "@/app/calls";
 import { Box, Typography, Card, CardHeader, CardContent, Chip, Stack } from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { EntityIcon } from "../icons/EntityIcons";
+import {entityHeaderTypo} from "@/app/constants";
 
 const Header=styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'} )(
     ({ theme, entityType }) => ({
@@ -54,7 +55,7 @@ export default function EntityDisplay({ entityId }) {
                             icon={<EntityIcon type={entity.type} />} 
                             label={entity.type}
                             entityType={entity.type} />
-                            <Typography variant="h5">
+                            <Typography variant={entityHeaderTypo[entity.type]}>
                                 {entity.name}
                             </Typography>
                         </Box>

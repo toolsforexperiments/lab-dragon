@@ -18,8 +18,13 @@ const EntIcon = styled(EntityIcon)(({theme}) => ({
 
 const NotebookAccordions = styled(Accordion)(({ theme }) => ({
     backgroundColor: theme.palette.background.notebookAccordion,
+    borderRadius: '16px',
 }));
 
+
+const NotebookHeader = styled(AccordionSummary)(({ theme }) => ({
+    borderRadius: '16px',
+}));
 
 const NotebookTree = styled(RichTreeView)(({ theme }) => ({
 
@@ -43,7 +48,7 @@ const CustomTreeItem = (props) => {
                     }}>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             <EntIcon type={type} />
-                            <Typography>{label}</Typography>
+                            <Typography variant="body1">{label}</Typography>
                         </Box>
                         {selected !== null && selected === itemId && (
                             <IconButton size="small" onClick={(e) => e.stopPropagation()}>
@@ -91,10 +96,10 @@ export default function NotebookAccordion({ notebookStructure, onSelectedItemsCh
 
     return (
         <NotebookAccordions key={notebookStructure.id}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon/>}>
+            <NotebookHeader expandIcon={<ExpandMoreIcon/>}>
                 <EntIcon type={notebookStructure.type} />
                 <Typography variant="h5">{notebookStructure.name}</Typography>
-            </AccordionSummary>
+            </NotebookHeader>
             <AccordionDetails>
                 {Object.keys(notebookStructure.children).length === 0 ? (
                     <Typography variant="h6"> Notebook is empty, please create a project</Typography>

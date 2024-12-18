@@ -15,10 +15,17 @@ const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'dra
     height: "100%",
     width: drawerWidth,
     flexShrink: 0,
+    backgroundColor: "transparent",
+    borderRadius: "16px",
+    border: "none",
+
     "& .MuiDrawer-paper": {
         width: drawerWidth,
         boxSizing: "border-box",
         position: "relative",
+        backgroundColor: "transparent",
+        border: "none",
+        borderRadius: "16px",
     },
 }));
 
@@ -69,9 +76,9 @@ export default function ExplorerDrawer({libraryId, open, onClose, drawerWidth}) 
             ) : Object.keys(libraryStructure).length === 0 ? (
                 <Typography variant="h6">Loading...</Typography>
             ) : (
-                <Stack flexGrow={2}>
+                <Stack flexGrow={2} spacing={1}>
                     {libraryStructure.children && libraryStructure.children.map(child => (
-                        <NotebookAccordion notebookStructure={child} onSelectedItemsChange={handleEntitySelect} selectedEntity={selectedEntity} />
+                        <NotebookAccordion key={child.id + "-NotebookAccordion"} notebookStructure={child} onSelectedItemsChange={handleEntitySelect} selectedEntity={selectedEntity} />
                     ))}
                 </Stack>
             )}

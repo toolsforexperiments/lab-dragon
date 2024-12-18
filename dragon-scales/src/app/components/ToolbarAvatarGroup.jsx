@@ -51,7 +51,7 @@ export default function ToolbarAvatarGroup({ activeUsers }) {
                         </Tooltip>
                     )}
                     {displayUsers.map(([key, value]) => (
-                        <LDAvatar key={key} bgColor={value.profile_color} name={value.name} alt={value.name} />
+                        <LDAvatar key={key + "-LDAvatar"} bgColor={value.profile_color} name={value.name} alt={value.name} />
                     ))}
                 </StyledVerticalAvatars>
             </Link>
