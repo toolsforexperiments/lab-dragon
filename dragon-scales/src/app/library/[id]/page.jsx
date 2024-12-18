@@ -20,7 +20,9 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' && pr
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
         }),
+        marginTop: '30px',
         marginLeft: `-${drawerWidth}px`,
+        marginRight: '30px',
         ...(open && {
             marginLeft: 0,
             transition: theme.transitions.create('margin', {
@@ -120,7 +122,7 @@ export default function Library({ params }) {
                         <Stack direction="row" sx={{ width: "100%" }}>
                             <ExplorerDrawer libraryId={params.id} open={drawerOpen} onClose={() => { setDrawerOpen(false) }} drawerWidth={drawerWidth}/>
                             {drawerOpen && <DraggableBox onMouseDown={handleMouseDown} />}
-                            <Stack flexGrow={1} justifyContent="flex-start" sx={{ width: "100%", flexGrow: 1, minWidth: 0, overflow: "hidden" }}>
+                            <Stack spacing={5}flexGrow={1} justifyContent="flex-start" sx={{ marginLeft: '12px', width: "100%", flexGrow: 1, minWidth: 0, overflow: "hidden" }}>
                                 {library.children && library.children.map(child => (
                                     <NotebookDisplay notebookId={child} libraryName={library.name} libraryId={library.ID} />
                                 ))}
