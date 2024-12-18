@@ -24,6 +24,7 @@ const VerticalBar = styled(Box)(( {theme }) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    zIndex: 4000,
     backgroundColor: theme.palette.primary.darker,
 }));
 
