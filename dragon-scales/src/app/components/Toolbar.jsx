@@ -24,6 +24,7 @@ const VerticalBar = styled(Box)(( {theme }) => ({
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'center',
+    zIndex: 4000,
     backgroundColor: theme.palette.primary.darker,
 }));
 
@@ -35,20 +36,23 @@ const HomeButton = styled(IconButton)(({theme}) => ({
     backgroundColor: theme.palette.primary.main,
 }));
 
-const ToolbarButton = styled(Button)(({theme, isActive}) => ({
-    width: '42px',
-    height: '42px',
-    padding: '0px',
-    minWidth: '42px',
-    color: isActive ? theme.palette.primary.darker : theme.palette.primary.main,
-    backgroundColor: isActive ? theme.palette.primary.light : theme.palette.background.default,
-    boxShadow: theme.shadows[2],
-    '&:hover': {
-        boxShadow: theme.shadows[4],
-        color: theme.palette.primary.darker,
-        backgroundColor: theme.palette.primary.light,
-    },
-}));
+const ToolbarButton = styled(Button, { shouldForwardProp: (prop) => prop !== 'isActive' }) (
+    ({ theme, isActive }) => ({
+        width: '42px',
+        height: '42px',
+        padding: '0px',
+        minWidth: '42px',
+        color: isActive ? theme.palette.primary.darker : theme.palette.primary.main,
+        backgroundColor: isActive ? theme.palette.primary.light : theme.palette.background.default,
+        boxShadow: theme.shadows[2],
+        '&:hover': {
+            boxShadow: theme.shadows[4],
+            color: theme.palette.primary.darker,
+            backgroundColor: theme.palette.primary.light,
+        },
+    }
+));
+
 
 export default function Toolbar() {
     const pathname = usePathname();

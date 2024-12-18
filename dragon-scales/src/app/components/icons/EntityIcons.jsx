@@ -6,13 +6,13 @@ import QuestionMarkIcon from '@mui/icons-material/QuestionMark';
 
 export function LibraryIcon(props) {
     return (
-        <svg width="50" height="50" viewBox="2 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-            <g id="Library">
-                <rect x="15" y="15" width="6" height="20" fill="currentColor"/>
-                <rect x="23" y="15" width="6" height="20" fill="currentColor"/>
-                <rect x="30" y="16.6367" width="6" height="18.7468"
-                      transform="rotate(-15.8276 30 16.6367)" fill="currentColor"/>
-            </g>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <g id="Library Icon">
+        <rect id="Rectangle 58" x="2" y="3" width="3" height="18" fill="currentColor"/>
+        <rect id="Rectangle 59" x="7" y="5" width="3" height="16" fill="currentColor"/>
+        <rect id="Rectangle 60" x="12" y="3" width="3" height="18" fill="currentColor"/>
+        <rect id="Rectangle 61" x="16.2641" y="6.01709" width="3.34801" height="14.9363" transform="rotate(-9.3732 16.2641 6.01709)" fill="currentColor"/>
+        </g>
         </svg>
     )
 }

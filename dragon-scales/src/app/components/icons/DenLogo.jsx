@@ -1,13 +1,12 @@
 
 export default function DenLogo(props) {
     return (
-        <svg width="27" height="22" viewBox="0 0 27 22" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-            <g id="Group 187">
-                <path id="Vector 6"
-                      d="M25.5 20.5H4L2 15L4 13.5L3 11L6 8.5L7 5.5L10.5 6L16.5 2L20 5.5L23.5 7V12L25.5 14V20.5Z"
-                      stroke="currentColor" stroke-width="3" stroke-linejoin="round" />
-                <path id="Vector 7" d="M10 16V20.5H18L19 16L16 13L11.5 13.5L10 16Z" fill="currentColor" stroke="currentColor"
-                      stroke-width="2" stroke-linejoin="round"/>
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g id="Dragon&#39;s Den Icon">
+                <g id="Union">
+                    <path d="M15 10.1172L12 4.11719L9.32943 8.61719L7.5 6.11719L2 19.8845H6.37042L8.3733 13.3474C8.50203 12.9273 8.88998 12.6404 9.32943 12.6404H14.142C14.5814 12.6404 14.9694 12.9273 15.0981 13.3474L17.101 19.8845H22L16.5 6.61719L15 10.1172Z" fill="currentColor"/>
+                    <path d="M13.9442 15.0192C13.8155 14.599 13.4276 14.3121 12.9881 14.3121H10.4834C10.0439 14.3121 9.65598 14.599 9.52725 15.0192L8.03649 19.8845L15.435 19.8846L13.9442 15.0192Z" fill="currentColor"/>
+                </g>
             </g>
         </svg>
 
