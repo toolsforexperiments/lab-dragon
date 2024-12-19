@@ -53,6 +53,8 @@ export default function Library({ params }) {
     const [drawerWidth, setDrawerWidth] = useState(410);
     const [drawerOpen, setDrawerOpen] = useState(true);
 
+    // This is used to force a re-render of the tree when a new entity is created.
+    const [updateTrees, setUpdateTrees] = useState(0);
     const [createNotebookDialogOpen, setCreateNotebookDialogOpen] = useState(false);
     const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
     const [errorSnackbarMessage, setErrorSnackbarMessage] = useState("");
@@ -98,6 +100,10 @@ export default function Library({ params }) {
         document.removeEventListener('mouseup', handleMouseUp);
     };
 
+    const triggerUpdateTrees = () => {
+        setUpdateTrees(updateTrees + 1);
+    }
+    
     const reloadLibrary = () => {
         getEntity(params.id).then((data) => {
             if (data) {
@@ -159,11 +165,11 @@ export default function Library({ params }) {
 
                     <Main open={drawerOpen} drawerWidth={drawerWidth}>
                         <Stack direction="row" sx={{ width: "100%" }}>
-                            <ExplorerDrawer library={library} open={drawerOpen} onClose={() => { setDrawerOpen(false) }} drawerWidth={drawerWidth}/>
+                            <ExplorerDrawer library={library} open={drawerOpen} onClose={() => { setDrawerOpen(false) }} drawerWidth={drawerWidth} updateTrees={updateTrees} />
                             {drawerOpen && <DraggableBox onMouseDown={handleMouseDown} />}
-                            <Stack spacing={5} flexGrow={1} justifyContent="flex-start" sx={{ marginLeft: '12px', width: "100%", flexGrow: 1, minWidth: 0, overflow: "hidden" }}>
+                            <Stack spacing={5} flexGrow={1} justifyContent="flex-start" sx={{ marginLeft: '12px', marginBottom: '50px', width: "100%", flexGrow: 1, minWidth: 0, overflow: "hidden" }}>
                                 {library.children && library.children.map(child => (
-                                    <NotebookDisplay key={child + "-NotebookDisplay"} notebookId={child} libraryName={library.name} libraryId={library.ID} />
+                                    <NotebookDisplay key={child + "-NotebookDisplay"} notebookId={child} libraryName={library.name} libraryId={library.ID} reloadTrees={triggerUpdateTrees} />
                                 ))}
                             </Stack>
                         </Stack>

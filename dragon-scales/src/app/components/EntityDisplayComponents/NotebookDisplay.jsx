@@ -45,7 +45,7 @@ const EmptyNotebookButton = styled(Button)(({theme}) => ({
 
 
 
-export default function NotebookDisplay({ notebookId, libraryId, libraryName }) {
+export default function NotebookDisplay({ notebookId, libraryId, libraryName, reloadTrees }) {
 
 
     const [notebook, setNotebook] = useState({});
@@ -117,7 +117,7 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName }) 
                     {notebook.children && notebook.children.length > 0 ? (
                         <Stack spacing={2}>
                             {notebook.children.map(child => (
-                                <EntityDisplay key={child + "-EntityDisplay"} entityId={child} reloadParent={reloadNotebook} />
+                                <EntityDisplay key={child + "-EntityDisplay"} entityId={child} reloadParent={reloadNotebook} reloadTrees={reloadTrees} />
                             ))}
                         </Stack>
                     ) : (
@@ -125,6 +125,7 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName }) 
                             <EntityDisplay entityId={null}
                             parentId={notebook.ID} 
                             reloadParent={reloadNotebook} 
+                            reloadTrees={reloadTrees}
                             entityType="Project" 
                             toggleCreationEntityDisplay={toggleCreationEntityDisplay}
                             setParentErrorSnackbarOpen={setErrorSnackbarOpen}

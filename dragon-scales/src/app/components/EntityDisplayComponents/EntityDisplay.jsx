@@ -28,10 +28,10 @@ const NewEntityNameTextField = styled(TextField, {shouldForwardProp: (prop) => p
         },
         '& .MuiOutlinedInput-root': {
             '& fieldset': {
-                borderColor: "transparent"
+                borderColor: theme.palette.entities.text[entityType]
             },
             '&:hover fieldset': {
-                borderColor: "transparent"
+                borderColor: theme.palette.entities.text[entityType]
             },
             '&.Mui-focused fieldset': {
                 borderColor: theme.palette.entities.text[entityType]
@@ -44,6 +44,7 @@ const NewEntityNameTextField = styled(TextField, {shouldForwardProp: (prop) => p
 export default function EntityDisplay({ entityId, 
     parentId,
     reloadParent, 
+    reloadTrees,
     entityType, 
     toggleCreationEntityDisplay, 
     setParentErrorSnackbarOpen, 
@@ -54,6 +55,12 @@ export default function EntityDisplay({ entityId,
     const [newNameHolder, setNewNameHolder] = useState("");
 
     const { activeUsersEmailStr } = useContext(UserContext);
+
+    const reload = () => {
+        reloadParent();
+        reloadTrees();
+    }
+
 
     useEffect(() => {
         if (entityId) {
@@ -71,11 +78,11 @@ export default function EntityDisplay({ entityId,
         if (newNameHolder !== "") {
             createEntity(newNameHolder, activeUsersEmailStr, entityType, parentId).then((ret) => {
                 if (ret === true) {
-                    reloadParent();
+                    reload();
                 } else {
                     setParentErrorSnackbarMessage(`Error creating new ${entityType}, please try again.`);
                     setParentErrorSnackbarOpen(true);
-                    reloadParent();
+                    reload();
                 }
             });
         }
@@ -94,6 +101,7 @@ export default function EntityDisplay({ entityId,
                                 <TypeChip type={entityType} />
                                 <NewEntityNameTextField
                                     autoFocus
+                                    autoComplete="off"
                                     fullWidth
                                     label={`Enter new ${entityType} name`}
                                     value={newNameHolder}
