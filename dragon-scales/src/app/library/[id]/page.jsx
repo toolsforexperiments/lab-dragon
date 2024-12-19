@@ -127,8 +127,6 @@ export default function Library({ params }) {
         });
     }, [params.id]);
 
-    console.log("Initially loaded library: ", library);
-
     return (
         <Box sx={{
             display: 'flex',

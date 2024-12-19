@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { getEntity } from "@/app/calls";
 import { Box, Typography, Card, CardHeader, CardContent, Chip, Stack } from "@mui/material";
 import { styled } from "@mui/material/styles";
-import { EntityIcon } from "../icons/EntityIcons";
 import {entityHeaderTypo} from "@/app/constants";
+import TypeChip from "@/app/components/EntityDisplayComponents/TypeChip";
 
 const Header=styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'} )(
     ({ theme, entityType }) => ({
@@ -14,19 +14,7 @@ const Header=styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityTy
     })
 );
 
-const HeaderChip=styled(Chip, {shouldForwardProp: (prop) => prop !== 'entityType'} )(
-    ({ theme, entityType }) => ({
-        marginRight: 16,
-        marginLeft: 1,
-        color: theme.palette.entities.text[entityType],
-        backgroundColor: 'transparent',
-        border: `1px solid ${theme.palette.entities.text[entityType]}`,
-        borderRadius: 16,
-        '& .MuiChip-icon': {
-            color: theme.palette.entities.text[entityType],
-        }
-    })
-);
+
 
 export default function EntityDisplay({ entityId }) {
 
@@ -51,10 +39,7 @@ export default function EntityDisplay({ entityId }) {
             <Card sx={{ margin: 'inherit'}}>
                 <Header title={
                         <Box display="flex" alignItems="center">
-                            <HeaderChip 
-                            icon={<EntityIcon type={entity.type} />} 
-                            label={entity.type}
-                            entityType={entity.type} />
+                            <TypeChip type={entity.type} />
                             <Typography variant={entityHeaderTypo[entity.type]}>
                                 {entity.name}
                             </Typography>

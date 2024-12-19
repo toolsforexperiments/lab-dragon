@@ -1,15 +1,49 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {Box, IconButton, Stack, Typography} from "@mui/material";
 import InsertChartIcon from '@mui/icons-material/InsertChart';
 import ShareIcon from '@mui/icons-material/Share';
-import {Settings} from "@mui/icons-material";
+import {Box, IconButton, Stack, Typography, Button} from "@mui/material";
+import { Add, Settings } from "@mui/icons-material";
+import { styled } from '@mui/material/styles';
 
 import {getEntity} from "@/app/calls";
 import ErrorSnackbar from "@/app/components/ErrorSnackbar";
 import EntityBreadcrumbs from "@/app/components/EntityDisplayComponents/EntityBreadcrumbs";
 import EntityDisplay from "@/app/components/EntityDisplayComponents/EntityDisplay";
+import TypeChip from "@/app/components/EntityDisplayComponents/TypeChip";
+
+
+const DashedBox = styled(Box)(({theme}) => ({
+    display: 'flex',
+    padding: '60px',
+    flexGrow: 1,
+    minHeight: '100px',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: '8px',
+    border: `2px dashed ${theme.palette.text.secondary}`,
+}));
+
+const EmptyNotebookText = styled(Typography)(({theme}) => ({
+    color: theme.palette.text.secondary,
+}));
+
+const EmptyNotebookButton = styled(Button)(({theme}) => ({
+    border: `1px solid ${theme.palette.primary.lighter}`,
+    borderRadius: '4px',
+    color: theme.palette.primary.dark,
+
+    '& .MuiChip-root': { 
+        color: "currentColor",
+        borderColor: "currentColor"
+    },
+
+    '& .MuiSvgIcon-root': {
+        color: theme.palette.primary.dark,
+    }
+}));
+
 
 
 export default function NotebookDisplay({ notebookId, libraryId, libraryName }) {
@@ -28,7 +62,6 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName }) 
                 setNotebook(null)
                 setErrorSnackbarOpen(true);
                 setErrorSnackbarMessage("Error getting notebook with id " + notebookId + ". Please reload page and try again");
-
             }
         });
     }, [notebookId]);
@@ -60,11 +93,21 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName }) 
                             </Stack>
                         </Box>
                     </Stack>
-                    <Stack spacing={2}>
-                        {notebook.children && notebook.children.map(child => (
-                            <EntityDisplay key={child + "-EntityDisplay"} entityId={child} />
+
+                    {notebook.children && notebook.children.length > 0 ? (
+                        <Stack spacing={2}>
+                            {notebook.children && notebook.children.map(child => (
+                                <EntityDisplay key={child + "-EntityDisplay"} entityId={child} />
                             ))}
-                    </Stack>
+                        </Stack>
+                    ) : (
+                    <DashedBox>
+                        <Stack alignItems="center" justifyContent="center" spacing={2}>
+                            <EmptyNotebookText variant='h5'>This notebook is empty</EmptyNotebookText>
+                            <Button variant="outlined" title="Create a new Project">Add a new Project</Button>
+                        </Stack>
+                    </DashedBox>
+                    )}
                 </Box>
             )}
             <ErrorSnackbar
