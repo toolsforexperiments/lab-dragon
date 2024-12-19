@@ -11,7 +11,6 @@ import {getEntity} from "@/app/calls";
 import ErrorSnackbar from "@/app/components/ErrorSnackbar";
 import EntityBreadcrumbs from "@/app/components/EntityDisplayComponents/EntityBreadcrumbs";
 import EntityDisplay from "@/app/components/EntityDisplayComponents/EntityDisplay";
-import TypeChip from "@/app/components/EntityDisplayComponents/TypeChip";
 
 
 const DashedBox = styled(Box)(({theme}) => ({
@@ -51,8 +50,22 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName }) 
 
     const [notebook, setNotebook] = useState({});
 
+
+    const [displayCreationEntityDisplay, setDisplayCreationEntityDisplay] = useState(false);
     const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
     const [errorSnackbarMessage, setErrorSnackbarMessage] = useState("");
+
+    const reloadNotebook = () => {
+        getEntity(notebookId).then((data) => {
+            if (data) {
+                setNotebook(JSON.parse(data));
+            } else {
+                setNotebook(null)
+                setErrorSnackbarOpen(true);
+                setErrorSnackbarMessage("Error getting notebook with id " + notebookId + ". Please reload page and try again");
+            }
+        });
+    }
 
     useEffect(() => {
         getEntity(notebookId).then((data) => {
@@ -67,7 +80,6 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName }) 
     }, [notebookId]);
 
     return (
-
         <Box>
             {notebook === null ? (
                 <Typography variant="h3">Error loading notebook with id {notebookId} please try again</Typography>
@@ -96,17 +108,27 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName }) 
 
                     {notebook.children && notebook.children.length > 0 ? (
                         <Stack spacing={2}>
-                            {notebook.children && notebook.children.map(child => (
-                                <EntityDisplay key={child + "-EntityDisplay"} entityId={child} />
+                            {notebook.children.map(child => (
+                                <EntityDisplay key={child + "-EntityDisplay"} entityId={child} reloadParent={reloadNotebook} />
                             ))}
                         </Stack>
                     ) : (
-                    <DashedBox>
-                        <Stack alignItems="center" justifyContent="center" spacing={2}>
-                            <EmptyNotebookText variant='h5'>This notebook is empty</EmptyNotebookText>
-                            <Button variant="outlined" title="Create a new Project">Add a new Project</Button>
-                        </Stack>
-                    </DashedBox>
+                        displayCreationEntityDisplay ? (
+                            <Typography>HELLO NEW TEXT IS COMING</Typography>
+                        ) : (
+                            <DashedBox>
+                                <Stack alignItems="center" justifyContent="center" spacing={2}>
+                                    <EmptyNotebookText variant='h5'>This notebook is empty</EmptyNotebookText>
+                                    <Button
+                                        variant="outlined"
+                                        title="Create a new Project"
+                                        onClick={() => setDisplayCreationEntityDisplay(true)}
+                                    >
+                                        Add a new Project
+                                    </Button>
+                                </Stack>
+                            </DashedBox>
+                        )
                     )}
                 </Box>
             )}
@@ -119,16 +141,3 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName }) 
 
     )
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

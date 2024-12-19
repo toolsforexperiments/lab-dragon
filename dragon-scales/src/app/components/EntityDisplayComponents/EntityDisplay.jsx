@@ -16,7 +16,7 @@ const Header=styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityTy
 
 
 
-export default function EntityDisplay({ entityId }) {
+export default function EntityDisplay({ entityId, reloadParent }) {
 
     const [entity, setEntity] = useState({})
 
