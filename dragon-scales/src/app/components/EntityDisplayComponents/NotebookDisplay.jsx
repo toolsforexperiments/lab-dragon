@@ -55,10 +55,18 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName }) 
     const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
     const [errorSnackbarMessage, setErrorSnackbarMessage] = useState("");
 
+    const toggleCreationEntityDisplay = () => {
+        setDisplayCreationEntityDisplay(!displayCreationEntityDisplay);
+    }
+
     const reloadNotebook = () => {
         getEntity(notebookId).then((data) => {
             if (data) {
-                setNotebook(JSON.parse(data));
+                const parsedData = JSON.parse(data);
+                setNotebook(parsedData);
+                if (parsedData.children.length > 0) {
+                    setDisplayCreationEntityDisplay(false);
+                }
             } else {
                 setNotebook(null)
                 setErrorSnackbarOpen(true);
@@ -114,7 +122,14 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName }) 
                         </Stack>
                     ) : (
                         displayCreationEntityDisplay ? (
-                            <Typography>HELLO NEW TEXT IS COMING</Typography>
+                            <EntityDisplay entityId={null}
+                            parentId={notebook.ID} 
+                            reloadParent={reloadNotebook} 
+                            entityType="Project" 
+                            toggleCreationEntityDisplay={toggleCreationEntityDisplay}
+                            setParentErrorSnackbarOpen={setErrorSnackbarOpen}
+                            setParentErrorSnackbarMessage={setErrorSnackbarMessage}
+                            />
                         ) : (
                             <DashedBox>
                                 <Stack alignItems="center" justifyContent="center" spacing={2}>

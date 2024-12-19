@@ -99,7 +99,6 @@ export default function Library({ params }) {
     };
 
     const reloadLibrary = () => {
-        console.log("I am reloading Library")
         getEntity(params.id).then((data) => {
             if (data) {
                 const data4 = JSON.parse(data);
