@@ -118,7 +118,7 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName, re
                     {notebook.children && notebook.children.length > 0 ? (
                         <Stack spacing={2}>
                             {notebook.children.map(child => (
-                                <EntityDisplay key={child + "-EntityDisplay"} entityId={child} reloadParent={reloadNotebook} reloadTrees={reloadTrees} toggleParentDisplayCreatorEntityDisplay={toggleCreationEntityDisplay} />
+                                <EntityDisplay key={child + "-EntityDisplay"} entityId={child} reloadParent={reloadNotebook} reloadTrees={reloadTrees} toggleParentCreationEntityDisplay={toggleCreationEntityDisplay} />
                             ))}
                             {displayCreationEntityDisplay===true && (
                                 <EntityDisplay entityId={null}
@@ -126,7 +126,7 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName, re
                                                reloadParent={reloadNotebook}
                                                reloadTrees={reloadTrees}
                                                entityType="Project"
-                                               toggleCreationEntityDisplay={toggleCreationEntityDisplay}
+                                               toggleParentCreationEntityDisplay={toggleCreationEntityDisplay}
                                                setParentErrorSnackbarOpen={setErrorSnackbarOpen}
                                                setParentErrorSnackbarMessage={setErrorSnackbarMessage}
                                 />
@@ -140,7 +140,7 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName, re
                             reloadParent={reloadNotebook} 
                             reloadTrees={reloadTrees}
                             entityType="Project" 
-                            toggleCreationEntityDisplay={toggleCreationEntityDisplay}
+                            toggleParentCreationEntityDisplay={toggleCreationEntityDisplay}
                             setParentErrorSnackbarOpen={setErrorSnackbarOpen}
                             setParentErrorSnackbarMessage={setErrorSnackbarMessage}
                             />

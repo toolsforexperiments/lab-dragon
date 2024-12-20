@@ -4,13 +4,13 @@ import { useState, useEffect, useContext, useRef } from "react";
 import {Box, Typography, Card, CardHeader, CardContent, Stack, TextField, IconButton, Popover} from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { ClickAwayListener } from '@mui/base/ClickAwayListener';
+import {Add} from "@mui/icons-material";
 
 
 import { getEntity, createEntity } from "@/app/calls";
-import {entityHeaderTypo} from "@/app/constants";
+import { entityHeaderTypo, creationMenuItems } from "@/app/constants";
 import TypeChip from "@/app/components/EntityDisplayComponents/TypeChip";
 import { UserContext } from "@/app/contexts/userContext";
-import {Add} from "@mui/icons-material";
 import CreationMenu from "@/app/components/EntityDisplayComponents/CreationMenu";
 
 const Header=styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'} )(
@@ -81,14 +81,14 @@ export default function EntityDisplay({ entityId,
     reloadParent, 
     reloadTrees,
     entityType, 
-    toggleCreationEntityDisplay, 
+    toggleParentCreationEntityDisplay,
     setParentErrorSnackbarOpen, 
     setParentErrorSnackbarMessage,
-    toggleParentDisplayCreatorEntityDisplay
     }) {
 
     const [entity, setEntity] = useState({})
     const [newNameHolder, setNewNameHolder] = useState("");
+    const [openCreationEntityDisplay, setOpenCreationEntityDisplay] = useState(false);
 
     // Creation menu state
     const [anchorEl, setAnchorEl] = useState(null);
@@ -101,6 +101,10 @@ export default function EntityDisplay({ entityId,
     const reload = () => {
         reloadParent();
         reloadTrees();
+    }
+
+    const toggleCreationEntityDisplay = () => {
+        setOpenCreationEntityDisplay(!openCreationEntityDisplay);
     }
 
     // Add handler for IconButton click
@@ -126,6 +130,7 @@ export default function EntityDisplay({ entityId,
     }
 
     // Loads the entity on component creation
+    // TODO: Add snackbar error if this fails
     useEffect(() => {
         if (entityId) {
             getEntity(entityId).then((data) => {
@@ -160,7 +165,7 @@ export default function EntityDisplay({ entityId,
                 }
             });
         }
-        toggleCreationEntityDisplay();
+        toggleParentCreationEntityDisplay();
     };
 
     return (
@@ -207,8 +212,25 @@ export default function EntityDisplay({ entityId,
                 <CardContent>
                     <Stack spacing={2}>
                         {entity.children && entity.children.map(child => (
-                            <EntityDisplay key={child} entityId={child} />
+                            <EntityDisplay key={child}
+                                           entityId={child}
+                                           reloadParent={reloadEntity}
+                                           reloadTrees={reloadTrees}
+                                           toggleParentCreationEntityDisplay={toggleCreationEntityDisplay}
+                            />
                         ))}
+
+                        {openCreationEntityDisplay && (
+                            <EntityDisplay entityId={null}
+                                           parentId={entityId}
+                                           reloadParent={reloadEntity}
+                                           reloadTrees={reloadTrees}
+                                           entityType={creationMenuItems[entity.type][creationMenuItems[entity.type].length - 1]}
+                                           toggleParentCreationEntityDisplay={toggleCreationEntityDisplay}
+                                           setParentErrorSnackbarOpen={setParentErrorSnackbarOpen}
+                                           setParentErrorSnackbarMessage={setParentErrorSnackbarMessage}
+                            />
+                        )}
                     </Stack>
                 </CardContent>
                 <HoverAddSection>
@@ -232,7 +254,7 @@ export default function EntityDisplay({ entityId,
                     <CreationMenu entityType={entity.type}
                                   entityName={entity.name}
                                   onClose={handleMenuClose}
-                                  actions={[toggleParentDisplayCreatorEntityDisplay, () => {console.log("DO I EVEN GET HERE?")}]} />
+                                  actions={[toggleParentCreationEntityDisplay, toggleCreationEntityDisplay]} />
                 </Popover>
             </HoverCard>
         )
