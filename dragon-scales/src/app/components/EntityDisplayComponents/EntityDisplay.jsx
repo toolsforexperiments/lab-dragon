@@ -19,14 +19,19 @@ const Header=styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityTy
     })
 );
 
-const HoverAddButton = styled(IconButton)(({ theme }) => ({
+const HoverAddSection = styled(Box)(({ theme }) => ({
+    display: 'flex',
+    alignItems: 'center',
     position: 'relative',
+    width: '98%',
     left: '16px',
+    borderRadius: '10px',
     bottom: '5px',
     marginBottom: '15px',
     opacity: 0,
-    color: 'red',
+    color: theme.palette.text.light,
     transition: 'opacity 0.3s'
+
 }));
 
 const HoverCard = styled(Card)(({ theme }) => ({
@@ -35,9 +40,17 @@ const HoverCard = styled(Card)(({ theme }) => ({
     '&:hover': {
         '& > *:last-child': { 
             opacity: 1,
+            backgroundColor: theme.palette.background.light,
         }
     }
 }));
+
+const ActionHint = styled(Typography)(({ theme }) => ({
+    color: theme.palette.text.light,
+    transition: 'opacity 0.3s',
+}));
+
+
 
 const NewEntityNameTextField = styled(TextField, {shouldForwardProp: (prop) => prop !== 'entityType'} )(
     ({ theme, entityType }) => ({
@@ -157,11 +170,14 @@ export default function EntityDisplay({ entityId,
                         ))}
                     </Stack>
                 </CardContent>
-                <HoverAddButton
-                    onClick={() => {console.log("clicked")}}
-                >
-                    <Add />
-                </HoverAddButton>
+                <HoverAddSection>
+                    <IconButton
+                        onClick={() => {console.log("clicked")}}
+                    >
+                        <Add />
+                    </IconButton>
+                        <ActionHint variant="body1" sx={{ color: '#0000004D',}}>Click the plus icon to add a new task or content block</ActionHint>
+                </HoverAddSection>
             </HoverCard>
         )
     )

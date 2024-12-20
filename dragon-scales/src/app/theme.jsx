@@ -22,6 +22,7 @@ export const theme = createTheme({
         },
         background: {
             default: '#FFFFFF',
+            light: '#7A7A7A14',
             paper: '#F9FAFB',
             notebookAccordion: '#F3F4F6',
             notebookAccordionDarker: '#cccccc'
@@ -45,6 +46,8 @@ export const theme = createTheme({
             }
         },
         text: {
+            light: '#0000004D',
+            primary: '#000000',
             secondary: '#94A3B8'
         }
     },
