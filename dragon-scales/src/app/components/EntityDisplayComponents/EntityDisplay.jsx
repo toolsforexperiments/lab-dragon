@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useContext } from "react";
-import {Box, Typography, Card, CardHeader, CardContent, Stack, TextField, IconButton} from "@mui/material";
+import {Box, Typography, Card, CardHeader, CardContent, Stack, TextField, IconButton, Popover} from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { ClickAwayListener } from '@mui/base/ClickAwayListener';
 
@@ -11,6 +11,7 @@ import {entityHeaderTypo} from "@/app/constants";
 import TypeChip from "@/app/components/EntityDisplayComponents/TypeChip";
 import { UserContext } from "@/app/contexts/userContext";
 import {Add} from "@mui/icons-material";
+import CreationMenu from "@/app/components/EntityDisplayComponents/CreationMenu";
 
 const Header=styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'} )(
     ({ theme, entityType }) => ({
@@ -88,6 +89,10 @@ export default function EntityDisplay({ entityId,
     const [entity, setEntity] = useState({})
     const [newNameHolder, setNewNameHolder] = useState("");
 
+    // Creation menu state
+    const [anchorEl, setAnchorEl] = useState(null);
+    const [openCreationMenu, setOpenCreationMenu] = useState(false);
+
     const { activeUsersEmailStr } = useContext(UserContext);
 
     const reload = () => {
@@ -95,6 +100,16 @@ export default function EntityDisplay({ entityId,
         reloadTrees();
     }
 
+    // Add handler for IconButton click
+    const handleAddClick = (event) => {
+        setAnchorEl(event.currentTarget);
+        setOpenCreationMenu(true);
+    };
+
+    const handleMenuClose = () => {
+        setAnchorEl(null);
+        setOpenCreationMenu(false);
+    };
 
     useEffect(() => {
         if (entityId) {
@@ -171,13 +186,27 @@ export default function EntityDisplay({ entityId,
                     </Stack>
                 </CardContent>
                 <HoverAddSection>
-                    <IconButton
-                        onClick={() => {console.log("clicked")}}
-                    >
+                    <IconButton onClick={handleAddClick}>
                         <Add />
                     </IconButton>
                         <ActionHint variant="body1" sx={{ color: '#0000004D',}}>Click the plus icon to add a new task or content block</ActionHint>
                 </HoverAddSection>
+                <Popover
+                open={openCreationMenu}
+                anchorEl={anchorEl}
+                onClose={handleMenuClose}
+
+                anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'left',
+                }}
+                transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'left',
+                }}
+            >
+                    <CreationMenu entityType={entity.type} entityName={entity.name} />
+                </Popover>
             </HoverCard>
         )
     )
