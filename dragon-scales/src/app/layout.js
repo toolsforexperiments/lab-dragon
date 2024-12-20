@@ -1,9 +1,8 @@
 import localFont from "next/font/local";
-import {Box, createTheme, ThemeProvider} from "@mui/material";
+import {Box} from "@mui/material";
 
 import "./globals.css";
 import Toolbar from "./components/Toolbar";
-import { ExplorerProvider } from "@/app/contexts/explorerContext";
 import { UserProvider } from "@/app/contexts/userContext";
 
 import LDThemeProvider from "./theme";
@@ -32,14 +31,12 @@ export default function RootLayout({ children }) {
             >
                 <LDThemeProvider>
                     <UserProvider>
-                        <ExplorerProvider>
-                            <Box sx={{ display: "flex", height: "100vh" }}>
-                                <Toolbar />
-                                <Box sx={{ flexGrow: 1, overflow: "auto", pl: "64px" }}>
-                                    {children}
-                                </Box>
+                        <Box sx={{ display: "flex", height: "100vh" }}>
+                            <Toolbar />
+                            <Box sx={{ flexGrow: 1, overflow: "auto", pl: "64px" }}>
+                                {children}
                             </Box>
-                        </ExplorerProvider>
+                        </Box>
                     </UserProvider>
                 </LDThemeProvider>
             </body>
