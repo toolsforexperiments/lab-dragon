@@ -30,7 +30,7 @@ const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'dra
 }));
 
 
-export default function ExplorerDrawer({libraryId, open, onClose, drawerWidth}) {
+export default function ExplorerDrawer({library, open, onClose, drawerWidth, updateTrees}) {
 
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -51,14 +51,14 @@ export default function ExplorerDrawer({libraryId, open, onClose, drawerWidth}) 
 
     // Loads the initial library structure
     useEffect(() => {
-        getLibraryStructure(libraryId).then(data => {
+        getLibraryStructure(library.ID).then(data => {
             if (data) {
                 setLibraryStructure(data);
             } else {
                 setLibraryStructure(null);
             }
         });
-    }, [libraryId]);
+    }, [library, updateTrees]);
 
     // Updates the state variable to match the searchParams
     useEffect(() => {

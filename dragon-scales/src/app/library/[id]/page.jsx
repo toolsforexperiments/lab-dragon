@@ -1,14 +1,16 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import {useEffect, useState, useRef, useContext} from "react";
 
 import { Box, IconButton, Stack, Typography, Button } from "@mui/material";
-import { Settings } from "@mui/icons-material";
+import { Tune, Add } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 
 import ErrorSnackbar from "@/app/components/ErrorSnackbar";
 import { getEntity } from "@/app/calls";
 import ExplorerDrawer from "@/app/components/ExplorerDrawerComponents/ExplorerDrawer";
 import NotebookDisplay from "@/app/components/EntityDisplayComponents/NotebookDisplay";
+import NewEntityDialog from "@/app/components/dialogs/NewEntityDialog";
+import {UserContext} from "@/app/contexts/userContext";
 
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' && prop !== 'drawerWidth' })(
@@ -50,10 +52,16 @@ export default function Library({ params }) {
 
     const [drawerWidth, setDrawerWidth] = useState(410);
     const [drawerOpen, setDrawerOpen] = useState(true);
-    const isDraggingRef = useRef(false);
 
+    // This is used to force a re-render of the tree when a new entity is created.
+    const [updateTrees, setUpdateTrees] = useState(0);
+    const [createNotebookDialogOpen, setCreateNotebookDialogOpen] = useState(false);
     const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
     const [errorSnackbarMessage, setErrorSnackbarMessage] = useState("");
+
+    const isDraggingRef = useRef(false);
+
+    const { activeUsersEmailStr } = useContext(UserContext);
 
     const handleDrawerOpen = () => {
         setDrawerOpen(true);
@@ -63,6 +71,15 @@ export default function Library({ params }) {
         setDrawerOpen(false);
     }
 
+    const handleCreateNotebookDialogOpen = () => {
+        setCreateNotebookDialogOpen(true);
+    }
+
+    const handleCreateNotebookDialogClose = () => {
+        setCreateNotebookDialogOpen(false);
+    }
+
+    // The following 3 handles are what is used to resize the drawer
     const handleMouseDown = (e) => {
         isDraggingRef.current = true;
         document.addEventListener('mousemove', handleMouseMove);
@@ -82,6 +99,24 @@ export default function Library({ params }) {
         document.removeEventListener('mousemove', handleMouseMove);
         document.removeEventListener('mouseup', handleMouseUp);
     };
+
+    const triggerUpdateTrees = () => {
+        setUpdateTrees(updateTrees + 1);
+    }
+    
+    const reloadLibrary = () => {
+        getEntity(params.id).then((data) => {
+            if (data) {
+                const data4 = JSON.parse(data);
+                console.log(data4);
+                setLibrary(JSON.parse(data));
+            } else {
+                setLibrary(null)
+                setErrorSnackbarOpen(true);
+                setErrorSnackbarMessage("Error getting library");
+            }
+        });
+    }
 
 
     useEffect(() => {
@@ -110,26 +145,44 @@ export default function Library({ params }) {
                 <Typography variant="h6">Loading...</Typography>
             ) : (
                 <Box sx={{height: "100%", flexGrow: 1, display: "flex", flexDirection: "column", marginLeft: "35px"}}>
-                    <Stack direction="row" alignItems="center">
+                    <Stack direction="row" alignItems="center" spacing={2}>
                         <Typography variant="h6">{library.name}</Typography>
-                        <IconButton sx={{ fontSize: '1rem', color: 'black' }}>
-                            <Settings fontSize="inherit" />
+
+                        <IconButton
+                            onClick={handleCreateNotebookDialogOpen}
+                            title={"Create A New Notebook"}
+                            sx={{ fontSize: '1.5rem', color: 'black' }}>
+
+                            <Add fontSize="inherit" />
                         </IconButton>
-                        <Button onClick={() => { setDrawerOpen(!drawerOpen) }}>Open Drawer</Button>
+
+                        <IconButton sx={{ fontSize: '1.5rem', color: 'black' }} title={"Placeholder for now"}>
+                            <Tune fontSize="inherit" />
+                        </IconButton>
+
+                        <Button onClick={() => { setDrawerOpen(!drawerOpen) }}>Toggle Drawer</Button>
                     </Stack>
 
                     <Main open={drawerOpen} drawerWidth={drawerWidth}>
                         <Stack direction="row" sx={{ width: "100%" }}>
-                            <ExplorerDrawer libraryId={params.id} open={drawerOpen} onClose={() => { setDrawerOpen(false) }} drawerWidth={drawerWidth}/>
+                            <ExplorerDrawer library={library} open={drawerOpen} onClose={() => { setDrawerOpen(false) }} drawerWidth={drawerWidth} updateTrees={updateTrees} />
                             {drawerOpen && <DraggableBox onMouseDown={handleMouseDown} />}
-                            <Stack spacing={5} flexGrow={1} justifyContent="flex-start" sx={{ marginLeft: '12px', width: "100%", flexGrow: 1, minWidth: 0, overflow: "hidden" }}>
+                            <Stack spacing={5} flexGrow={1} justifyContent="flex-start" sx={{ marginLeft: '12px', marginBottom: '50px', width: "100%", flexGrow: 1, minWidth: 0, overflow: "hidden" }}>
                                 {library.children && library.children.map(child => (
-                                    <NotebookDisplay key={child + "-NotebookDisplay"} notebookId={child} libraryName={library.name} libraryId={library.ID} />
+                                    <NotebookDisplay key={child + "-NotebookDisplay"} notebookId={child} libraryName={library.name} libraryId={library.ID} reloadTrees={triggerUpdateTrees} />
                                 ))}
                             </Stack>
                         </Stack>
                     </Main>
-
+                <NewEntityDialog
+                    user={activeUsersEmailStr}
+                    type="Notebook"
+                    parentName={library.name}
+                    parentID={library.ID}
+                    open={createNotebookDialogOpen}
+                    onClose={handleCreateNotebookDialogClose}
+                    reloadParent={reloadLibrary}
+                />
                 </Box>
             )}
             <ErrorSnackbar

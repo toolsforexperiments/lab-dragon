@@ -6,6 +6,7 @@ import { createTheme, ThemeProvider } from "@mui/material";
 export const theme = createTheme({
     palette: {
         primary: {
+            lighter: '#10B98129',
             light: '#A7F3D0',
             main: '#10B981',
             dark: '#059669',
@@ -21,6 +22,7 @@ export const theme = createTheme({
         },
         background: {
             default: '#FFFFFF',
+            light: '#7A7A7A14',
             paper: '#F9FAFB',
             notebookAccordion: '#F3F4F6',
             notebookAccordionDarker: '#cccccc'
@@ -42,7 +44,11 @@ export const theme = createTheme({
                 Task: '#334155',
                 Step: '#000000'
             }
-        
+        },
+        text: {
+            light: '#0000004D',
+            primary: '#000000',
+            secondary: '#94A3B8'
         }
     },
     typography: {

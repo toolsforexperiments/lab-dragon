@@ -5,3 +5,9 @@ export const entityHeaderTypo = {
     'Task': 'h6',
     'Step': 'subtitle1'
 }
+
+export const creationMenuItems = {
+    'Project': ['Project', 'Task'],
+    'Task': ['Task', 'Step'],
+    'Step': ['Step'],
+}
