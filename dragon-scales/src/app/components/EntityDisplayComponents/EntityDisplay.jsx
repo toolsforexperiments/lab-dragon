@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect, useContext } from "react";
-import { Box, Typography, Card, CardHeader, CardContent, Stack, TextField } from "@mui/material";
+import {Box, Typography, Card, CardHeader, CardContent, Stack, TextField, IconButton} from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { ClickAwayListener } from '@mui/base/ClickAwayListener';
 
@@ -10,6 +10,7 @@ import { getEntity, createEntity } from "@/app/calls";
 import {entityHeaderTypo} from "@/app/constants";
 import TypeChip from "@/app/components/EntityDisplayComponents/TypeChip";
 import { UserContext } from "@/app/contexts/userContext";
+import {Add} from "@mui/icons-material";
 
 const Header=styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'} )(
     ({ theme, entityType }) => ({
@@ -17,6 +18,26 @@ const Header=styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityTy
         backgroundColor: theme.palette.entities.background[entityType],
     })
 );
+
+const HoverAddButton = styled(IconButton)(({ theme }) => ({
+    position: 'relative',
+    left: '16px',
+    bottom: '5px',
+    marginBottom: '15px',
+    opacity: 0,
+    color: 'red',
+    transition: 'opacity 0.3s'
+}));
+
+const HoverCard = styled(Card)(({ theme }) => ({
+    margin: 'inherit',
+    position: 'relative',
+    '&:hover': {
+        '& > *:last-child': { 
+            opacity: 1,
+        }
+    }
+}));
 
 const NewEntityNameTextField = styled(TextField, {shouldForwardProp: (prop) => prop !== 'entityType'} )(
     ({ theme, entityType }) => ({
@@ -118,7 +139,7 @@ export default function EntityDisplay({ entityId,
         ) : Object.keys(entity).length === 0 ? (
             <Typography variant="h3">Loading...</Typography>
         ) : (
-            <Card sx={{ margin: 'inherit'}}>
+            <HoverCard sx={{ margin: 'inherit', position: 'relative' }}>
                 <Header title={
                         <Box display="flex" alignItems="center">
                             <TypeChip type={entity.type} />
@@ -133,10 +154,15 @@ export default function EntityDisplay({ entityId,
                     <Stack spacing={2}>
                         {entity.children && entity.children.map(child => (
                             <EntityDisplay key={child} entityId={child} />
-                            ))}
+                        ))}
                     </Stack>
                 </CardContent>
-            </Card>
+                <HoverAddButton
+                    onClick={() => {console.log("clicked")}}
+                >
+                    <Add />
+                </HoverAddButton>
+            </HoverCard>
         )
     )
 
