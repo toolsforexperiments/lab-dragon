@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useContext } from "react";
+import { useState, useEffect, useContext, useRef } from "react";
 import {Box, Typography, Card, CardHeader, CardContent, Stack, TextField, IconButton, Popover} from "@mui/material";
 import { styled } from "@mui/material/styles";
 import { ClickAwayListener } from '@mui/base/ClickAwayListener';
@@ -83,7 +83,8 @@ export default function EntityDisplay({ entityId,
     entityType, 
     toggleCreationEntityDisplay, 
     setParentErrorSnackbarOpen, 
-    setParentErrorSnackbarMessage, 
+    setParentErrorSnackbarMessage,
+    toggleParentDisplayCreatorEntityDisplay
     }) {
 
     const [entity, setEntity] = useState({})
@@ -93,6 +94,8 @@ export default function EntityDisplay({ entityId,
     const [anchorEl, setAnchorEl] = useState(null);
     const [openCreationMenu, setOpenCreationMenu] = useState(false);
 
+    const textFieldRef = useRef(null);
+    
     const { activeUsersEmailStr } = useContext(UserContext);
 
     const reload = () => {
@@ -111,6 +114,18 @@ export default function EntityDisplay({ entityId,
         setOpenCreationMenu(false);
     };
 
+    // TODO: Add snackbar error if this fails
+    const reloadEntity = () => {
+        getEntity(entityId).then((data) => {
+            if (data) {
+                setEntity(JSON.parse(data));
+            } else {
+                setEntity(null);
+            }
+        });
+    }
+
+    // Loads the entity on component creation
     useEffect(() => {
         if (entityId) {
             getEntity(entityId).then((data) => {
@@ -120,6 +135,16 @@ export default function EntityDisplay({ entityId,
                     setEntity(null);
                 }
             });
+        }
+    }, [entityId]);
+
+    // Ensures the text field is focused when creating a new entity
+    useEffect(() => {
+        if (entityId === null && textFieldRef.current) {
+            // Small timeout to ensure the TextField is fully rendered
+            setTimeout(() => {
+                textFieldRef.current.focus();
+            }, 0);
         }
     }, [entityId]);
 
@@ -149,6 +174,7 @@ export default function EntityDisplay({ entityId,
                             <Box display="flex" alignItems="center">
                                 <TypeChip type={entityType} />
                                 <NewEntityNameTextField
+                                    inputRef={textFieldRef}                                
                                     autoFocus
                                     autoComplete="off"
                                     fullWidth
@@ -189,23 +215,24 @@ export default function EntityDisplay({ entityId,
                     <IconButton onClick={handleAddClick}>
                         <Add />
                     </IconButton>
-                        <ActionHint variant="body1" sx={{ color: '#0000004D',}}>Click the plus icon to add a new task or content block</ActionHint>
+                        <ActionHint variant="body1" sx={{ color: '#0000004D',}}>Click the plus icon to add a story entity or content block</ActionHint>
                 </HoverAddSection>
                 <Popover
-                open={openCreationMenu}
-                anchorEl={anchorEl}
-                onClose={handleMenuClose}
-
-                anchorOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'left',
-                }}
-                transformOrigin={{
-                    vertical: 'top',
-                    horizontal: 'left',
-                }}
-            >
-                    <CreationMenu entityType={entity.type} entityName={entity.name} />
+                    open={openCreationMenu}
+                    anchorEl={anchorEl}
+                    onClose={handleMenuClose}
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                    }}
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'left',
+                }}>
+                    <CreationMenu entityType={entity.type}
+                                  entityName={entity.name}
+                                  onClose={handleMenuClose}
+                                  actions={[toggleParentDisplayCreatorEntityDisplay, () => {console.log("DO I EVEN GET HERE?")}]} />
                 </Popover>
             </HoverCard>
         )

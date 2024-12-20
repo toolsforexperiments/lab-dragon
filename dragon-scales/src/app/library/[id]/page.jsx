@@ -160,7 +160,7 @@ export default function Library({ params }) {
                             <Tune fontSize="inherit" />
                         </IconButton>
 
-                        <Button onClick={() => { setDrawerOpen(!drawerOpen) }}>Open Drawer</Button>
+                        <Button onClick={() => { setDrawerOpen(!drawerOpen) }}>Toggle Drawer</Button>
                     </Stack>
 
                     <Main open={drawerOpen} drawerWidth={drawerWidth}>

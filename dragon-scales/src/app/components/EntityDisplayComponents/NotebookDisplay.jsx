@@ -94,6 +94,7 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName, re
             ) : Object.keys(notebook).length === 0 ? (
                 <Typography variant="h3">Loading...</Typography>
             ) : (
+                // Display populated notebook
                 <Box>
                     <Stack direction="row" justifyContent="space-between">
                         <EntityBreadcrumbs links={[["/library/" + libraryId, libraryName], ["/library/" + libraryId + "?select=" + notebookId, notebook.name]]} />
@@ -117,10 +118,22 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName, re
                     {notebook.children && notebook.children.length > 0 ? (
                         <Stack spacing={2}>
                             {notebook.children.map(child => (
-                                <EntityDisplay key={child + "-EntityDisplay"} entityId={child} reloadParent={reloadNotebook} reloadTrees={reloadTrees} />
+                                <EntityDisplay key={child + "-EntityDisplay"} entityId={child} reloadParent={reloadNotebook} reloadTrees={reloadTrees} toggleParentDisplayCreatorEntityDisplay={toggleCreationEntityDisplay} />
                             ))}
+                            {displayCreationEntityDisplay===true && (
+                                <EntityDisplay entityId={null}
+                                               parentId={notebook.ID}
+                                               reloadParent={reloadNotebook}
+                                               reloadTrees={reloadTrees}
+                                               entityType="Project"
+                                               toggleCreationEntityDisplay={toggleCreationEntityDisplay}
+                                               setParentErrorSnackbarOpen={setErrorSnackbarOpen}
+                                               setParentErrorSnackbarMessage={setErrorSnackbarMessage}
+                                />
+                            )}
                         </Stack>
                     ) : (
+                        // Displays new Project creator
                         displayCreationEntityDisplay ? (
                             <EntityDisplay entityId={null}
                             parentId={notebook.ID} 
