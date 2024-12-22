@@ -1,5 +1,5 @@
 "use client";
-import {useEffect, useState, useRef, useContext} from "react";
+import {useEffect, useState, useRef, useContext, use} from "react";
 
 import { Box, IconButton, Stack, Typography, Button } from "@mui/material";
 import { Tune, Add } from "@mui/icons-material";
@@ -48,7 +48,9 @@ const DraggableBox = styled(Box)(({ theme }) => ({
 
 export default function Library({ params }) {
 
-    const [library, setLibrary] = useState({});
+    const unwrappedParams = use(params);
+
+    const [library, setLibrary] = useState({"ID": unwrappedParams.id});
 
     const [drawerWidth, setDrawerWidth] = useState(410);
     const [drawerOpen, setDrawerOpen] = useState(true);
@@ -120,7 +122,7 @@ export default function Library({ params }) {
 
 
     useEffect(() => {
-        getEntity(params.id).then((data) => {
+        getEntity(library.ID).then((data) => {
             if (data) {
                 setLibrary(JSON.parse(data));
             } else {
@@ -130,7 +132,7 @@ export default function Library({ params }) {
 
             }
         });
-    }, [params.id]);
+    }, [library.ID]);
 
     return (
         <Box sx={{

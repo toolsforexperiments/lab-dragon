@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from 'react';
-import Draggable from 'react-draggable';
 import {
     Button,
     Dialog,
@@ -17,12 +16,7 @@ import ErrorSnackbar from "@/app/components/ErrorSnackbar";
 
 function PaperComponent(props) {
     return (
-      <Draggable
-        handle="#draggable-dialog-title"
-        cancel={'[class*="MuiDialogContent-root"]'}
-      >
-        <Paper {...props} />
-      </Draggable>
+    <Paper {...props} />
     );
   };
 
