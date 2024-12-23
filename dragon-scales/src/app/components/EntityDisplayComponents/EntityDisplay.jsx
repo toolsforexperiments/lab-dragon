@@ -1,26 +1,28 @@
 "use client"
 
-import { useState, useEffect, useContext, useRef } from "react";
+import {useState, useEffect, useContext, useRef} from "react";
 import {Box, Typography, Card, CardHeader, CardContent, Stack, TextField, IconButton, Popover} from "@mui/material";
-import { styled } from "@mui/material/styles";
-import { ClickAwayListener } from '@mui/base/ClickAwayListener';
+import {styled} from "@mui/material/styles";
+import {ClickAwayListener} from '@mui/base/ClickAwayListener';
 import {Add} from "@mui/icons-material";
 
 
-import { getEntity, createEntity } from "@/app/calls";
-import { entityHeaderTypo, creationMenuItems } from "@/app/constants";
+import {getEntity, createEntity} from "@/app/calls";
+import {entityHeaderTypo, creationMenuItems} from "@/app/constants";
 import TypeChip from "@/app/components/EntityDisplayComponents/TypeChip";
-import { UserContext } from "@/app/contexts/userContext";
+import {UserContext} from "@/app/contexts/userContext";
 import CreationMenu from "@/app/components/EntityDisplayComponents/CreationMenu";
+import ContentBlock from "@/app/components/EntityDisplayComponents/ContentBlocks/ContentBlock";
+import TextBlockEditor from "@/app/components/EntityDisplayComponents/ContentBlocks/TextBlockEditor";
 
-const Header=styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'} )(
-    ({ theme, entityType }) => ({
+const Header = styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'})(
+    ({theme, entityType}) => ({
         color: theme.palette.entities.text[entityType],
         backgroundColor: theme.palette.entities.background[entityType],
     })
 );
 
-const HoverAddSection = styled(Box)(({ theme }) => ({
+const HoverAddSection = styled(Box)(({theme}) => ({
     display: 'flex',
     alignItems: 'center',
     position: 'relative',
@@ -35,26 +37,25 @@ const HoverAddSection = styled(Box)(({ theme }) => ({
 
 }));
 
-const HoverCard = styled(Card)(({ theme }) => ({
+const HoverCard = styled(Card)(({theme}) => ({
     margin: 'inherit',
     position: 'relative',
     '&:hover': {
-        '& > *:last-child': { 
+        '& > *:last-child': {
             opacity: 1,
             backgroundColor: theme.palette.background.light,
         }
     }
 }));
 
-const ActionHint = styled(Typography)(({ theme }) => ({
+const ActionHint = styled(Typography)(({theme}) => ({
     color: theme.palette.text.light,
     transition: 'opacity 0.3s',
 }));
 
 
-
-const NewEntityNameTextField = styled(TextField, {shouldForwardProp: (prop) => prop !== 'entityType'} )(
-    ({ theme, entityType }) => ({
+const NewEntityNameTextField = styled(TextField, {shouldForwardProp: (prop) => prop !== 'entityType'})(
+    ({theme, entityType}) => ({
         '& .MuiInputBase-input': {
             color: theme.palette.entities.text[entityType],
         },
@@ -76,15 +77,16 @@ const NewEntityNameTextField = styled(TextField, {shouldForwardProp: (prop) => p
 );
 
 
-export default function EntityDisplay({ entityId, 
-    parentId,
-    reloadParent, 
-    reloadTrees,
-    entityType, 
-    toggleParentCreationEntityDisplay,
-    setParentErrorSnackbarOpen, 
-    setParentErrorSnackbarMessage,
-    }) {
+export default function EntityDisplay({
+                                          entityId,
+                                          parentId,
+                                          reloadParent,
+                                          reloadTrees,
+                                          entityType,
+                                          toggleParentCreationEntityDisplay,
+                                          setParentErrorSnackbarOpen,
+                                          setParentErrorSnackbarMessage,
+                                      }) {
 
     const [entity, setEntity] = useState({})
     const [newNameHolder, setNewNameHolder] = useState("");
@@ -94,9 +96,13 @@ export default function EntityDisplay({ entityId,
     const [anchorEl, setAnchorEl] = useState(null);
     const [openCreationMenu, setOpenCreationMenu] = useState(false);
 
+    const [openNewTextBlock, setOpenNewTextBlock] = useState(false);
+    const [newTextBlockEditorState, setNewTextBlockEditorState] = useState("");
+
     const textFieldRef = useRef(null);
-    
-    const { activeUsersEmailStr } = useContext(UserContext);
+    const contentBlocksIndex = useRef({});
+
+    const {activeUsersEmailStr} = useContext(UserContext);
 
     const reload = () => {
         reloadParent();
@@ -122,7 +128,14 @@ export default function EntityDisplay({ entityId,
     const reloadEntity = () => {
         getEntity(entityId).then((data) => {
             if (data) {
-                setEntity(JSON.parse(data));
+                let ent = JSON.parse(data);
+                // FIXME: Once the backend is updated to not have the word "comment" instead of ContentBlock, this will need to be updated
+                ent.comments = ent.comments.map((block) => {
+                    const parsedBlock = JSON.parse(block);
+                    contentBlocksIndex.current[parsedBlock.ID] = parsedBlock;
+                    return parsedBlock;
+                });
+                setEntity(ent);
             } else {
                 setEntity(null);
             }
@@ -133,13 +146,7 @@ export default function EntityDisplay({ entityId,
     // TODO: Add snackbar error if this fails
     useEffect(() => {
         if (entityId) {
-            getEntity(entityId).then((data) => {
-                if (data) {
-                    setEntity(JSON.parse(data));
-                } else {
-                    setEntity(null);
-                }
-            });
+            reloadEntity();
         }
     }, [entityId]);
 
@@ -168,18 +175,24 @@ export default function EntityDisplay({ entityId,
         toggleParentCreationEntityDisplay();
     };
 
+    if (entity && entity.deleted === true){
+        return null;
+    }
+
     return (
+        // entity starts as an empty object, if it is every null an error has occurred
         entity === null ? (
             <Typography variant="h3">Error loading entity with id {entityId} please try again</Typography>
+            // If entityId is null, it means that his EntityDisplay is the placeholder where the user inserts the new title.
         ) : entityId === null ? (
             <ClickAwayListener onClickAway={handleClickAway}>
                 <Box>
-                    <Card sx={{ margin: 'inherit'}}>
+                    <Card sx={{margin: 'inherit'}}>
                         <Header title={
                             <Box display="flex" alignItems="center">
-                                <TypeChip type={entityType} />
+                                <TypeChip type={entityType}/>
                                 <NewEntityNameTextField
-                                    inputRef={textFieldRef}                                
+                                    inputRef={textFieldRef}
                                     autoFocus
                                     autoComplete="off"
                                     fullWidth
@@ -190,36 +203,56 @@ export default function EntityDisplay({ entityId,
                                 />
                             </Box>
                         }
-                            entityType={entityType}/>
-                        <CardContent />
+                                entityType={entityType}/>
+                        <CardContent/>
                     </Card>
                 </Box>
             </ClickAwayListener>
+            // If entity is an empty object, it means that the entity is still loading
         ) : Object.keys(entity).length === 0 ? (
             <Typography variant="h3">Loading...</Typography>
+
+            // the last option is the loaded entity display we actually want to show
         ) : (
-            <HoverCard sx={{ margin: 'inherit', position: 'relative' }}>
+            <HoverCard sx={{margin: 'inherit', position: 'relative'}}>
                 <Header title={
-                        <Box display="flex" alignItems="center">
-                            <TypeChip type={entity.type} />
-                            <Typography variant={entityHeaderTypo[entity.type]}>
-                                {entity.name}
-                            </Typography>
-                        </Box>
-                    }
-                    entityType={entity.type}
+                    <Box display="flex" alignItems="center">
+                        <TypeChip type={entity.type}/>
+                        <Typography variant={entityHeaderTypo[entity.type]}>
+                            {entity.name}
+                        </Typography>
+                    </Box>
+                }
+                        entityType={entity.type}
                 />
                 <CardContent>
-                    <Stack spacing={2}>
-                        {entity.children && entity.children.map(child => (
-                            <EntityDisplay key={child}
-                                           entityId={child}
-                                           reloadParent={reloadEntity}
-                                           reloadTrees={reloadTrees}
-                                           toggleParentCreationEntityDisplay={toggleCreationEntityDisplay}
-                            />
+                    <Stack spacing={1}>
+                        {entity.order && entity.order.map(([child, type]) => (
+                            type === "entity" ? (
+                                <EntityDisplay
+                                    key={child}
+                                    entityId={child}
+                                    reloadParent={reloadEntity}
+                                    reloadTrees={reloadTrees}
+                                    toggleParentCreationEntityDisplay={toggleCreationEntityDisplay}
+                                />
+                            ) : (
+                                <ContentBlock key={child} contentBlock={contentBlocksIndex.current[child]}
+                                              parentId={entity.ID} reloadParent={reloadEntity}/>
+                            )
                         ))}
 
+                        {openNewTextBlock && (
+                            <TextBlockEditor parentId={entity.ID}
+                                             onEditorChange={setNewTextBlockEditorState}
+                                             initialContent={newTextBlockEditorState}
+                                             editorState={newTextBlockEditorState}
+                                             onClose={() => setOpenNewTextBlock(false)}
+                                             reloadParent={reloadEntity}
+                            />
+                        )}
+
+                        {/* Empty EntityDisplay for the user to insert new name */}
                         {openCreationEntityDisplay && (
                             <EntityDisplay entityId={null}
                                            parentId={entityId}
@@ -235,10 +268,13 @@ export default function EntityDisplay({ entityId,
                 </CardContent>
                 <HoverAddSection>
                     <IconButton onClick={handleAddClick}>
-                        <Add />
+                        <Add/>
                     </IconButton>
-                        <ActionHint variant="body1" sx={{ color: '#0000004D',}}>Click the plus icon to add a story entity or content block</ActionHint>
+                    <ActionHint variant="body1" sx={{color: '#0000004D',}}>Click the plus icon to add a story entity or
+                        content block</ActionHint>
                 </HoverAddSection>
+
+                {/* Menu that pops up when the plus is pressed */}
                 <Popover
                     open={openCreationMenu}
                     anchorEl={anchorEl}
@@ -250,11 +286,12 @@ export default function EntityDisplay({ entityId,
                     transformOrigin={{
                         vertical: 'top',
                         horizontal: 'left',
-                }}>
+                    }}>
                     <CreationMenu entityType={entity.type}
                                   entityName={entity.name}
                                   onClose={handleMenuClose}
-                                  actions={[toggleParentCreationEntityDisplay, toggleCreationEntityDisplay]} />
+                                  actions={[toggleParentCreationEntityDisplay, toggleCreationEntityDisplay]}
+                                  openTextBlock={() => setOpenNewTextBlock(true)}/>
                 </Popover>
             </HoverCard>
         )

@@ -41,6 +41,7 @@ class Entity(object):
                  bookmarked: bool = False,
                  start_time: str = None,
                  end_time: str = None,
+                 order: list[tuple[str, str]] = (),
                  ):
         self.user = user
         if ID is None or ID == '':
@@ -61,10 +62,16 @@ class Entity(object):
         self.parent = parent
         self.deleted = deleted
         self.description = description
+
+        if isinstance(order, list) and len(order) != 0:
+            self.order = order
+        else:
+            self.order = [].copy()
+
         if isinstance(comments, list) and len(comments) != 0:
             self.comments = []
             for com in comments:
-                self.add_comment(com)
+                self.add_comment(com, _add_to_order=False)
         else:
             self.comments = [].copy()
 
@@ -137,6 +144,8 @@ class Entity(object):
         vals['start_time'] = self.start_time
         
         vals['end_time'] = self.end_time
+
+        vals['order'] = [(str(x[0]), str(x[1])) for x in self.order]
         
         
         doc[self.name] = vals
@@ -160,14 +169,16 @@ class Entity(object):
             return self.__dict__ == other.__dict__
         return False
 
-    
-    def add_child(self, child):
+    def add_child(self, child, _add_to_order=True):
         if not hasattr(self, 'children'):
             self.children = []
         self.children.append(child)
 
+        if _add_to_order:
+            self.order.append((child, "entity"))
+
     def add_comment(self, comment: Union[str, Comment, Table, List[Table], List[Comment], List[str]],
-                    user: str | list[str] | None = None) -> None:
+                    user: str | list[str] | None = None, _add_to_order=True) -> None:
         """
         Add a comment to the entity. If a directory is passed, this function will go through the directory and add a
         comment to every supported file in it in alphabetical order. It will **NOT** go through subdirectories.
@@ -201,23 +212,36 @@ class Entity(object):
             for com in comment:
                 if isinstance(com, Comment):
                     self.comments.append(com)
+                    if _add_to_order:
+                        self.order.append((com.ID, "comment"))
                 else:
                     self.add_comment(com, user)
         else:
             if isinstance(comment, Comment):
                 self.comments.append(comment)
+                if _add_to_order:
+                    self.order.append((comment.ID, "comment"))
             elif isinstance(comment, str):
                 try:
                     path = Path(comment)
                     if path.is_dir():
                         add_directory(path)
                     else:
-                        self.comments.append(Comment(comment, user))
+                        new_comment = Comment(path, user)
+                        self.comments.append(new_comment)
+                        if _add_to_order:
+                            self.order.append((new_comment.ID, "comment"))
                 # Comment may be too long to convert to path
                 except OSError:
-                    self.comments.append(Comment(comment, user))
+                    new_comment = Comment(comment, user)
+                    self.comments.append(new_comment)
+                    if _add_to_order:
+                        self.order.append((new_comment.ID, "comment"))
             elif isinstance(comment, Table):
-                self.comments.append(Comment(comment, user))
+                new_comment = Comment(comment, user)
+                self.comments.append(new_comment)
+                if _add_to_order:
+                    self.order.append((new_comment.ID, "comment"))
             else:
                 raise TypeError(f"Comment must be a string, Table object, or a Comment object, not {type(comment)}")
 
@@ -234,6 +258,18 @@ class Entity(object):
         comment.modify(content=content, user=user)
         return True
 
+    def delete_comment(self, comment_id):
+
+        comment = None
+        for com in self.comments:
+            if com.ID == comment_id:
+                comment = com
+                break
+        if comment is None:
+            raise ValueError(f"Comment with id {comment_id} does not exist.")
+
+        comment.deleted = True
+        return True
 
     def suggest_data(self, query: str = "", min_threshold=5) -> List[str]:
         """

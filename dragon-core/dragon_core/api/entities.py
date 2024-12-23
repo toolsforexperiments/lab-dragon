@@ -219,6 +219,13 @@ def create_path_entity_copy(ent: Entity) -> Entity:
         comment.content = content
         comments.append(comment)
 
+    order = []
+    for item, item_type in copy_ent.order:
+        if item_type == "entity":
+            order.append((UUID_TO_PATH_INDEX[item], item_type))
+        else:
+            order.append((item, item_type))
+
     return copy_ent
 
 
@@ -464,6 +471,14 @@ def load_all_entities():
             if path.is_file():
                 val.children[val.children.index(child)] = PATH_TO_UUID_INDEX[str(path)]
 
+        # Update the order:
+        order_copy = val.order.copy()
+        for i, (item, item_type) in enumerate(order_copy):
+            if item_type == "entity":
+                path = Path(item)
+                if path.is_file():
+                    val.order[i] = (PATH_TO_UUID_INDEX[str(path)], item_type)
+
 
 def _generate_structure_helper(ID):
 
@@ -511,8 +526,9 @@ def read_one(ID, name_only=False):
         for comment in ent_copy.comments:
             if comment.com_type[-1] == SupportedCommentType.md.value or comment.com_type[-1] == SupportedCommentType.string.value:
                 replaced_path = comment_path_to_uuid(comment.content[-1])
-                html_comment = markdown_to_html.convert(replaced_path)
-                comment.content[-1] = html_comment
+                # html_comment = markdown_to_html.convert(replaced_path)
+                # comment.content[-1] = html_comment
+                comment.content[-1] = replaced_path
 
         # If it is an instance, convert the notebooks into html
         if isinstance(ent, Instance):
@@ -718,9 +734,9 @@ def add_comment(ID, body, user: str, HTML: bool = False):
     if ID not in INDEX:
         abort(404, f"Entity with ID {ID} not found")
 
-    ent = INDEX[ID]
-
     user = _parse_and_validate_user(user)
+
+    ent = INDEX[ID]
 
     if HTML:
         content = html_to_markdown.convert(body)
@@ -756,6 +772,25 @@ def edit_comment(ID, commentID, body, user, HTML: bool = False):
             path_copy = create_path_entity_copy(ent)
             path_copy.to_TOML(Path(UUID_TO_PATH_INDEX[ID]))
             return make_response("Comment edited successfully", 201)
+    except ValueError as e:
+        abort(400, str(e))
+
+    return abort(400, "Something went wrong, try again")
+
+
+def delete_comment(ID, commentID):
+
+    if ID not in INDEX:
+        abort(404, f"Entity with ID {ID} not found")
+
+    ent = INDEX[ID]
+
+    try:
+        ret = ent.delete_comment(commentID)
+        if ret:
+            path_copy = create_path_entity_copy(ent)
+            path_copy.to_TOML(Path(UUID_TO_PATH_INDEX[ID]))
+            return make_response("Comment deleted successfully", 200)
     except ValueError as e:
         abort(400, str(e))
 
@@ -830,18 +865,14 @@ def add_entity(body):
     parent_path = Path(UUID_TO_PATH_INDEX[parent.ID])
     ent_path = parent_path.parent.joinpath(ent.ID[:8] + "_" + ent.name + ".toml")
 
-    # Because the children do not have a path yet, you need to make a path copy before adding the child
-    parent_copy = create_path_entity_copy(parent)
-
     add_ent_to_index(ent, ent_path)
-
-    # Add the child ID to the parent entity in memory.
-    parent.children.append(ent.ID)
 
     # Create copy of the entity with paths to create the TOML file.
     ent_copy = create_path_entity_copy(ent)
 
-    parent_copy.add_child(ent_path)
+    parent.add_child(ent.ID)
+    parent_copy = create_path_entity_copy(parent)
+
     parent_copy.to_TOML(parent_path)
     ent_copy.to_TOML(ent_path)
 
@@ -849,12 +880,7 @@ def add_entity(body):
 
 
 def delete_entity(ID):
-    """
-    Deletes an entity from the system. It will remove the entity from the parent and delete the TOML file
-     immediately.
 
-    :param ID: The ID of the entity to delete
-    """
     if ID not in INDEX:
         abort(404, f"Entity with ID {ID} not found")
 
@@ -865,20 +891,6 @@ def delete_entity(ID):
     ent.deleted = True
     ent_copy = create_path_entity_copy(ent)
     ent_copy.to_TOML(Path(UUID_TO_PATH_INDEX[ID]))
-
-    # Remove the entity from the parent
-    parent.children.remove(ID)
-    parent_copy = create_path_entity_copy(parent)
-    parent_copy.to_TOML(Path(UUID_TO_PATH_INDEX[parent.ID]))
-
-    # Remove the entity from the index
-    del INDEX[ID]
-
-    # Remove the entity from the path to UUID index
-    del PATH_TO_UUID_INDEX[UUID_TO_PATH_INDEX[ID]]
-
-    # Remove the entity from the UUID to path index
-    del UUID_TO_PATH_INDEX[ID]
 
     return make_response("Entity deleted", 201)
 
