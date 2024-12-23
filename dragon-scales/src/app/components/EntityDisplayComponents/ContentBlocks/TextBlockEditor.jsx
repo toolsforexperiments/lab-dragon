@@ -22,18 +22,22 @@ export default function TextBlockEditor({ parentId, onEditorChange, initialConte
     const {activeUsersEmailStr} = useContext(UserContext);
 
     const handleOnClose = () => {
+        if (!editorState || editorState.trim() === '') {
+            onClose();
 
-        submitNewContentBlock(parentId, activeUsersEmailStr, editorState).then((res) => {
-            if (res === true) {
-                reloadParent();
-                onClose();
-            } else {
-                setOpenErrorSnackbar(true);
-                setErrorSnackbarMessage("Error creating new Text Block, please try again.");
-            }
-        });
+        } else {
+            submitNewContentBlock(parentId, activeUsersEmailStr, editorState).then((res) => {
+                if (res === true) {
+                    reloadParent();
+                    onEditorChange("");
+                    onClose();
+                } else {
+                    setOpenErrorSnackbar(true);
+                    setErrorSnackbarMessage("Error creating new Text Block, please try again.");
+                }
+            });
+        }
     }
-
 
     return (
 
