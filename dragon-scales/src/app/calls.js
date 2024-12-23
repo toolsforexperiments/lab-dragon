@@ -11,7 +11,7 @@ export async function getEntity(id) {
 
 export async function submitContentBlockEdition(entID, user, contentBlock, newContent) {
 
-    let response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/` + entID + "/" + contentBlock.ID + "?HTML=True&user=" + user, {
+    let response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/` + entID + "/" + contentBlock.ID + "?&user=" + user, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',
@@ -23,7 +23,7 @@ export async function submitContentBlockEdition(entID, user, contentBlock, newCo
 }
 
 export async function submitNewContentBlock(entID, user, newContent) {
-    let response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/` + entID + "?HTML=True" + "&user=" + user, {
+    let response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/` + entID + "?user=" + user, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',

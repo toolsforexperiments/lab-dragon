@@ -1,28 +1,28 @@
 "use client"
 
-import { useState, useEffect, useContext, useRef } from "react";
+import {useState, useEffect, useContext, useRef} from "react";
 import {Box, Typography, Card, CardHeader, CardContent, Stack, TextField, IconButton, Popover} from "@mui/material";
-import { styled } from "@mui/material/styles";
-import { ClickAwayListener } from '@mui/base/ClickAwayListener';
+import {styled} from "@mui/material/styles";
+import {ClickAwayListener} from '@mui/base/ClickAwayListener';
 import {Add} from "@mui/icons-material";
 
 
-import { getEntity, createEntity } from "@/app/calls";
-import { entityHeaderTypo, creationMenuItems } from "@/app/constants";
+import {getEntity, createEntity} from "@/app/calls";
+import {entityHeaderTypo, creationMenuItems} from "@/app/constants";
 import TypeChip from "@/app/components/EntityDisplayComponents/TypeChip";
-import { UserContext } from "@/app/contexts/userContext";
+import {UserContext} from "@/app/contexts/userContext";
 import CreationMenu from "@/app/components/EntityDisplayComponents/CreationMenu";
 import ContentBlock from "@/app/components/EntityDisplayComponents/ContentBlocks/ContentBlock";
 import TextBlockEditor from "@/app/components/EntityDisplayComponents/ContentBlocks/TextBlockEditor";
 
-const Header=styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'} )(
-    ({ theme, entityType }) => ({
+const Header = styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'})(
+    ({theme, entityType}) => ({
         color: theme.palette.entities.text[entityType],
         backgroundColor: theme.palette.entities.background[entityType],
     })
 );
 
-const HoverAddSection = styled(Box)(({ theme }) => ({
+const HoverAddSection = styled(Box)(({theme}) => ({
     display: 'flex',
     alignItems: 'center',
     position: 'relative',
@@ -37,26 +37,25 @@ const HoverAddSection = styled(Box)(({ theme }) => ({
 
 }));
 
-const HoverCard = styled(Card)(({ theme }) => ({
+const HoverCard = styled(Card)(({theme}) => ({
     margin: 'inherit',
     position: 'relative',
     '&:hover': {
-        '& > *:last-child': { 
+        '& > *:last-child': {
             opacity: 1,
             backgroundColor: theme.palette.background.light,
         }
     }
 }));
 
-const ActionHint = styled(Typography)(({ theme }) => ({
+const ActionHint = styled(Typography)(({theme}) => ({
     color: theme.palette.text.light,
     transition: 'opacity 0.3s',
 }));
 
 
-
-const NewEntityNameTextField = styled(TextField, {shouldForwardProp: (prop) => prop !== 'entityType'} )(
-    ({ theme, entityType }) => ({
+const NewEntityNameTextField = styled(TextField, {shouldForwardProp: (prop) => prop !== 'entityType'})(
+    ({theme, entityType}) => ({
         '& .MuiInputBase-input': {
             color: theme.palette.entities.text[entityType],
         },
@@ -78,15 +77,16 @@ const NewEntityNameTextField = styled(TextField, {shouldForwardProp: (prop) => p
 );
 
 
-export default function EntityDisplay({ entityId, 
-    parentId,
-    reloadParent, 
-    reloadTrees,
-    entityType, 
-    toggleParentCreationEntityDisplay,
-    setParentErrorSnackbarOpen, 
-    setParentErrorSnackbarMessage,
-    }) {
+export default function EntityDisplay({
+                                          entityId,
+                                          parentId,
+                                          reloadParent,
+                                          reloadTrees,
+                                          entityType,
+                                          toggleParentCreationEntityDisplay,
+                                          setParentErrorSnackbarOpen,
+                                          setParentErrorSnackbarMessage,
+                                      }) {
 
     const [entity, setEntity] = useState({})
     const [newNameHolder, setNewNameHolder] = useState("");
@@ -101,8 +101,8 @@ export default function EntityDisplay({ entityId,
 
     const textFieldRef = useRef(null);
     const contentBlocksIndex = useRef({});
-    
-    const { activeUsersEmailStr } = useContext(UserContext);
+
+    const {activeUsersEmailStr} = useContext(UserContext);
 
     const reload = () => {
         reloadParent();
@@ -183,12 +183,12 @@ export default function EntityDisplay({ entityId,
         ) : entityId === null ? (
             <ClickAwayListener onClickAway={handleClickAway}>
                 <Box>
-                    <Card sx={{ margin: 'inherit'}}>
+                    <Card sx={{margin: 'inherit'}}>
                         <Header title={
                             <Box display="flex" alignItems="center">
-                                <TypeChip type={entityType} />
+                                <TypeChip type={entityType}/>
                                 <NewEntityNameTextField
-                                    inputRef={textFieldRef}                                
+                                    inputRef={textFieldRef}
                                     autoFocus
                                     autoComplete="off"
                                     fullWidth
@@ -199,8 +199,8 @@ export default function EntityDisplay({ entityId,
                                 />
                             </Box>
                         }
-                            entityType={entityType}/>
-                        <CardContent />
+                                entityType={entityType}/>
+                        <CardContent/>
                     </Card>
                 </Box>
             </ClickAwayListener>
@@ -210,22 +210,22 @@ export default function EntityDisplay({ entityId,
 
             // the last option is the loaded entity display we actually want to show
         ) : (
-            <HoverCard sx={{ margin: 'inherit', position: 'relative' }}>
+            <HoverCard sx={{margin: 'inherit', position: 'relative'}}>
                 <Header title={
-                        <Box display="flex" alignItems="center">
-                            <TypeChip type={entity.type} />
-                            <Typography variant={entityHeaderTypo[entity.type]}>
-                                {entity.name}
-                            </Typography>
-                        </Box>
-                    }
-                    entityType={entity.type}
+                    <Box display="flex" alignItems="center">
+                        <TypeChip type={entity.type}/>
+                        <Typography variant={entityHeaderTypo[entity.type]}>
+                            {entity.name}
+                        </Typography>
+                    </Box>
+                }
+                        entityType={entity.type}
                 />
                 <CardContent>
                     <Stack spacing={1}>
                         {entity.order && entity.order.map(([child, type]) => (
                             type === "entity" ? (
-                                <EntityDisplay 
+                                <EntityDisplay
                                     key={child}
                                     entityId={child}
                                     reloadParent={reloadEntity}
@@ -233,16 +233,18 @@ export default function EntityDisplay({ entityId,
                                     toggleParentCreationEntityDisplay={toggleParentCreationEntityDisplay}
                                 />
                             ) : (
-                                <ContentBlock key={child} contentBlock={contentBlocksIndex.current[child]} />
+                                <ContentBlock key={child} contentBlock={contentBlocksIndex.current[child]}/>
                             )
                         ))}
 
                         {openNewTextBlock && (
-                            <ClickAwayListener onClickAway={() => {setOpenNewTextBlock(false); console.log("clicked away");}}>
-                                <Box>
-                                    <TextBlockEditor autoFocus onEditorChange={setNewTextBlockEditorState} initialContent={newTextBlockEditorState} />
-                                </Box>
-                            </ClickAwayListener>
+                            <TextBlockEditor parentId={entity.ID}
+                                             onEditorChange={setNewTextBlockEditorState}
+                                             initialContent={newTextBlockEditorState}
+                                             editorState={newTextBlockEditorState}
+                                             onClose={() => setOpenNewTextBlock(false)}
+                                             reloadParent={reloadEntity}
+                            />
                         )}
 
                         {/* Empty EntityDisplay for the user to insert new name */}
@@ -261,9 +263,10 @@ export default function EntityDisplay({ entityId,
                 </CardContent>
                 <HoverAddSection>
                     <IconButton onClick={handleAddClick}>
-                        <Add />
+                        <Add/>
                     </IconButton>
-                        <ActionHint variant="body1" sx={{ color: '#0000004D',}}>Click the plus icon to add a story entity or content block</ActionHint>
+                    <ActionHint variant="body1" sx={{color: '#0000004D',}}>Click the plus icon to add a story entity or
+                        content block</ActionHint>
                 </HoverAddSection>
 
                 {/* Menu that pops up when the plus is pressed */}
@@ -278,12 +281,12 @@ export default function EntityDisplay({ entityId,
                     transformOrigin={{
                         vertical: 'top',
                         horizontal: 'left',
-                }}>
+                    }}>
                     <CreationMenu entityType={entity.type}
                                   entityName={entity.name}
                                   onClose={handleMenuClose}
                                   actions={[toggleParentCreationEntityDisplay, toggleCreationEntityDisplay]}
-                                  openTextBlock={() => setOpenNewTextBlock(true)} />
+                                  openTextBlock={() => setOpenNewTextBlock(true)}/>
                 </Popover>
             </HoverCard>
         )
