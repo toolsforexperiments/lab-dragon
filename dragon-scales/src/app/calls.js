@@ -9,9 +9,9 @@ export async function getEntity(id) {
 
 }
 
-export async function submitContentBlockEdition(entID, user, contentBlock, newContent) {
+export async function submitContentBlockEdition(entID, user, contentBlockId, newContent) {
 
-    let response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/` + entID + "/" + contentBlock.ID + "?&user=" + user, {
+    let response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/` + entID + "/" + contentBlockId + "?&user=" + user, {
         method: 'PATCH',
         headers: {
             'Content-Type': 'application/json',

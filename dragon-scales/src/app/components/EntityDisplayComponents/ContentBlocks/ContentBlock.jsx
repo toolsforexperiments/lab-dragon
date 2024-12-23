@@ -1,7 +1,9 @@
-import { Box, styled } from "@mui/material";
+import {Box, styled} from "@mui/material";
 import ReactMarkdown from 'react-markdown';
+import {useState} from "react";
+import TextBlockEditor from "@/app/components/EntityDisplayComponents/ContentBlocks/TextBlockEditor";
 
-const StyledBlock = styled(Box)(({ theme }) => ({
+const StyledBlock = styled(Box)(({theme}) => ({
     padding: theme.spacing(2),
     borderRadius: theme.shape.borderRadius,
 
@@ -16,12 +18,33 @@ const StyledBlock = styled(Box)(({ theme }) => ({
     }
 }));
 
-export default function ContentBlock({ contentBlock }) {
+export default function ContentBlock({contentBlock, parentId, reloadParent}) {
+
+    const [openEditor, setOpenEditor] = useState(false);
+    // This has the state of the editor for the content block
+    const [editorState, setEditorState] = useState("");
+
+    const onClose = () => {
+        setOpenEditor(false);
+    };
+
+    const onOpen = () => {
+        setOpenEditor(true);
+    };
+
     return (
-        <StyledBlock>
-            <ReactMarkdown>
-                {contentBlock.content[contentBlock.content.length - 1]}
-            </ReactMarkdown>
-        </StyledBlock>
+
+        openEditor === true ? (
+            <TextBlockEditor parentId={parentId} initialContent={contentBlock.content[contentBlock.content.length - 1]}
+                             editorState={editorState} onEditorChange={setEditorState}
+                             onClose={onClose} reloadParent={reloadParent} contentBlockId={contentBlock.ID}/>
+        ) : (
+
+            <StyledBlock onClick={onOpen}>
+                <ReactMarkdown>
+                    {contentBlock.content[contentBlock.content.length - 1]}
+                </ReactMarkdown>
+            </StyledBlock>
+        )
     );
 }

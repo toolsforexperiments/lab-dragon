@@ -8,11 +8,13 @@ import {ClickAwayListener} from "@mui/base/ClickAwayListener";
 import {Box} from "@mui/material";
 import {useContext, useState} from "react";
 import {UserContext} from "@/app/contexts/userContext";
-import {submitNewContentBlock} from "@/app/calls";
+import {submitContentBlockEdition, submitNewContentBlock} from "@/app/calls";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 
-export default function TextBlockEditor({ parentId, onEditorChange, initialContent, editorState, onClose, reloadParent }) {
+export default function TextBlockEditor({ parentId, onEditorChange, initialContent, editorState, onClose, reloadParent, contentBlockId }) {
+
+    // When contentBlockId is null, it means it is creating a new contentBlock instead of editing one.
 
     const editorId = 'id_' + uuidv4();
 
@@ -22,21 +24,40 @@ export default function TextBlockEditor({ parentId, onEditorChange, initialConte
     const {activeUsersEmailStr} = useContext(UserContext);
 
     const handleOnClose = () => {
-        if (!editorState || editorState.trim() === '') {
-            onClose();
 
-        } else {
-            submitNewContentBlock(parentId, activeUsersEmailStr, editorState).then((res) => {
+        // Nothing changes case
+        if (!editorState || editorState.trim() === '' || (contentBlockId && editorState === initialContent)) {
+            onClose();
+            return
+        }
+
+        // Editing existing content block case
+        if (contentBlockId) {
+            submitContentBlockEdition(parentId, activeUsersEmailStr, contentBlockId, editorState).then((res) => {
                 if (res === true) {
                     reloadParent();
                     onEditorChange("");
                     onClose();
                 } else {
                     setOpenErrorSnackbar(true);
-                    setErrorSnackbarMessage("Error creating new Text Block, please try again.");
+                    setErrorSnackbarMessage("Error editing Text Block, please try again.");
                 }
             });
+            return
         }
+
+        // New content block case
+        submitNewContentBlock(parentId, activeUsersEmailStr, editorState).then((res) => {
+            if (res === true) {
+                reloadParent();
+                onEditorChange("");
+                onClose();
+            } else {
+                setOpenErrorSnackbar(true);
+                setErrorSnackbarMessage("Error creating new Text Block, please try again.");
+            }
+        });
+
     }
 
     return (
