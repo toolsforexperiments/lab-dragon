@@ -234,7 +234,7 @@ export default function EntityDisplay({
                                     entityId={child}
                                     reloadParent={reloadEntity}
                                     reloadTrees={reloadTrees}
-                                    toggleParentCreationEntityDisplay={toggleParentCreationEntityDisplay}
+                                    toggleParentCreationEntityDisplay={toggleCreationEntityDisplay}
                                 />
                             ) : (
                                 <ContentBlock key={child} contentBlock={contentBlocksIndex.current[child]}
