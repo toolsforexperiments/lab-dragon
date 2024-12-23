@@ -12,8 +12,8 @@ import { entityHeaderTypo, creationMenuItems } from "@/app/constants";
 import TypeChip from "@/app/components/EntityDisplayComponents/TypeChip";
 import { UserContext } from "@/app/contexts/userContext";
 import CreationMenu from "@/app/components/EntityDisplayComponents/CreationMenu";
-import Lexical from "@/app/components/LexicalEditor/Lexical";
-import ContentBlock from "@/app/components/EntityDisplayComponents/ContentBlock";
+import ContentBlock from "@/app/components/EntityDisplayComponents/ContentBlocks/ContentBlock";
+import TextBlockEditor from "@/app/components/EntityDisplayComponents/ContentBlocks/TextBlockEditor";
 
 const Header=styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'} )(
     ({ theme, entityType }) => ({
@@ -96,7 +96,8 @@ export default function EntityDisplay({ entityId,
     const [anchorEl, setAnchorEl] = useState(null);
     const [openCreationMenu, setOpenCreationMenu] = useState(false);
 
-    const [editorState, setEditorState] = useState("");
+    const [openNewTextBlock, setOpenNewTextBlock] = useState(false);
+    const [newTextBlockEditorState, setNewTextBlockEditorState] = useState("");
 
     const textFieldRef = useRef(null);
     const contentBlocksIndex = useRef({});
@@ -139,10 +140,6 @@ export default function EntityDisplay({ entityId,
                 setEntity(null);
             }
         });
-    }
-
-    const handleEditorChange = (newEditorState) => {
-        setEditorState(newEditorState);
     }
 
     // Loads the entity on component creation
@@ -240,7 +237,13 @@ export default function EntityDisplay({ entityId,
                             )
                         ))}
 
-                        <Lexical onChange={handleEditorChange}/>
+                        {openNewTextBlock && (
+                            <ClickAwayListener onClickAway={() => {setOpenNewTextBlock(false); console.log("clicked away");}}>
+                                <Box>
+                                    <TextBlockEditor autoFocus onEditorChange={setNewTextBlockEditorState} initialContent={newTextBlockEditorState} />
+                                </Box>
+                            </ClickAwayListener>
+                        )}
 
                         {/* Empty EntityDisplay for the user to insert new name */}
                         {openCreationEntityDisplay && (
@@ -279,7 +282,8 @@ export default function EntityDisplay({ entityId,
                     <CreationMenu entityType={entity.type}
                                   entityName={entity.name}
                                   onClose={handleMenuClose}
-                                  actions={[toggleParentCreationEntityDisplay, toggleCreationEntityDisplay]} />
+                                  actions={[toggleParentCreationEntityDisplay, toggleCreationEntityDisplay]}
+                                  openTextBlock={() => setOpenNewTextBlock(true)} />
                 </Popover>
             </HoverCard>
         )

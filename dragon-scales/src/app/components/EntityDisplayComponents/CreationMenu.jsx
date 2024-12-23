@@ -1,13 +1,19 @@
 import {Divider, ListItemIcon, ListItemText, MenuItem, MenuList, Paper, Typography} from "@mui/material";
+import FormatAlignLeftIcon from '@mui/icons-material/FormatAlignLeft';
 
 import { creationMenuItems } from "@/app/constants";
 import {EntityIcon} from "@/app/components/icons/EntityIcons";
 
-export default function CreationMenu( { entityType, entityName, onClose, actions } ) {
+export default function CreationMenu( { entityType, entityName, onClose, actions, openTextBlock } ) {
 
-    const handleOnClose = (index) => {
+    const handleOnCloseEntity = (index) => {
         onClose();
         actions[index]();
+    }
+
+    const handleOnCloseAction = (closeAction) => {
+        onClose();
+        closeAction();
     }
 
     return (
@@ -20,7 +26,7 @@ export default function CreationMenu( { entityType, entityName, onClose, actions
                     Create New Entities Under <i>{entityName}</i>
                 </Typography>
                 {creationMenuItems[entityType].map((item, index) => (
-                    <MenuItem key={item} onClick={() => handleOnClose(index)}>
+                    <MenuItem key={item} onClick={() => handleOnCloseEntity(index)}>
                         <ListItemIcon>
                             <EntityIcon type={item} fontSize="small" />
                         </ListItemIcon>
@@ -29,8 +35,21 @@ export default function CreationMenu( { entityType, entityName, onClose, actions
                         {/* <Typography variant="body2" sx={{ color: 'text.secondary' }}>
                         ??
                         </Typography> */}
+
                     </MenuItem>
                 ))}
+                <Divider />
+                <Typography variant="subtitle2" sx={{ px: 2, py: 1, color: 'text.secondary' }}>
+                    Content Blocks
+                </Typography>
+                <MenuItem onClick={() => handleOnCloseAction(openTextBlock)}>
+                    <ListItemIcon> <FormatAlignLeftIcon /> </ListItemIcon>
+                    <ListItemText>Text Block</ListItemText>
+
+                </MenuItem>
+
+
+
             </MenuList>
         </Paper>
     )

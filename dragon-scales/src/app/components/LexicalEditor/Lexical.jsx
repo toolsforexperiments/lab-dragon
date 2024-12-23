@@ -1,7 +1,6 @@
-import { $getRoot, $getSelection } from 'lexical';
+import {$getRoot } from 'lexical';
 import { useEffect } from 'react';
 
-import { AutoFocusPlugin } from '@lexical/react/LexicalAutoFocusPlugin';
 import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { RichTextPlugin } from '@lexical/react/LexicalRichTextPlugin';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
@@ -68,19 +67,33 @@ function MyOnChangePlugin({ onChange }) {
 }
 
 
+export function AutoFocusPlugin({defaultSelection="rootStart"}) {
+    // I have no clue why or how this works, but it does.
+    const [editor] = useLexicalComposerContext();
+
+    useEffect(() => {
+        editor.focus();
+        
+        const rootElement = editor.getRootElement();
+        if (rootElement !== null && document.activeElement !== rootElement) {
+            setTimeout(() => {
+                rootElement.focus({preventScroll: true});
+            }, 30);
+        }
+    }, [defaultSelection, editor]);
+  
+    return null;
+}
+
 const theme = {
     // Theme styling goes here
     //...
 }
-
-// Catch any errors that occur during Lexical updates and log them
-// or throw them as needed. If you don't throw them, Lexical will
-// try to recover gracefully without losing user data.
 function onError(error) {
     console.error(error);
 }
 
-export default function Lexical({ onChange, initialContent = '' }) {
+export default function Lexical({ onChange, initialContent = '', editorId }) {
     const initialConfig = {
         namespace: 'MyEditor',
         theme,
@@ -103,8 +116,10 @@ export default function Lexical({ onChange, initialContent = '' }) {
 
     return (
         <LexicalBox>
-            <LexicalComposer initialConfig={initialConfig}>
+            <LexicalComposer id={editorId} initialConfig={initialConfig}>
+                
                 <RichTextPlugin
+                    id={editorId}
                     contentEditable={<MuiContentEditable />}
                     placeholder={<PlaceHolderSx>Start typing here...</PlaceHolderSx>}
                     ErrorBoundary={LexicalErrorBoundary}
