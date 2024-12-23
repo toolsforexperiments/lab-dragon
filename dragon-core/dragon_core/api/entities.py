@@ -219,6 +219,13 @@ def create_path_entity_copy(ent: Entity) -> Entity:
         comment.content = content
         comments.append(comment)
 
+    order = []
+    for item, item_type in copy_ent.order:
+        if item_type == "entity":
+            order.append((UUID_TO_PATH_INDEX[item], item_type))
+        else:
+            order.append((item, item_type))
+
     return copy_ent
 
 
@@ -464,6 +471,14 @@ def load_all_entities():
             if path.is_file():
                 val.children[val.children.index(child)] = PATH_TO_UUID_INDEX[str(path)]
 
+        # Update the order:
+        order_copy = val.order.copy()
+        for i, (item, item_type) in enumerate(order_copy):
+            if item_type == "entity":
+                path = Path(item)
+                if path.is_file():
+                    val.order[i] = (PATH_TO_UUID_INDEX[str(path)], item_type)
+
 
 def _generate_structure_helper(ID):
 
@@ -511,8 +526,9 @@ def read_one(ID, name_only=False):
         for comment in ent_copy.comments:
             if comment.com_type[-1] == SupportedCommentType.md.value or comment.com_type[-1] == SupportedCommentType.string.value:
                 replaced_path = comment_path_to_uuid(comment.content[-1])
-                html_comment = markdown_to_html.convert(replaced_path)
-                comment.content[-1] = html_comment
+                # html_comment = markdown_to_html.convert(replaced_path)
+                # comment.content[-1] = html_comment
+                comment.content[-1] = replaced_path
 
         # If it is an instance, convert the notebooks into html
         if isinstance(ent, Instance):
@@ -718,9 +734,9 @@ def add_comment(ID, body, user: str, HTML: bool = False):
     if ID not in INDEX:
         abort(404, f"Entity with ID {ID} not found")
 
-    ent = INDEX[ID]
-
     user = _parse_and_validate_user(user)
+
+    ent = INDEX[ID]
 
     if HTML:
         content = html_to_markdown.convert(body)

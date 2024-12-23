@@ -12,6 +12,8 @@ import { entityHeaderTypo, creationMenuItems } from "@/app/constants";
 import TypeChip from "@/app/components/EntityDisplayComponents/TypeChip";
 import { UserContext } from "@/app/contexts/userContext";
 import CreationMenu from "@/app/components/EntityDisplayComponents/CreationMenu";
+import Lexical from "@/app/components/LexicalEditor/Lexical";
+import ContentBlock from "@/app/components/EntityDisplayComponents/ContentBlock";
 
 const Header=styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'} )(
     ({ theme, entityType }) => ({
@@ -94,7 +96,10 @@ export default function EntityDisplay({ entityId,
     const [anchorEl, setAnchorEl] = useState(null);
     const [openCreationMenu, setOpenCreationMenu] = useState(false);
 
+    const [editorState, setEditorState] = useState("");
+
     const textFieldRef = useRef(null);
+    const contentBlocksIndex = useRef({});
     
     const { activeUsersEmailStr } = useContext(UserContext);
 
@@ -122,24 +127,29 @@ export default function EntityDisplay({ entityId,
     const reloadEntity = () => {
         getEntity(entityId).then((data) => {
             if (data) {
-                setEntity(JSON.parse(data));
+                let ent = JSON.parse(data);
+                // FIXME: Once the backend is updated to not have the word "comment" instead of ContentBlock, this will need to be updated
+                ent.comments = ent.comments.map((block) => {
+                    const parsedBlock = JSON.parse(block);
+                    contentBlocksIndex.current[parsedBlock.ID] = parsedBlock;
+                    return parsedBlock;
+                });
+                setEntity(ent);
             } else {
                 setEntity(null);
             }
         });
     }
 
+    const handleEditorChange = (newEditorState) => {
+        setEditorState(newEditorState);
+    }
+
     // Loads the entity on component creation
     // TODO: Add snackbar error if this fails
     useEffect(() => {
         if (entityId) {
-            getEntity(entityId).then((data) => {
-                if (data) {
-                    setEntity(JSON.parse(data));
-                } else {
-                    setEntity(null);
-                }
-            });
+            reloadEntity();
         }
     }, [entityId]);
 
@@ -169,8 +179,10 @@ export default function EntityDisplay({ entityId,
     };
 
     return (
+        // entity starts as an empty object, if it is every null an error has occurred
         entity === null ? (
             <Typography variant="h3">Error loading entity with id {entityId} please try again</Typography>
+            // If entityId is null, it means that his EntityDisplay is the placeholder where the user inserts the new title.
         ) : entityId === null ? (
             <ClickAwayListener onClickAway={handleClickAway}>
                 <Box>
@@ -195,8 +207,11 @@ export default function EntityDisplay({ entityId,
                     </Card>
                 </Box>
             </ClickAwayListener>
+            // If entity is an empty object, it means that the entity is still loading
         ) : Object.keys(entity).length === 0 ? (
             <Typography variant="h3">Loading...</Typography>
+
+            // the last option is the loaded entity display we actually want to show
         ) : (
             <HoverCard sx={{ margin: 'inherit', position: 'relative' }}>
                 <Header title={
@@ -210,16 +225,24 @@ export default function EntityDisplay({ entityId,
                     entityType={entity.type}
                 />
                 <CardContent>
-                    <Stack spacing={2}>
-                        {entity.children && entity.children.map(child => (
-                            <EntityDisplay key={child}
-                                           entityId={child}
-                                           reloadParent={reloadEntity}
-                                           reloadTrees={reloadTrees}
-                                           toggleParentCreationEntityDisplay={toggleCreationEntityDisplay}
-                            />
+                    <Stack spacing={1}>
+                        {entity.order && entity.order.map(([child, type]) => (
+                            type === "entity" ? (
+                                <EntityDisplay 
+                                    key={child}
+                                    entityId={child}
+                                    reloadParent={reloadEntity}
+                                    reloadTrees={reloadTrees}
+                                    toggleParentCreationEntityDisplay={toggleParentCreationEntityDisplay}
+                                />
+                            ) : (
+                                <ContentBlock key={child} contentBlock={contentBlocksIndex.current[child]} />
+                            )
                         ))}
 
+                        <Lexical onChange={handleEditorChange}/>
+
+                        {/* Empty EntityDisplay for the user to insert new name */}
                         {openCreationEntityDisplay && (
                             <EntityDisplay entityId={null}
                                            parentId={entityId}
@@ -239,6 +262,8 @@ export default function EntityDisplay({ entityId,
                     </IconButton>
                         <ActionHint variant="body1" sx={{ color: '#0000004D',}}>Click the plus icon to add a story entity or content block</ActionHint>
                 </HoverAddSection>
+
+                {/* Menu that pops up when the plus is pressed */}
                 <Popover
                     open={openCreationMenu}
                     anchorEl={anchorEl}

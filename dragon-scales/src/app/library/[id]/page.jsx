@@ -92,7 +92,7 @@ export default function Library({ params }) {
         if (isDraggingRef.current) {
             const newWidth = e.clientX;
             // the 80 is the width of the toolbar and the 12px margin, this needs to change if any of that changes.
-            setDrawerWidth(newWidth - 80);
+            setDrawerWidth(newWidth - 112);
         }
     };
 
@@ -107,10 +107,8 @@ export default function Library({ params }) {
     }
     
     const reloadLibrary = () => {
-        getEntity(params.id).then((data) => {
+        getEntity(library.ID).then((data) => {
             if (data) {
-                const data4 = JSON.parse(data);
-                console.log(data4);
                 setLibrary(JSON.parse(data));
             } else {
                 setLibrary(null)
