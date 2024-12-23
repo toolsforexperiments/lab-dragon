@@ -296,7 +296,6 @@ paths:
               description: "Successfully edited comment"
           "404":
               description: "Comment not found"
-
       requestBody:
         description: "Updated comment"
         required: true
@@ -305,6 +304,25 @@ paths:
               schema:
                 type: "string"
                 x-body-name: "comment"
+
+    delete:
+      operationId: "dragon_core.api.entities.delete_comment"
+      tags:
+        - Entities
+        - Comments
+      summary: "Delete the comment with the given ID of an entity"
+      parameters:
+        - $ref: "#/components/parameters/ID"
+        - $ref: "#/components/parameters/commentID"
+
+      responses:
+        "200":
+          description: "Successfully deleted comment"
+        "400":
+          description: "Something went wrong"
+        "404":
+          description: "Comment not found"
+
 
   /entities/{ID}/info:
     get:

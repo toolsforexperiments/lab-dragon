@@ -8,7 +8,7 @@ import {ClickAwayListener} from "@mui/base/ClickAwayListener";
 import {Box} from "@mui/material";
 import {useContext, useState} from "react";
 import {UserContext} from "@/app/contexts/userContext";
-import {submitContentBlockEdition, submitNewContentBlock} from "@/app/calls";
+import {deleteContentBlock, submitContentBlockEdition, submitNewContentBlock} from "@/app/calls";
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 
@@ -24,6 +24,23 @@ export default function TextBlockEditor({ parentId, onEditorChange, initialConte
     const {activeUsersEmailStr} = useContext(UserContext);
 
     const handleOnClose = () => {
+
+        // Check for deleted case
+        if (contentBlockId && initialContent !== "" && editorState.trim() === "") {
+            // If the content block had text but is empty, this means it should be deleted
+            if (editorState.trim() === "") {
+                deleteContentBlock(parentId, contentBlockId).then((res) => {
+                    if (res === true) {
+                        reloadParent();
+                        onClose();
+                    } else {
+                        setOpenErrorSnackbar(true);
+                        setErrorSnackbarMessage("Error deleting Text Block, please try again.");
+                    }
+                });
+                return
+            }
+        }
 
         // Nothing changes case
         if (!editorState || editorState.trim() === '' || (contentBlockId && editorState === initialContent)) {

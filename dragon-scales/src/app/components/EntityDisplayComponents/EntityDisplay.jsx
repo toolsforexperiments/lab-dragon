@@ -175,6 +175,10 @@ export default function EntityDisplay({
         toggleParentCreationEntityDisplay();
     };
 
+    if (entity && entity.deleted === true){
+        return null;
+    }
+
     return (
         // entity starts as an empty object, if it is every null an error has occurred
         entity === null ? (

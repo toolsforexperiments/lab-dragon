@@ -34,6 +34,18 @@ export async function submitNewContentBlock(entID, user, newContent) {
     return response.status === 201;
 }
 
+export async function deleteContentBlock(entID, contentBlockId) {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${entID}/${contentBlockId}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json"
+        },
+
+    });
+
+    return response.status === 200;
+}
+
 export async function createEntity(name, user, type, parent) {
     const newEntity = {
         name, user, type, parent

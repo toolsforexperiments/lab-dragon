@@ -258,6 +258,18 @@ class Entity(object):
         comment.modify(content=content, user=user)
         return True
 
+    def delete_comment(self, comment_id):
+
+        comment = None
+        for com in self.comments:
+            if com.ID == comment_id:
+                comment = com
+                break
+        if comment is None:
+            raise ValueError(f"Comment with id {comment_id} does not exist.")
+
+        comment.deleted = True
+        return True
 
     def suggest_data(self, query: str = "", min_threshold=5) -> List[str]:
         """

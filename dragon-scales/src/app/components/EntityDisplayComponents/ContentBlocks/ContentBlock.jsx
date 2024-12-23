@@ -32,6 +32,10 @@ export default function ContentBlock({contentBlock, parentId, reloadParent}) {
         setOpenEditor(true);
     };
 
+    if (contentBlock && contentBlock.deleted === true) {
+        return null;
+    }
+
     return (
 
         openEditor === true ? (
