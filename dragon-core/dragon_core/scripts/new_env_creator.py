@@ -413,7 +413,7 @@ def create_simulated_env(target: Path) -> Path:
     pages_to_create.append((measuring_resonator_second_try_step, measuring_resonator_second_try_step_path))
 
     time.sleep(0.5)
-    finding_resonator_freq_task.add_comment(f'Done with frequency, moving on to optimizing pi-pulse', )
+    finding_resonator_freq_task.add_text_block(f'Done with frequency, moving on to optimizing pi-pulse', )
 
     power_rabi_path = data_path / 'power_rabi'
     power_rabi_path.mkdir(exist_ok=True)
@@ -515,7 +515,7 @@ def create_simulated_env(target: Path) -> Path:
     pages_to_create.append((t2_ramsey_measurement_step, t2_ramsey_measurement_step_path))
 
     time.sleep(0.5)
-    coherence_times_measurements_task.add_comment("So we went from 5 us to almost 30 us. The things I changed last "
+    coherence_times_measurements_task.add_text_block("So we went from 5 us to almost 30 us. The things I changed last "
                                                   "time for this qubit was gave it copper clamps, put moly washers on "
                                                   "as many of the screws for the clamps as I could, and moved the "
                                                   "copper braid to the top clamp (because I was worried putting it on "
@@ -550,7 +550,7 @@ def create_simulated_env(target: Path) -> Path:
     coherence_times_measurements_task.add_child(t2_echo_measurement_step_path)
     pages_to_create.append((t2_echo_measurement_step, t2_echo_measurement_step_path))
 
-    qubit_characterization_project.add_comment("Now let's check Van IV, the other qubit connected,"
+    qubit_characterization_project.add_text_block("Now let's check Van IV, the other qubit connected,"
                                                " to see if it is still good", )
 
     for item, item_path in pages_to_create:

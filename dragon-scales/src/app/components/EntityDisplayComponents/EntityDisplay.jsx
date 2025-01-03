@@ -14,6 +14,7 @@ import {UserContext} from "@/app/contexts/userContext";
 import CreationMenu from "@/app/components/EntityDisplayComponents/CreationMenu";
 import ContentBlock from "@/app/components/EntityDisplayComponents/ContentBlocks/ContentBlock";
 import TextBlockEditor from "@/app/components/EntityDisplayComponents/ContentBlocks/TextBlockEditor";
+import ImageBlockDrop from "@/app/components/EntityDisplayComponents/ContentBlocks/ImageBlockDrop";
 
 const Header = styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'})(
     ({theme, entityType}) => ({
@@ -98,6 +99,8 @@ export default function EntityDisplay({
 
     const [openNewTextBlock, setOpenNewTextBlock] = useState(false);
     const [newTextBlockEditorState, setNewTextBlockEditorState] = useState("");
+    const [openNewImageBlock, setOpenNewImageBlock] = useState(false);
+
 
     const textFieldRef = useRef(null);
     const contentBlocksIndex = useRef({});
@@ -129,8 +132,7 @@ export default function EntityDisplay({
         getEntity(entityId).then((data) => {
             if (data) {
                 let ent = JSON.parse(data);
-                // FIXME: Once the backend is updated to not have the word "comment" instead of ContentBlock, this will need to be updated
-                ent.comments = ent.comments.map((block) => {
+                ent.content_blocks = ent.content_blocks.map((block) => {
                     const parsedBlock = JSON.parse(block);
                     contentBlocksIndex.current[parsedBlock.ID] = parsedBlock;
                     return parsedBlock;
@@ -252,6 +254,13 @@ export default function EntityDisplay({
                             />
                         )}
 
+                        {openNewImageBlock && (
+                            <ImageBlockDrop parentId={entityId}
+                                            reloadParent={reloadEntity}
+                                            handleOnClose={() => setOpenNewImageBlock(false)}/>
+
+                        )}
+
                         {/* Empty EntityDisplay for the user to insert new name */}
                         {openCreationEntityDisplay && (
                             <EntityDisplay entityId={null}
@@ -291,7 +300,8 @@ export default function EntityDisplay({
                                   entityName={entity.name}
                                   onClose={handleMenuClose}
                                   actions={[toggleParentCreationEntityDisplay, toggleCreationEntityDisplay]}
-                                  openTextBlock={() => setOpenNewTextBlock(true)}/>
+                                  openTextBlock={() => setOpenNewTextBlock(true)}
+                                  openImageBlock={() => setOpenNewImageBlock(true)}/>
                 </Popover>
             </HoverCard>
         )

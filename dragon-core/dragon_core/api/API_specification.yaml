@@ -23,19 +23,19 @@ components:
           type: "string"
         description:
           type: "string"
-        comments:
+        content_blocks:
           type: "array"
         children:
           type: "array"
 
-    Comment:
+    ContentBlock:
       type: "object"
       required:
         - content
       properties:
         content:
           type: "string"
-          description: "Text of the comment"
+          description: "Text of the content block"
 
   parameters:
     ID:
@@ -54,9 +54,9 @@ components:
       schema:
         type: "string"
 
-    commentID:
-        name: "commentID"
-        description: "ID of the comment to get"
+    blockID:
+        name: "blockID"
+        description: "ID of the content block to get"
         in: path
         required: true
         schema:
@@ -85,14 +85,6 @@ components:
       required: false
       schema:
         type: "string"
-
-    HTML:
-      name: "HTML"
-      description: "If true, the text in the request body is interpreted as HTML and converted to markdown or vice versa. Always defaults to False"
-      in: query
-      required: false
-      schema:
-          type: "boolean"
 
 paths:
 
@@ -193,24 +185,23 @@ paths:
           description: "That ID is the Dragon's lair, you cannot access that."
 
     put:
-      operationId: "dragon_core.api.entities.add_comment"
+      operationId: "dragon_core.api.entities.add_text_block"
       tags:
         - Entities
-        - Comments
-      summary: "Add a comment to the entity with the given ID"
+        - Content Blocks
+      summary: "Add a text block to the entity with the given ID"
       parameters:
         - $ref: "#/components/parameters/ID"
         - $ref: "#/components/parameters/user"
-        - $ref: "#/components/parameters/HTML"
       responses:
         "200":
-            description: "Successfully added comment"
+            description: "Successfully added text block"
         "403":
             description: "User not found"
         "404":
             description: "Entity not found"
       requestBody:
-        description: "Comment to add"
+        description: "Text to add"
         required: true
         content:
           application/json:
@@ -254,74 +245,101 @@ paths:
         "404":
           description: "Entity not found."
 
-  /entities/{ID}/{commentID}:
+  /entities/{ID}/{blockID}:
     get:
-      operationId: "dragon_core.api.entities.read_comment"
+      operationId: "dragon_core.api.entities.read_content_block"
       tags:
         - Entities
-        - Comments
-      summary: "Read the comment with the given ID, mainly used to get entity images"
+        - Content Blocks
+      summary: "Read the content block with the given ID, mainly used to get entity images"
       parameters:
         - $ref: "#/components/parameters/ID"
-        - $ref: "#/components/parameters/commentID"
+        - $ref: "#/components/parameters/blockID"
         - in: query
-          name: "whole_comment"
+          name: "whole_content_block"
           schema:
               type: "boolean"
-          description: "If true, the whole comment is returned, otherwise only the content"
-        - $ref: "#/components/parameters/HTML"
+          description: "If true, the whole content block is returned, otherwise only the content"
       responses:
         "200":
-          description: "Successfully read comment"
+          description: "Successfully read content block"
         "404":
-          description: "Comment not found"
+          description: "Content block not found"
 
     patch:
-      operationId: "dragon_core.api.entities.edit_comment"
+      operationId: "dragon_core.api.entities.edit_content_block"
       tags:
           - Entities
-          - Comments
-      summary: "Edit the comment with the given ID of an entity"
+          - Content Blocks
+      summary: "Edit the content block with the given ID of an entity"
       parameters:
           - $ref: "#/components/parameters/ID"
-          - $ref: "#/components/parameters/commentID"
+          - $ref: "#/components/parameters/blockID"
           - $ref: "#/components/parameters/user"
-          - in: query
-            name: "HTML"
-            schema:
-              type: "boolean"
-            description: "If true, the comment is interpreted as HTML and converted to markdown"
       responses:
           "200":
-              description: "Successfully edited comment"
+              description: "Successfully edited content block"
           "404":
-              description: "Comment not found"
+              description: "Content block not found"
       requestBody:
-        description: "Updated comment"
+        description: "Updated content block"
         required: true
         content:
           application/json:
               schema:
                 type: "string"
-                x-body-name: "comment"
+                x-body-name: "content block"
 
     delete:
-      operationId: "dragon_core.api.entities.delete_comment"
+      operationId: "dragon_core.api.entities.delete_content_block"
       tags:
         - Entities
-        - Comments
-      summary: "Delete the comment with the given ID of an entity"
+        - Content Blocks
+      summary: "Delete the content block with the given ID of an entity"
       parameters:
         - $ref: "#/components/parameters/ID"
-        - $ref: "#/components/parameters/commentID"
+        - $ref: "#/components/parameters/blockID"
 
       responses:
         "200":
-          description: "Successfully deleted comment"
+          description: "Successfully deleted content block"
         "400":
           description: "Something went wrong"
         "404":
-          description: "Comment not found"
+          description: "content block not found"
+
+  /entities/{ID}/add_image_block:
+    post:
+      operationId: "dragon_core.api.entities.add_image_block"
+      tags:
+        - Properties
+        - Images
+      summary: "Add image block to the entity with the given ID"
+      parameters:
+        - $ref: "#/components/parameters/ID"
+        - $ref: "#/components/parameters/user"
+      requestBody:
+        description: "Image to upload"
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: "object"
+              properties:
+                image:
+                  type: "string"
+                  format: "binary"
+      responses:
+        "200":
+          description: "Successfully uploaded image"
+        "400":
+          description: "Invalid image"
+        "403":
+          description: "User not found"
+        "404":
+          description: "Entity not found"
+
+
 
 
   /entities/{ID}/info:

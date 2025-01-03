@@ -1,5 +1,3 @@
-
-
 from dragon_core.modules.entity import Entity
 
 

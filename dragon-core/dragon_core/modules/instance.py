@@ -1,31 +1,13 @@
-
-
-# The following file has been created automatically based on a jinja template
-# Anything you modify to it, will get lost when the next time the template is
-# created. If you want to modify the class, please do so in the template
-#
-# Template has been rendered
-
-
-
-
-import uuid
 import tomlkit
 
-from pathlib import Path
 from typing import List, Tuple, Dict, Optional, Union
 from pathlib import Path as Path
 from dragon_core.modules.entity import Entity as Entity
 
 from labcore.data.datadict_storage import datadict_from_hdf5
-from dragon_core.utils import create_timestamp
-from dragon_core.components import Comment, SupportedCommentType, Table
-
 
 
 class Instance(Entity):
-
-    
     def __init__(self,
                  version: int = 0,
                  stored_params: Union[List[Path], List[str]] = '',
@@ -67,7 +49,6 @@ class Instance(Entity):
         # If you start with data, populate itself by loading values from file system.
         if len(data) != 0:
             self.populate_itself()
-        
 
     def to_TOML(self, path: Optional[Union[str,Path]] = None):
 
@@ -115,10 +96,6 @@ class Instance(Entity):
             return self.__dict__ == other.__dict__
         return False
 
-    
-    
-
-    
     def populate_itself(self):
         """
         Populates itself based on the files around the Instance.

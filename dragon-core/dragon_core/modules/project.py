@@ -1,35 +1,11 @@
-
-
-# The following file has been created automatically based on a jinja template
-# Anything you modify to it, will get lost when the next time the template is
-# created. If you want to modify the class, please do so in the template
-#
-# Template has been rendered
-
-
-
-
-import uuid
 import tomlkit
 
 from pathlib import Path
-from typing import List, Tuple, Dict, Optional, Union
+from typing import Optional, Union
 from dragon_core.modules.entity import Entity as Entity
-
-from dragon_core.utils import create_timestamp
-from dragon_core.components import Comment, SupportedCommentType, Table
-
 
 
 class Project(Entity):
-
-    
-    def __init__(self,
-                 *args, **kwargs
-                 ):
-        super().__init__(*args, **kwargs)
-        
-
     def to_TOML(self, path: Optional[Union[str,Path]] = None):
 
         if hasattr(super(), 'to_TOML'):
@@ -62,8 +38,4 @@ class Project(Entity):
             return self.__dict__ == other.__dict__
         return False
 
-    
-    
-
-    
     
