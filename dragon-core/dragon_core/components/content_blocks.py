@@ -78,12 +78,17 @@ class ContentBlock:
         """
         Convert the ContentBlock to a dictionary suitable for JSON serialization.
         """
+
+        serialized_content = self.content
+        if self.block_type == SupportedContentBlockType.image:
+            serialized_content = [(str(content[0]), content[1]) for content in self.content]
+
         return {
             'ID': self.ID,
             'creation_user': self.creation_user,
             'creation_time': self.creation_time,
             'deleted': self.deleted,
-            'content': self.content,
+            'content': serialized_content,
             'dates': self.dates,
             'authors': self.authors,
             'block_type': self.block_type.value
@@ -95,6 +100,8 @@ class ContentBlock:
         Create a ContentBlock instance from a dictionary.
         """
         data['block_type'] = SupportedContentBlockType(data['block_type'])
+        if data['block_type'] == SupportedContentBlockType.image:
+            data['content'] = [(Path(content[0]), content[1]) for content in data['content']]
         return cls(**data)
 
     def __str__(self):
@@ -119,5 +126,29 @@ def create_text_block(content: str, user: str) -> ContentBlock:
                         dates=[time],
                         authors=[user],
                         block_type=SupportedContentBlockType.text)
+
+
+def create_image_block(image_path: Path, title: str, user: str) -> ContentBlock:
+    """
+    Factory function to create a new image block. Image blocks have a tuple in their content field,
+    containing the image path as the first item and a title as the second item.
+    """
+
+    ID = str(uuid.uuid4())
+    time = create_timestamp()
+    return ContentBlock(ID=ID,
+                        creation_user=user,
+                        creation_time=time,
+                        deleted=False,
+                        content=[(image_path, title)],
+                        dates=[time],
+                        authors=[user],
+                        block_type=SupportedContentBlockType.image)
+
+
+
+
+
+
 
 

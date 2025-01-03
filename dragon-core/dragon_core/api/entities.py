@@ -192,19 +192,6 @@ def create_path_entity_copy(ent: Entity) -> Entity:
         children_paths.append(UUID_TO_PATH_INDEX[child])
     copy_ent.children = children_paths
 
-    # FIXME: I think this is supposed to go through the content blocks and find any reference that those do to other entities and replace their path with uuid, this might not be necessary since this doesn't trigger any loading and will simplify the code.
-    # content_blocks = []
-    # for block in copy_ent.content_blocks:
-    #     content = []
-    #     for cont in zip(block.content):
-    #         if block.block_type == SupportedContentBlockType.text.value:
-    #             content.append(content_block_path_to_uuid(cont))
-    #         else:
-    #             content.append(cont)
-    #
-    #     block.content = content
-    #     content_blocks.append(block)
-
     order = []
     for item, item_type in copy_ent.order:
         if item_type == "entity":
@@ -524,8 +511,9 @@ def read_content_block(ID, blockID, whole_content_block=False):
         abort(404, f"Content block with ID {blockID} not found")
     block = ent.content_blocks[ind]
     content, author, date = block.latest_version()
+
     if block.block_type == SupportedContentBlockType.image:
-        return send_file(content)
+        return send_file(content[0])
 
     if whole_content_block:
         return json.dumps(str(block)), 201
@@ -704,6 +692,31 @@ def add_image_block(ID, user, body, image):
 
     user = _parse_and_validate_user(user)
 
+    ent = INDEX[ID]
+
+    # TODO: Split the function into helper functions for handling the image and the image block separately.
+    converted_image = Image.open(image.stream)
+    filename = secure_filename(image.filename)
+    file_path = RESOURCEPATH.joinpath(filename)
+
+    while file_path.is_file():
+        f_parts = filename.split('.')
+        if len(f_parts) != 2:
+            abort(400, "The filename is not in the correct format")
+        new_name = f_parts[0] + '_' + ''.join(random.choice(string.ascii_letters) for i in range(6)) + '.' + f_parts[1]
+        file_path = RESOURCEPATH.joinpath(new_name)
+
+    converted_image.save(file_path)
+
+    ent.add_image_block(file_path, filename, user)
+
+    # After adding the content blocks update the file location
+    ent_path = Path(UUID_TO_PATH_INDEX[ID])
+    copy_ent = create_path_entity_copy(ent)
+    copy_ent.to_TOML(ent_path)
+
+    return make_response("Content block added", 201)
+
 
 def delete_content_block(ID, blockID):
 
@@ -869,31 +882,6 @@ def change_entity_name(ID, body):
         abort(400, f"Could not find the file {old_ent_path}")
 
     return make_response("Entity name changed", 201)
-
-
-def add_image(body, image):
-    """
-    Adds and image to the notebook. If an image with the same name is already present in the RESOURCEPATH, it will
-    add a random string to the name to avoid overwriting the image.
-
-    :param body: Text of the tag being added. Usually empty.
-    :param image: The image you get from the flask call.
-    :return: The relative URL to the new image.
-    """
-    converted_image = Image.open(image.stream)
-    filename = secure_filename(image.filename)
-    file_path = RESOURCEPATH.joinpath(filename)
-
-    while file_path.is_file():
-        f_parts = filename.split('.')
-        if len(f_parts) != 2:
-            abort(400, "The filename is not in the correct format")
-        new_name = f_parts[0] + '_' + ''.join(random.choice(string.ascii_letters) for i in range(6)) + '.' + f_parts[1]
-        file_path = RESOURCEPATH.joinpath(new_name)
-
-    converted_image.save(file_path)
-    image_url = f"/api/properties/image/{str(file_path).replace('/', '%23')}"
-    return make_response(image_url, 201)
 
 
 def _check_for_notebook_parent(ent):
