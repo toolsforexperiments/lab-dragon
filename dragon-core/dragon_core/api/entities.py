@@ -18,16 +18,11 @@ from werkzeug.utils import secure_filename
 from flask import abort, make_response, send_file, current_app
 from markdown.extensions.tables import TableExtension
 
-# TODO: Once you have tested remove the old generate_all_classes
-# Refresh the modules before starting the server
-# from dragon_core.generators.meta import generate_all_classes, delete_all_modules
-# delete_all_modules()
-# generate_all_classes()
 
 from dragon_core.modules import Entity, Library, Notebook, Project, Task, Step, Bucket, Instance, DragonLair
 
 from dragon_core.generators.meta import read_from_TOML
-from dragon_core.components.comment import SupportedCommentType, Comment
+from dragon_core.components.content_blocks import SupportedContentBlockType, ContentBlock
 from .converters import (MyMarkdownConverter,
                          CustomLinkExtension,
                          CustomHeadlessTableExtension,
@@ -79,10 +74,6 @@ PATH_TO_UUID_INDEX = {}
 # Holds as keys the UUIDs of entities and as values the path to the TOML files
 UUID_TO_PATH_INDEX = {}
 
-# Holds as keys the hash of an image and as value the absolute path to that image.
-#  This is used to check if an image already exists
-IMAGEINDEX = {}
-
 INSTANCEIMAGE = {}
 
 
@@ -100,7 +91,6 @@ def set_initial_indices():
     global INDEX
     global PATH_TO_UUID_INDEX
     global UUID_TO_PATH_INDEX
-    global IMAGEINDEX
     global INSTANCEIMAGE
 
     if not LOADING_FROM_ENV:
@@ -167,10 +157,6 @@ def set_initial_indices():
     # Holds as keys the UUIDs of entities and as values the path to the TOML files
     UUID_TO_PATH_INDEX = {}
 
-    # Holds as keys the hash of an image and as value the absolute path to that image.
-    #  This is used to check if an image already exists
-    IMAGEINDEX = {}
-
     INSTANCEIMAGE = {}
 
 
@@ -182,9 +168,8 @@ def reset():
 def get_indices():
 
     index = json.dumps(str(INDEX))
-    imageindex = json.dumps(str(IMAGEINDEX))
 
-    ret = {'index': index, 'imageindex': imageindex, 'PATH_TO_UUID_INDEX': PATH_TO_UUID_INDEX}
+    ret = {'index': index, 'PATH_TO_UUID_INDEX': PATH_TO_UUID_INDEX}
     return ret
 
 
@@ -207,18 +192,6 @@ def create_path_entity_copy(ent: Entity) -> Entity:
         children_paths.append(UUID_TO_PATH_INDEX[child])
     copy_ent.children = children_paths
 
-    comments = []
-    for comment in copy_ent.comments:
-        content = []
-        for cont, category in zip(comment.content, comment.com_type):
-            if category == SupportedCommentType.md.value or category == SupportedCommentType.string.value:
-                content.append(comment_path_to_uuid(cont))
-            else:
-                content.append(cont)
-
-        comment.content = content
-        comments.append(comment)
-
     order = []
     for item, item_type in copy_ent.order:
         if item_type == "entity":
@@ -229,7 +202,7 @@ def create_path_entity_copy(ent: Entity) -> Entity:
     return copy_ent
 
 
-def comment_path_to_uuid(content: str):
+def content_block_path_to_uuid(content: str):
 
     def replacer(match):
         # Extract the text and file path from the match
@@ -280,16 +253,6 @@ class MediaTypes(Enum):
             return False
 
 
-def _reset_indices():
-    global INDEX
-    global IMAGEINDEX
-    global PATH_TO_UUID_INDEX
-
-    INDEX = {}
-    IMAGEINDEX = {}
-    PATH_TO_UUID_INDEX = {}
-
-
 def add_ent_to_index(entity: Entity, entity_path: Union[Path, str]) -> None:
     """
     Adds an entity to all the necessary memory indices.
@@ -306,45 +269,6 @@ def add_ent_to_index(entity: Entity, entity_path: Union[Path, str]) -> None:
 
     if entity.ID not in UUID_TO_PATH_INDEX:
         UUID_TO_PATH_INDEX[entity.ID] = str(entity_path)
-
-    # Add the entity type to the entity type index
-    # ENTITY_TYPES.add(entity.__class__.__name__)
-
-
-def add_image_to_index(image, image_path):
-    """
-    Adds an image to the image index
-
-    :param image: a PIL image instance
-    :param image_path: The path on disk of that image
-    """
-    img_hash = imagehash.average_hash(image)
-    if img_hash not in IMAGEINDEX:
-        IMAGEINDEX[img_hash] = image_path
-    # Currently commented out because we are not checking for duplicates
-    # elif str(IMAGEINDEX[img_hash]) != str(image_path):
-    #     print(f'duplicated image has been found, will ignore the new image {image_path}')
-
-
-def find_equivalent_image(image, threshold=0.1):
-    """
-    Checks if there is an equivalent image in the system. Does this by calculating the imagehash and comparing it every
-    other image until either it finds a match or does not find any match. If no match has been found, returns None,
-    if a match has been found, returns the hash of the found image
-
-    :param image: PIL instance of an image
-    :param threshold: The bigger this is, the more different an image can be to be considered equivalent
-    """
-
-    img_hash = imagehash.average_hash(image)
-
-    ret_path = None
-    for hash, path in IMAGEINDEX.items():
-        diff = hash - img_hash
-        if diff <= threshold:
-            ret_path = path
-            break
-    return ret_path
 
 
 def initialize_bucket(bucket_path):
@@ -367,7 +291,6 @@ def initialize_bucket(bucket_path):
             # Only need to add image if it is an actual image, not html plot
             if path.suffix == '.jpg' or path.suffix == '.png':
                 img = Image.open(path)
-                add_image_to_index(img, img_path)
                 INSTANCEIMAGE[img_path] = instance.ID
             elif path.suffix == '.html':
                 pass
@@ -375,17 +298,17 @@ def initialize_bucket(bucket_path):
     return bucket
 
 
-def process_comments(entity):
+def process_content_blocks(entity):
     """
-    Function that processes the comments of an entity and checks for markdown links.
+    Function that processes the content blocks of an entity and checks for markdown links.
 
-    :param entity: The entity whose comments are being processed.
+    :param entity: The entity whose content blocks are being processed.
     """
     # Regular expression pattern for markdown links
     pattern = r'\[(.*?)\]\((.*?)\)'
 
-    for comment in entity.comments:
-        for content in comment.content:
+    for block in entity.content_blocks:
+        for content in block.content:
             if isinstance(content, str):
                 matches = re.findall(pattern, content)
                 for match in matches:
@@ -397,7 +320,6 @@ def process_comments(entity):
                         continue
                     if path.exists() and path.suffix == '.jpg' or path.suffix == '.png':
                         img = Image.open(path)
-                        add_image_to_index(img, path)
 
 
 def recursively_load_entity(entity_path: Path):
@@ -416,7 +338,7 @@ def recursively_load_entity(entity_path: Path):
                 ent_dict, child = recursively_load_entity(child)
                 child_list.append(ent_dict)
             except Exception as e:
-                print(f"Error reading child {ent.name} with path {UUID_TO_PATH_INDEX[ent.ID]}")
+                print(f"Error reading child {ent.name} with path {UUID_TO_PATH_INDEX[ent.ID]} exception: \n{e}")
                 raise e
 
     data_buckets = []
@@ -424,7 +346,7 @@ def recursively_load_entity(entity_path: Path):
         bucket = initialize_bucket(bucket_path)
         data_buckets.append(bucket.ID)
 
-    process_comments(ent)
+    process_content_blocks(ent)
 
     # TODO: Figure out why this line is commented
     # ent.data_buckets = data_buckets
@@ -523,12 +445,10 @@ def read_one(ID, name_only=False):
             return ent.name, 200
 
         ent_copy = copy.deepcopy(ent)
-        for comment in ent_copy.comments:
-            if comment.com_type[-1] == SupportedCommentType.md.value or comment.com_type[-1] == SupportedCommentType.string.value:
-                replaced_path = comment_path_to_uuid(comment.content[-1])
-                # html_comment = markdown_to_html.convert(replaced_path)
-                # comment.content[-1] = html_comment
-                comment.content[-1] = replaced_path
+        for block in ent_copy.content_blocks:
+            if block.block_type == SupportedContentBlockType.text.value:
+                replaced_path = content_block_path_to_uuid(block.content[-1])
+                block.content[-1] = replaced_path
 
         # If it is an instance, convert the notebooks into html
         if isinstance(ent, Instance):
@@ -569,13 +489,13 @@ def read_image(imagePath):
         abort(404, f"Image with path {imagePath} not found")
 
 
-def read_comment(ID, commentID, whole_comment=False, HTML=False):
+def read_content_block(ID, blockID, whole_content_block=False):
     """
-    API function that looks at the comment ID of the entity with ID and returns the comment
+    API function that looks at the block ID of the entity with ID and returns the content block
 
     :param ID:
-    :param commentID:
-    :param whole_comment: if True, returns the whole comment, if False, returns only the last content.
+    :param blockID:
+    :param whole_content_block: if True, returns the whole content block, if False, returns only the last content.
     :return:
     """
 
@@ -583,29 +503,20 @@ def read_comment(ID, commentID, whole_comment=False, HTML=False):
         abort(404, f"Entity with ID {ID} not found")
 
     ent = INDEX[ID]
-    ids = [c.ID for c in ent.comments]
-    if commentID not in ids:
-        abort(404, f"Comment with ID {commentID} not found")
-    ind = ids.index(commentID)
+    ids = [c.ID for c in ent.content_blocks]
+    if blockID not in ids:
+        abort(404, f"Content block with ID {blockID} not found")
+    ind = ids.index(blockID)
     if ind == -1:
-        abort(404, f"Comment with ID {commentID} not found")
-    comment = ent.comments[ind]
-    content, media_type, author, date = comment.last_comment()
-    if media_type == SupportedCommentType.jpg.value or media_type == SupportedCommentType.png.value:
-        return send_file(content)
+        abort(404, f"Content block with ID {blockID} not found")
+    block = ent.content_blocks[ind]
+    content, author, date = block.latest_version()
 
-    if whole_comment:
-        if HTML:
-            comment_copy = copy.deepcopy(comment)
-            converted_content = []
-            for cont in comment.content:
-                replaced_path = comment_path_to_uuid(cont)
-                html_comment = markdown_to_html.convert(replaced_path)
-                converted_content.append(html_comment)
-            comment_copy.content = converted_content
-            return json.dumps(str(comment_copy)), 201
-        else:
-            return json.dumps(str(comment)), 201
+    if block.block_type == SupportedContentBlockType.image:
+        return send_file(content[0])
+
+    if whole_content_block:
+        return json.dumps(str(block)), 201
     else:
         return json.dumps(content), 201
 
@@ -720,15 +631,14 @@ def read_entity_info(ID):
     return make_response(json.dumps({"rank": rank, "num_children": num_children}), 201)
 
 
-def add_comment(ID, body, user: str, HTML: bool = False):
+def add_text_block(ID, body, user: str):
     """
-    Adds a comment to the indicated entity. It does not handle images or tables yet.
+    Adds a text block to the indicated entity. It does not handle images or tables yet.
 
-    :param ID: The id of the entity the comment should be added to.
-    :param body: The text of the comment itself.
-    :param user: Optional argument. If passed, the author of the comment will be that username instead of the
+    :param ID: The id of the entity the block should be added to.
+    :param body: The text.
+    :param user: Optional argument. If passed, the author of the content_block will be that username instead of the
      user of the entity.
-    :param HTML: If true, the comment text is assumed to be in html form and is converted to markdown.
     """
 
     if ID not in INDEX:
@@ -738,22 +648,17 @@ def add_comment(ID, body, user: str, HTML: bool = False):
 
     ent = INDEX[ID]
 
-    if HTML:
-        content = html_to_markdown.convert(body)
-    else:
-        content = body
+    ent.add_text_block(body, user)
 
-    ent.add_comment(content, user)
-
-    # After adding the comment update the file location
+    # After adding the content blocks update the file location
     ent_path = Path(UUID_TO_PATH_INDEX[ID])
     copy_ent = create_path_entity_copy(ent)
     copy_ent.to_TOML(ent_path)
 
-    return make_response("Comment added", 201)
+    return make_response("Content block added", 201)
 
 
-def edit_comment(ID, commentID, body, user, HTML: bool = False):
+def edit_text_block(ID, blockID, body, user):
 
     if ID not in INDEX:
         abort(404, f"Entity with ID {ID} not found")
@@ -762,23 +667,93 @@ def edit_comment(ID, commentID, body, user, HTML: bool = False):
 
     ent = INDEX[ID]
 
-    if HTML:
-        body = html_to_markdown.convert(body)
-
     try:
-        ret = ent.modify_comment(commentID, body, user)
+        ret = ent.modify_text_block(blockID, body, user)
         if ret:
             # Convert uuids in the entity to paths
             path_copy = create_path_entity_copy(ent)
             path_copy.to_TOML(Path(UUID_TO_PATH_INDEX[ID]))
-            return make_response("Comment edited successfully", 201)
+            return make_response("Content block edited successfully", 201)
     except ValueError as e:
         abort(400, str(e))
 
     return abort(400, "Something went wrong, try again")
 
 
-def delete_comment(ID, commentID):
+def _add_image(image, filename=None):
+    converted_image = Image.open(image.stream)
+    if filename is None:
+        filename = secure_filename(image.filename)
+    file_path = RESOURCEPATH.joinpath(filename)
+
+    while file_path.is_file():
+        f_parts = filename.split('.')
+        if len(f_parts) != 2:
+            abort(400, "The filename is not in the correct format")
+        new_name = f_parts[0] + '_' + ''.join(random.choice(string.ascii_letters) for i in range(6)) + '.' + f_parts[1]
+        file_path = RESOURCEPATH.joinpath(new_name)
+
+    converted_image.save(file_path)
+    return file_path, filename
+
+
+def add_image_block(ID, user, body, image):
+
+    if ID not in INDEX:
+        abort(404, f"Entity with ID {ID} not found")
+
+    user = _parse_and_validate_user(user)
+
+    ent = INDEX[ID]
+
+    file_path, filename = _add_image(image)
+
+    ent.add_image_block(file_path, filename, user)
+
+    # After adding the content blocks update the file location
+    ent_path = Path(UUID_TO_PATH_INDEX[ID])
+    copy_ent = create_path_entity_copy(ent)
+    copy_ent.to_TOML(ent_path)
+
+    return make_response("Content block added", 201)
+
+
+def edit_image_block(ID, blockID, user, body, image=None, title=None):
+    if ID not in INDEX:
+        abort(404, f"Entity with ID {ID} not found")
+
+    user = _parse_and_validate_user(user)
+
+    ent = INDEX[ID]
+
+    # for some reason connexion only passes image as an argument if there is an actual image there, if its None/null
+    # e.i. changing the title only, it is in body.
+    image = body["image"] if "image" in body else image
+
+    if image == "null":
+        image = None
+
+    if title == "null":
+        title = None
+
+    file_path, filename = None, None
+    if image is not None:
+        file_path, filename = _add_image(image)
+
+    try:
+        ret = ent.modify_image_block(blockID, user, image_path=file_path, title=title)
+        if ret:
+            # Convert uuids in the entity to paths
+            path_copy = create_path_entity_copy(ent)
+            path_copy.to_TOML(Path(UUID_TO_PATH_INDEX[ID]))
+            return make_response("Content block edited successfully", 201)
+    except ValueError as e:
+        abort(400, str(e))
+
+    return abort(400, "Something went wrong, try again")
+
+
+def delete_content_block(ID, blockID):
 
     if ID not in INDEX:
         abort(404, f"Entity with ID {ID} not found")
@@ -786,11 +761,11 @@ def delete_comment(ID, commentID):
     ent = INDEX[ID]
 
     try:
-        ret = ent.delete_comment(commentID)
+        ret = ent.delete_block(blockID)
         if ret:
             path_copy = create_path_entity_copy(ent)
             path_copy.to_TOML(Path(UUID_TO_PATH_INDEX[ID]))
-            return make_response("Comment deleted successfully", 200)
+            return make_response("Content block deleted successfully", 200)
     except ValueError as e:
         abort(400, str(e))
 
@@ -942,60 +917,6 @@ def change_entity_name(ID, body):
         abort(400, f"Could not find the file {old_ent_path}")
 
     return make_response("Entity name changed", 201)
-
-
-# FIXME: Left here for now as reference. This function tries to find similar images in the system and reutrns that path.
-#  This has proven to be more harmful than usefull. In the future a modal might appear saying that it found this image,
-#  if the user wants to use that instead of uploading one that might work. But for now let's leave it depreceated
-def _add_image_depreceated(body, image):
-    """
-    Adds an image to the notebook. Checks if the image already exists in the system. if it doesn't, copy the image into
-    resource.
-
-    :param body: Text of the tag being added. usually empty
-    :param image: The image you get from the flask call.
-    """
-    warnings.warn("This function is deprecated and will be removed in the future", DeprecationWarning)
-
-    converted_image = Image.open(image.stream)
-    image_path = find_equivalent_image(converted_image)
-
-    if image_path is None:
-        # Save the image to the RESOURCEPATH
-        filename = secure_filename(image.filename)
-        image_path = RESOURCEPATH.joinpath(filename)
-        converted_image.save(image_path)
-        add_image_to_index(Image.open(image_path), image_path)
-
-    image_url = f"/api/properties/image/{str(image_path).replace('/', '%23')}"
-
-    return make_response(image_url, 201)
-
-
-def add_image(body, image):
-    """
-    Adds and image to the notebook. If an image with the same name is already present in the RESOURCEPATH, it will
-    add a random string to the name to avoid overwriting the image.
-
-    :param body: Text of the tag being added. Usually empty.
-    :param image: The image you get from the flask call.
-    :return: The relative URL to the new image.
-    """
-    converted_image = Image.open(image.stream)
-    filename = secure_filename(image.filename)
-    file_path = RESOURCEPATH.joinpath(filename)
-
-    while file_path.is_file():
-        f_parts = filename.split('.')
-        if len(f_parts) != 2:
-            abort(400, "The filename is not in the correct format")
-        new_name = f_parts[0] + '_' + ''.join(random.choice(string.ascii_letters) for i in range(6)) + '.' + f_parts[1]
-        file_path = RESOURCEPATH.joinpath(new_name)
-
-    converted_image.save(file_path)
-    add_image_to_index(converted_image, file_path)
-    image_url = f"/api/properties/image/{str(file_path).replace('/', '%23')}"
-    return make_response(image_url, 201)
 
 
 def _check_for_notebook_parent(ent):
@@ -1264,7 +1185,6 @@ def add_analysis_files_to_instance(body):
         if path.suffix == '.jpg' or path.suffix == '.png':
             if path not in instance.images and analysis_file not in instance.images:
                 img = Image.open(path)
-                add_image_to_index(img, path)
                 instance.images.append(str(path))
         elif path.suffix == '.html':
             if path not in instance.analysis and analysis_file not in instance.analysis:

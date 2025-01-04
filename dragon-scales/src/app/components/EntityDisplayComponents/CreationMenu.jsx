@@ -1,10 +1,11 @@
 import {Divider, ListItemIcon, ListItemText, MenuItem, MenuList, Paper, Typography} from "@mui/material";
 import FormatAlignLeftIcon from '@mui/icons-material/FormatAlignLeft';
+import ImageIcon from '@mui/icons-material/Image';
 
 import { creationMenuItems } from "@/app/constants";
 import {EntityIcon} from "@/app/components/icons/EntityIcons";
 
-export default function CreationMenu( { entityType, entityName, onClose, actions, openTextBlock } ) {
+export default function CreationMenu( { entityType, entityName, onClose, actions, openTextBlock, openImageBlock } ) {
 
     const handleOnCloseEntity = (index) => {
         onClose();
@@ -45,7 +46,10 @@ export default function CreationMenu( { entityType, entityName, onClose, actions
                 <MenuItem onClick={() => handleOnCloseAction(openTextBlock)}>
                     <ListItemIcon> <FormatAlignLeftIcon /> </ListItemIcon>
                     <ListItemText>Text Block</ListItemText>
-
+                </MenuItem>
+                <MenuItem onClick={() => handleOnCloseAction(openImageBlock)}>
+                    <ListItemIcon><ImageIcon/></ListItemIcon>
+                    <ListItemText>Image Block</ListItemText>
                 </MenuItem>
 
 

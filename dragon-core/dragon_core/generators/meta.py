@@ -6,7 +6,7 @@ from typing import Union
 import tomllib as toml
 from jinja2 import Environment, FileSystemLoader
 
-from dragon_core.components.comment import Comment
+from dragon_core.components.content_blocks import ContentBlock, SupportedContentBlockType
 from dragon_core import SCHEMASDIR, MODULESDIR, TEMPLATESDIR, APISCHEMAS
 
 
@@ -115,9 +115,8 @@ def read_from_TOML(path: Union[str, Path]) -> object:
     module = importlib.import_module(f'dragon_core.modules.{data["type"].lower()}')
     _class = getattr(module, data.pop('type'))
 
-    if len(data['comments']) > 0:
-        new_comments = [Comment(**json.loads(x)) for x in data['comments']]
-        data['comments'] = new_comments
+    if len(data['content_blocks']) > 0:
+        data['content_blocks'] = [ContentBlock.from_dict(json.loads(x)) for x in data['content_blocks']]
 
     ins = _class(**data)
     return ins

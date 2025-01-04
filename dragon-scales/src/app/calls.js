@@ -152,3 +152,31 @@ export async function getNotebookParent(id) {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${id}/notebook_parent`);
     return res.json();
 }
+
+
+export async function addImageBlock(id, user, image) {
+    const formData = new FormData();
+    formData.append("image", image);
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${id}/add_image_block?user=${user}`, {
+        method: "POST",
+        body: formData
+    });
+
+    return response.status === 201;
+}
+
+export async function editImageBlock(id, contentBlockId, user, image=null, title=null) {
+    const formData = new FormData();
+    formData.append("image", image);
+    let query = `user=${user}`;
+    if (title) {
+        query += `&title=${title}`;
+    }
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${id}/${contentBlockId}?${query}`, {
+        method: "POST",
+        body: formData
+    });
+
+    return response.status === 201;
+}

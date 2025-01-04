@@ -45,7 +45,7 @@ export default function ToolbarAvatarGroup({ activeUsers }) {
                 <StyledVerticalAvatars title="User Management">
                     {extraCount > 0 && (
                         <Tooltip title={extraNames}>
-                            <Avatar key="extra" bgColor="grey" name={`+${extraCount}`} alt={`+${extraCount}`}>
+                            <Avatar key="extra" name={`+${extraCount}`} alt={`+${extraCount}`}>
                                 +{extraCount}
                             </Avatar>
                         </Tooltip>

@@ -1,28 +1,15 @@
-
-
-# The following file has been created automatically based on a jinja template
-# Anything you modify to it, will get lost when the next time the template is
-# created. If you want to modify the class, please do so in the template
-#
-# Template has been rendered
-
-
-
-
 import uuid
 import tomlkit
 
 from pathlib import Path
-from typing import List, Tuple, Dict, Optional, Union
+from typing import List, Tuple, Optional, Union
 
 from dragon_core.utils import create_timestamp
-from dragon_core.components import Comment, SupportedCommentType, Table
-
+from dragon_core.components import ContentBlock, SupportedContentBlockType, Table, create_text_block, create_image_block
 
 
 class Entity(object):
 
-    
     # If True, checks everytime the entity is saved to_TOML if the filename starts with the first 8 digits of the ID. If it doesn't it adds them.
     START_FILENAME_WITH_ID = True
     
@@ -34,7 +21,7 @@ class Entity(object):
                  parent: Union[str, Path] = '',
                  deleted: bool = False,
                  description: str = '',
-                 comments: List[Union[Comment, Table, str]] = [],
+                 content_blocks: List[ContentBlock] = [],
                  children: List[Union[str, Path]] = [],
                  params: List[Tuple[str]] = [],
                  data_buckets: List[Union[str, Path]] = [],
@@ -68,12 +55,10 @@ class Entity(object):
         else:
             self.order = [].copy()
 
-        if isinstance(comments, list) and len(comments) != 0:
-            self.comments = []
-            for com in comments:
-                self.add_comment(com, _add_to_order=False)
+        if isinstance(content_blocks, list) and len(content_blocks) != 0:
+            self.content_blocks = content_blocks
         else:
-            self.comments = [].copy()
+            self.content_blocks = [].copy()
 
         # If we don't save a copy of the list,
         #   python ends up assigning the same object in memory to every Entity instance.
@@ -104,8 +89,6 @@ class Entity(object):
         else:
             self.end_time = end_time
 
-        
-
     def to_TOML(self, path: Optional[Union[str,Path]] = None):
 
         if hasattr(super(), 'to_TOML'):
@@ -129,8 +112,8 @@ class Entity(object):
         
         vals['description'] = self.description
         
-        # Same as children, we want to save the str version of every comment, not the object.
-        vals['comments'] = [str(comment) for comment in self.comments]
+        # Same as children, we want to save the str version of every content block, not the object.
+        vals['content_blocks'] = [str(block) for block in self.content_blocks]
         
         # We want to save the str version of every child, not the object.
         vals['children'] = [str(child) for child in self.children]
@@ -177,98 +160,62 @@ class Entity(object):
         if _add_to_order:
             self.order.append((child, "entity"))
 
-    def add_comment(self, comment: Union[str, Comment, Table, List[Table], List[Comment], List[str]],
-                    user: str | list[str] | None = None, _add_to_order=True) -> None:
-        """
-        Add a comment to the entity. If a directory is passed, this function will go through the directory and add a
-        comment to every supported file in it in alphabetical order. It will **NOT** go through subdirectories.
-        Whenever it iterates through a list (either if it is passed a list or goes through all of the files in a
-        directory) it will call itself to add individual comments.
+    def add_text_block(self, content, user=None, _add_to_order=True):
+        new_content_block = create_text_block(content, user)
+        self.content_blocks.append(new_content_block)
+        if _add_to_order:
+            self.order.append((new_content_block.ID, "content_block"))
 
-        :param comment: If passed a string to indicate the comment, it will create a new `Comment` object with that
-            string as the comment. If its passed a list of strings, it will create a new comment for each of those strings.
-            If passed a `Comment` object, it will add that comment to the entity. If passed a list of `Comment` objects,
-            it will add each of those comments to the entity.
-        :param user: The user that is adding the comment.
-            If not passed, it will default to the use who created this entity.
-        """
+    def add_image_block(self, image_path, title, user=None, _add_to_order=True):
+        new_image_block = create_image_block(image_path, title, user)
+        self.content_blocks.append(new_image_block)
+        if _add_to_order:
+            self.order.append((new_image_block.ID, "content_block"))
 
-        # Function inside function because its very specific to adding comments and should not be called from anywhere else
-        def add_directory(path: Path) -> None:
-            files = [file for file in path.iterdir() if file.is_file()]
-            supported_items = SupportedCommentType.__members__.keys()
-            for file in sorted(files):
-                if file.is_dir():
-                    continue
-                if file.suffix[1:] in supported_items:
-                    self.add_comment(Comment(file, user))
-                else:
-                    continue
+    def modify_content_block(self, block_id, content, user):
 
-        if user is None:
-            user = self.user
-
-        if isinstance(comment, list):
-            for com in comment:
-                if isinstance(com, Comment):
-                    self.comments.append(com)
-                    if _add_to_order:
-                        self.order.append((com.ID, "comment"))
-                else:
-                    self.add_comment(com, user)
-        else:
-            if isinstance(comment, Comment):
-                self.comments.append(comment)
-                if _add_to_order:
-                    self.order.append((comment.ID, "comment"))
-            elif isinstance(comment, str):
-                try:
-                    path = Path(comment)
-                    if path.is_dir():
-                        add_directory(path)
-                    else:
-                        new_comment = Comment(path, user)
-                        self.comments.append(new_comment)
-                        if _add_to_order:
-                            self.order.append((new_comment.ID, "comment"))
-                # Comment may be too long to convert to path
-                except OSError:
-                    new_comment = Comment(comment, user)
-                    self.comments.append(new_comment)
-                    if _add_to_order:
-                        self.order.append((new_comment.ID, "comment"))
-            elif isinstance(comment, Table):
-                new_comment = Comment(comment, user)
-                self.comments.append(new_comment)
-                if _add_to_order:
-                    self.order.append((new_comment.ID, "comment"))
-            else:
-                raise TypeError(f"Comment must be a string, Table object, or a Comment object, not {type(comment)}")
-
-    def modify_comment(self, comment_id, content, user):
-
-        comment = None
-        for com in self.comments:
-            if com.ID == comment_id:
-                comment = com
+        block = None
+        for blo in self.content_blocks:
+            if blo.ID == block_id:
+                block = blo
                 break
-        if comment is None:
-            raise ValueError(f"Comment with id {comment_id} does not exist.")
+        if block is None:
+            raise ValueError(f"Content block with id {block_id} does not exist.")
 
-        comment.modify(content=content, user=user)
+        block.modify(content=content, user=user)
         return True
 
-    def delete_comment(self, comment_id):
+    def modify_image_block(self, block_id, user, image_path=None, title=None):
+        if image_path is None and title is None:
+            return True
 
-        comment = None
-        for com in self.comments:
-            if com.ID == comment_id:
-                comment = com
+        block = None
+        for blo in self.content_blocks:
+            if blo.ID == block_id:
+                block = blo
                 break
-        if comment is None:
-            raise ValueError(f"Comment with id {comment_id} does not exist.")
+        if block is None:
+            raise ValueError(f"Content block with id {block_id} does not exist.")
 
-        comment.deleted = True
+        if image_path is None:
+            image_path = block.content[-1][0]
+        if title is None:
+            title = block.content[-1][1]
+
+        block.modify(content=(image_path, title), user=user)
+        return True
+
+    def delete_block(self, block_id):
+
+        block = None
+        for blo in self.content_blocks:
+            if blo.ID == block_id:
+                block = blo
+                break
+        if block is None:
+            raise ValueError(f"Content block with id {block_id} does not exist.")
+
+        block.deleted = True
         return True
 
     def suggest_data(self, query: str = "", min_threshold=5) -> List[str]:

@@ -1,23 +1,4 @@
 
-// Function to arrange the comments and child entities in order of their creation time.
-export const sortAndFilterChildren = (entity, displayChildren, onlyShowBookmarked) => {
-    let combinedArray = [];
-    if (entity !== null && displayChildren !== null) {
-        combinedArray = [...entity.comments, ...displayChildren];
-        combinedArray.sort((a, b) => {
-            const timeA = a.created ? new Date(a.created) : new Date(a.start_time);
-            const timeB = b.created ? new Date(b.created) : new Date(b.start_time);
-            return timeA - timeB;
-        });
-
-        if (onlyShowBookmarked) {
-            combinedArray = combinedArray.filter(item => item.com_type || item.bookmarked);
-        }
-    }
-    return combinedArray
-};
-
-
 export function getNameInitials(name) {
     return name.split(' ').map(name => name[0]).join('').toUpperCase()
 }

@@ -6,6 +6,7 @@ import { defaultUserColors } from '@/app/constants';
 import SelectUserDialog from '@/app/components/dialogs/SelectUserDialog';
 import {getUsers, setUserColor} from "@/app/calls";
 import ErrorSnackbar from "@/app/components/ErrorSnackbar";
+import {getCookie, hasCookie, setCookie} from "cookies-next";
 
 export const UserContext = createContext();
 
@@ -41,7 +42,20 @@ export const UserProvider = ({ children }) => {
                         }
                     });
 
+                    const selectedUserExists = hasCookie("lab_dragon_active_user");
+                    if (selectedUserExists === true) {
+                        const selectedUser = await getCookie("lab_dragon_active_user");
+                        const selectedUserEmails = JSON.parse(selectedUser);
+                        const selectedUsers = data.filter(user => selectedUserEmails.includes(user.email));
+                        const selectedUsersMap = selectedUsers.reduce((acc, user) => {
+                            const { email, ...rest } = user;
+                            acc[email] = rest;
+                            return acc;
+                        }, {});
+                        setActiveUsers(selectedUsersMap);
+                    }
                     setUserList(data);
+
                 }
             } catch (error) {
                 console.error(error.message);
@@ -54,6 +68,11 @@ export const UserProvider = ({ children }) => {
 
     // Activates user dialog selection if no user is active.
     useEffect(() => {
+        const selectedUserExists = hasCookie("lab_dragon_active_user");
+        if (selectedUserExists === true) {
+            const selectedUser = getCookie("lab_dragon_active_user")
+            return
+        }
         if (activeUsers.length === 0) {
             setSelectUserDialogOpen(true);
         }
@@ -61,7 +80,11 @@ export const UserProvider = ({ children }) => {
 
     // Updates the email string
     useEffect(() => {
-        setActiveUsersEmailStr(JSON.stringify(Object.keys(activeUsers)));
+        const usersStr = JSON.stringify(Object.keys(activeUsers));
+        setActiveUsersEmailStr(usersStr);
+        if (Object.keys(activeUsers).length > 0) {
+            setCookie("lab_dragon_active_user", usersStr);
+        }
     }, [activeUsers]);
 
 
