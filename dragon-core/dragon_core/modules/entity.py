@@ -2,7 +2,7 @@ import uuid
 import tomlkit
 
 from pathlib import Path
-from typing import List, Tuple, Dict, Optional, Union
+from typing import List, Tuple, Optional, Union
 
 from dragon_core.utils import create_timestamp
 from dragon_core.components import ContentBlock, SupportedContentBlockType, Table, create_text_block, create_image_block
@@ -183,6 +183,26 @@ class Entity(object):
             raise ValueError(f"Content block with id {block_id} does not exist.")
 
         block.modify(content=content, user=user)
+        return True
+
+    def modify_image_block(self, block_id, user, image_path=None, title=None):
+        if image_path is None and title is None:
+            return True
+
+        block = None
+        for blo in self.content_blocks:
+            if blo.ID == block_id:
+                block = blo
+                break
+        if block is None:
+            raise ValueError(f"Content block with id {block_id} does not exist.")
+
+        if image_path is None:
+            image_path = block.content[-1][0]
+        if title is None:
+            title = block.content[-1][1]
+
+        block.modify(content=(image_path, title), user=user)
         return True
 
     def delete_block(self, block_id):

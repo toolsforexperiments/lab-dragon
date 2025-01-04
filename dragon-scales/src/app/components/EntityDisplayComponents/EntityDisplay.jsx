@@ -108,6 +108,9 @@ export default function EntityDisplay({
     const {activeUsersEmailStr} = useContext(UserContext);
 
     const reload = () => {
+        // Stops nextjs from caching the image to allow for real time updates
+        const timestamp = new Date().getTime();
+
         reloadParent();
         reloadTrees();
     }

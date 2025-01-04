@@ -46,7 +46,7 @@ class ContentBlock:
     authors: List[str]
     block_type: SupportedContentBlockType
 
-    def modify(self, content: Union[str, Path, Table], user: str) -> None:
+    def modify(self, content: Union[str, tuple[Path, str]], user: str) -> None:
         """
         Modify the content_block.
         This will check if the content or user are different

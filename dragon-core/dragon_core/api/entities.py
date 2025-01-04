@@ -658,7 +658,7 @@ def add_text_block(ID, body, user: str):
     return make_response("Content block added", 201)
 
 
-def edit_content_block(ID, blockID, body, user):
+def edit_text_block(ID, blockID, body, user):
 
     if ID not in INDEX:
         abort(404, f"Entity with ID {ID} not found")
@@ -668,7 +668,7 @@ def edit_content_block(ID, blockID, body, user):
     ent = INDEX[ID]
 
     try:
-        ret = ent.modify_content_block(blockID, body, user)
+        ret = ent.modify_text_block(blockID, body, user)
         if ret:
             # Convert uuids in the entity to paths
             path_copy = create_path_entity_copy(ent)
@@ -680,23 +680,10 @@ def edit_content_block(ID, blockID, body, user):
     return abort(400, "Something went wrong, try again")
 
 
-def add_image_block(ID, user, body, image):
-
-    print("ID, ", ID)
-    print("user, ", user)
-    print("body, ", body)
-    print("image, ", image)
-
-    if ID not in INDEX:
-        abort(404, f"Entity with ID {ID} not found")
-
-    user = _parse_and_validate_user(user)
-
-    ent = INDEX[ID]
-
-    # TODO: Split the function into helper functions for handling the image and the image block separately.
+def _add_image(image, filename=None):
     converted_image = Image.open(image.stream)
-    filename = secure_filename(image.filename)
+    if filename is None:
+        filename = secure_filename(image.filename)
     file_path = RESOURCEPATH.joinpath(filename)
 
     while file_path.is_file():
@@ -707,6 +694,19 @@ def add_image_block(ID, user, body, image):
         file_path = RESOURCEPATH.joinpath(new_name)
 
     converted_image.save(file_path)
+    return file_path, filename
+
+
+def add_image_block(ID, user, body, image):
+
+    if ID not in INDEX:
+        abort(404, f"Entity with ID {ID} not found")
+
+    user = _parse_and_validate_user(user)
+
+    ent = INDEX[ID]
+
+    file_path, filename = _add_image(image)
 
     ent.add_image_block(file_path, filename, user)
 
@@ -716,6 +716,41 @@ def add_image_block(ID, user, body, image):
     copy_ent.to_TOML(ent_path)
 
     return make_response("Content block added", 201)
+
+
+def edit_image_block(ID, blockID, user, body, image=None, title=None):
+    if ID not in INDEX:
+        abort(404, f"Entity with ID {ID} not found")
+
+    user = _parse_and_validate_user(user)
+
+    ent = INDEX[ID]
+
+    # for some reason connexion only passes image as an argument if there is an actual image there, if its None/null
+    # e.i. changing the title only, it is in body.
+    image = body["image"] if "image" in body else image
+
+    if image == "null":
+        image = None
+
+    if title == "null":
+        title = None
+
+    file_path, filename = None, None
+    if image is not None:
+        file_path, filename = _add_image(image)
+
+    try:
+        ret = ent.modify_image_block(blockID, user, image_path=file_path, title=title)
+        if ret:
+            # Convert uuids in the entity to paths
+            path_copy = create_path_entity_copy(ent)
+            path_copy.to_TOML(Path(UUID_TO_PATH_INDEX[ID]))
+            return make_response("Content block edited successfully", 201)
+    except ValueError as e:
+        abort(400, str(e))
+
+    return abort(400, "Something went wrong, try again")
 
 
 def delete_content_block(ID, blockID):

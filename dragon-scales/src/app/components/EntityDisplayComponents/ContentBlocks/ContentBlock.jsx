@@ -5,10 +5,12 @@ import ReactMarkdown from 'react-markdown';
 import ImageIcon from '@mui/icons-material/Image';
 
 import TextBlockEditor from "@/app/components/EntityDisplayComponents/ContentBlocks/TextBlockEditor";
+import ImageUploader from "@/app/components/EntityDisplayComponents/ContentBlocks/ImageBlockDrop";
 
 const StyledBlock = styled(Box)(({theme}) => ({
     padding: theme.spacing(2),
     borderRadius: theme.shape.borderRadius,
+    cursor: 'pointer',
 
     '&:hover': {
         backgroundColor: theme.palette.primary.lighter,
@@ -17,8 +19,20 @@ const StyledBlock = styled(Box)(({theme}) => ({
     // Style markdown content
     '& p': {
         margin: 0,
-        ...theme.typography.body1
+        ...theme.typography.body1,
+        cursor: 'text',
+        display: 'inline-block',
     }
+}));
+
+
+const ImageCard = styled(Card)(({theme}) => ({
+
+    cursor: 'pointer',
+    '&:hover': {
+        backgroundColor: theme.palette.primary.lighter,
+    },
+
 }));
 
 
@@ -46,17 +60,27 @@ const ImageCardContent = styled(CardMedia)(({theme}) => ({
 
 export default function ContentBlock({contentBlock, parentId, reloadParent}) {
 
-    const [openEditor, setOpenEditor] = useState(false);
+    const [openTextEditor, setOpenTextEditor] = useState(false);
     // This has the state of the editor for the content block
-    const [editorState, setEditorState] = useState("");
+    const [textEditorState, setTextEditorState] = useState("");
+    const [openImageEditor, setOpenImageEditor] = useState(false);
 
-    const onClose = () => {
-        setOpenEditor(false);
+
+    const onCloseTextEditor = () => {
+        setOpenTextEditor(false);
     };
 
-    const onOpen = () => {
-        setOpenEditor(true);
+    const onOpenTextEditor = () => {
+        setOpenTextEditor(true);
     };
+
+    const onCloseImageEditor = () => {
+        setOpenImageEditor(false);
+    }
+
+    const onOpenImageEditor = () => {
+        setOpenImageEditor(true);
+    }
 
     if (contentBlock && contentBlock.deleted === true) {
         return null;
@@ -67,13 +91,13 @@ export default function ContentBlock({contentBlock, parentId, reloadParent}) {
     switch (contentBlock.block_type) {
         case 1:
             return (
-                openEditor === true ? (
+                openTextEditor === true ? (
                     <TextBlockEditor parentId={parentId} initialContent={contentBlock.content[contentBlock.content.length - 1]}
-                                     editorState={editorState} onEditorChange={setEditorState}
-                                     onClose={onClose} reloadParent={reloadParent} contentBlockId={contentBlock.ID}/>
+                                     editorState={textEditorState} onEditorChange={setTextEditorState}
+                                     onClose={onCloseTextEditor} reloadParent={reloadParent} contentBlockId={contentBlock.ID}/>
                 ) : (
 
-                    <StyledBlock onClick={onOpen}>
+                    <StyledBlock onClick={onOpenTextEditor}>
                         <ReactMarkdown>
                             {contentBlock.content[contentBlock.content.length - 1]}
                         </ReactMarkdown>
@@ -83,24 +107,34 @@ export default function ContentBlock({contentBlock, parentId, reloadParent}) {
         case 2:
             if (displayContent.length !== 2) {
                 return (
-                    <Typography>Image block is oddly formated, cannot display (Not the image but how it is stored in the dragon).</Typography>
+                    <Typography>Image block is oddly formatted, cannot display (Not the image but how it is stored in the dragon).</Typography>
                 );
             }
 
             return (
-                <Card>
-                    <ImageHeader title={
-                        <Box display="flex" alignItems="center">
-                            <ImageHeaderIcon/>
-                            <Typography variant="subtitle1">{displayContent[1]}</Typography>
-                        </Box>
-                    }/>
+                openImageEditor ? (
+                    <ImageUploader parentId={parentId} reloadParent={reloadParent} handleOnClose={onCloseImageEditor} contentBlock={contentBlock}/>
+                ) : (
+                    <ImageCard onClick={onOpenImageEditor}>
+                        <ImageHeader title={
+                            <Box display="flex" alignItems="center">
+                                <ImageHeaderIcon/>
+                                <Typography variant="subtitle1"
+                                            display="inline-block"
+                                            sx={{cursor: 'text'}}
+                                >
+                                    {displayContent[1]}
+                                </Typography>
+                            </Box>
+                        }/>
 
-                    <ImageCardContent
-                        component="img"
-                        image={`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${parentId}/${contentBlock.ID}`}
-                    />
-                </Card>
+                        <ImageCardContent
+                            component="img"
+                            // the `?t=${Date.now()}` is to stop nextjs from caching the image to allow for real time updates
+                            image={`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${parentId}/${contentBlock.ID}?t=${Date.now()}`}
+                        />
+                    </ImageCard>
+                )
             )
 
         default:

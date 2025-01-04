@@ -267,28 +267,69 @@ paths:
           description: "Content block not found"
 
     patch:
-      operationId: "dragon_core.api.entities.edit_content_block"
+      operationId: "dragon_core.api.entities.edit_text_block"
       tags:
           - Entities
           - Content Blocks
-      summary: "Edit the content block with the given ID of an entity"
+      summary: "Edit the text block with the given ID of an entity"
       parameters:
           - $ref: "#/components/parameters/ID"
           - $ref: "#/components/parameters/blockID"
           - $ref: "#/components/parameters/user"
       responses:
           "200":
-              description: "Successfully edited content block"
+              description: "Successfully edited text block"
           "404":
-              description: "Content block not found"
+              description: "Text block not found"
       requestBody:
-        description: "Updated content block"
+        description: "Updated text block"
         required: true
         content:
           application/json:
               schema:
                 type: "string"
-                x-body-name: "content block"
+                x-body-name: "text block"
+
+    post:
+      operationId: "dragon_core.api.entities.edit_image_block"
+      tags:
+        - Entities
+        - Images
+        - Content Blocks
+      summary: "Edit the image block with the given ID of an entity"
+      parameters:
+        - $ref: "#/components/parameters/ID"
+        - $ref: "#/components/parameters/blockID"
+        - $ref: "#/components/parameters/user"
+        - in: query
+          name: "title"
+          description: "New title for the image"
+          required: false
+          schema:
+            type: "string"
+      requestBody:
+        description: "Image to upload"
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: "object"
+              properties:
+                image:
+                  type: "string"
+                  format: "binary"
+                  x-body-name: "image" 
+
+      responses:
+        "201":
+            description: "Successfully uploaded image"
+        "400":
+            description: "Invalid image"
+        "403":
+            description: "User not found"
+        "404":
+            description: "Entity not found"
+
 
     delete:
       operationId: "dragon_core.api.entities.delete_content_block"
@@ -312,7 +353,8 @@ paths:
     post:
       operationId: "dragon_core.api.entities.add_image_block"
       tags:
-        - Properties
+        - Entities
+        - Content Blocks
         - Images
       summary: "Add image block to the entity with the given ID"
       parameters:
