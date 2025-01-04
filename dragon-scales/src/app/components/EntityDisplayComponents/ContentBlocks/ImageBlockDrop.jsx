@@ -34,7 +34,6 @@ const NewImageHeaderTextField = styled(TextField)(({ theme }) => ({
 
 }));
 
-// FIXME: Selecting the file from the file explorer does not work as dropping or pasting.
 export default function ImageUploader({ parentId, reloadParent, handleOnClose, contentBlock }) {
 
     // When contentBlock is null, it means it is creating a new contentBlock instead of editing one.
