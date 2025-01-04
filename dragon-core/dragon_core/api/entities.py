@@ -513,6 +513,8 @@ def read_content_block(ID, blockID, whole_content_block=False):
     content, author, date = block.latest_version()
 
     if block.block_type == SupportedContentBlockType.image:
+        print(f'content is: {content}')
+        print(f"content 0 is file: {content[0].is_file()}")
         return send_file(content[0])
 
     if whole_content_block:
@@ -684,14 +686,14 @@ def _add_image(image, filename=None):
     converted_image = Image.open(image.stream)
     if filename is None:
         filename = secure_filename(image.filename)
-    file_path = RESOURCEPATH.joinpath(filename)
+    file_path = RESOURCEPATH.joinpath(filename).resolve()
 
     while file_path.is_file():
         f_parts = filename.split('.')
         if len(f_parts) != 2:
             abort(400, "The filename is not in the correct format")
         new_name = f_parts[0] + '_' + ''.join(random.choice(string.ascii_letters) for i in range(6)) + '.' + f_parts[1]
-        file_path = RESOURCEPATH.joinpath(new_name)
+        file_path = RESOURCEPATH.joinpath(new_name).resolve()
 
     converted_image.save(file_path)
     return file_path, filename
