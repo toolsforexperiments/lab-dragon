@@ -8,6 +8,7 @@ from dragon_core.utils import create_timestamp
 from dragon_core.components import ContentBlock, SupportedContentBlockType, Table, create_text_block, create_image_block
 
 
+# FIXME: The items in the order should all be the same, not some tuple and some list.
 class Entity(object):
 
     # If True, checks everytime the entity is saved to_TOML if the filename starts with the first 8 digits of the ID. If it doesn't it adds them.
@@ -152,23 +153,46 @@ class Entity(object):
             return self.__dict__ == other.__dict__
         return False
 
-    def add_child(self, child, _add_to_order=True):
+    def _find_order_index(self, item_id):
+        for i, item in enumerate(self.order):
+            if item[0] == item_id:
+                return i
+        raise ValueError(f"Item with id {item_id} not found in order.")
+
+    def add_child(self, child, under_child=None, _add_to_order=True):
+        """
+        under_child is used to place entities under a specific child. A child can be an entity child or a content block
+        """
         if not hasattr(self, 'children'):
             self.children = []
         self.children.append(child)
 
+        if under_child is not None:
+            index = self._find_order_index(under_child)
+            self.order.insert(index+1, (child, "entity"))
+            return
         if _add_to_order:
             self.order.append((child, "entity"))
 
-    def add_text_block(self, content, user=None, _add_to_order=True):
+    def add_text_block(self, content, user=None, under_child=None, _add_to_order=True):
         new_content_block = create_text_block(content, user)
         self.content_blocks.append(new_content_block)
+        if under_child is not None:
+            index = self._find_order_index(under_child)
+            self.order.insert(index+1, (new_content_block.ID, "content_block"))
+            return
+
         if _add_to_order:
             self.order.append((new_content_block.ID, "content_block"))
 
-    def add_image_block(self, image_path, title, user=None, _add_to_order=True):
+    def add_image_block(self, image_path, title, user=None, under_child=None, _add_to_order=True):
         new_image_block = create_image_block(image_path, title, user)
         self.content_blocks.append(new_image_block)
+        if under_child is not None:
+            index = self._find_order_index(under_child)
+            self.order.insert(index+1, (new_image_block.ID, "content_block"))
+            return
+
         if _add_to_order:
             self.order.append((new_image_block.ID, "content_block"))
 

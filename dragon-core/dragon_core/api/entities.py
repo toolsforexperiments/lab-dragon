@@ -513,8 +513,6 @@ def read_content_block(ID, blockID, whole_content_block=False):
     content, author, date = block.latest_version()
 
     if block.block_type == SupportedContentBlockType.image:
-        print(f'content is: {content}')
-        print(f"content 0 is file: {content[0].is_file()}")
         return send_file(content[0])
 
     if whole_content_block:
@@ -633,7 +631,7 @@ def read_entity_info(ID):
     return make_response(json.dumps({"rank": rank, "num_children": num_children}), 201)
 
 
-def add_text_block(ID, body, user: str):
+def add_text_block(ID, body, user: str, under_child: str = None):
     """
     Adds a text block to the indicated entity. It does not handle images or tables yet.
 
@@ -646,11 +644,13 @@ def add_text_block(ID, body, user: str):
     if ID not in INDEX:
         abort(404, f"Entity with ID {ID} not found")
 
+    under_child = under_child if (under_child is not None and under_child != "undefined") else None
+
     user = _parse_and_validate_user(user)
 
     ent = INDEX[ID]
 
-    ent.add_text_block(body, user)
+    ent.add_text_block(body, user, under_child)
 
     # After adding the content blocks update the file location
     ent_path = Path(UUID_TO_PATH_INDEX[ID])
@@ -699,7 +699,7 @@ def _add_image(image, filename=None):
     return file_path, filename
 
 
-def add_image_block(ID, user, body, image):
+def add_image_block(ID, user, body, image, under_child=None):
 
     if ID not in INDEX:
         abort(404, f"Entity with ID {ID} not found")
@@ -708,9 +708,11 @@ def add_image_block(ID, user, body, image):
 
     ent = INDEX[ID]
 
+    under_child = under_child if (under_child is not None and under_child != "undefined") else None
+
     file_path, filename = _add_image(image)
 
-    ent.add_image_block(file_path, filename, user)
+    ent.add_image_block(file_path, filename, user, under_child)
 
     # After adding the content blocks update the file location
     ent_path = Path(UUID_TO_PATH_INDEX[ID])
@@ -812,6 +814,8 @@ def add_entity(body):
         * type: Type of the entity
         * parent: ID of the parent entity
         * user: User that created the entity
+        * under_child: Optional argument. If passed, the entity will be added under the child with the given ID.
+            Content blocks count as children.
     """
     if "name" not in body or body['name'] == "":
         abort(400, "Name of entity is required")
@@ -821,6 +825,8 @@ def add_entity(body):
         abort(400, "Parent of entity is required")
     if "user" not in body or body['user'] == "":
         abort(400, "User of entity is required")
+
+    under_child = body["under_child"] if "under_child" in body else None
 
     user = _parse_and_validate_user(body['user'])
 
@@ -847,7 +853,7 @@ def add_entity(body):
     # Create copy of the entity with paths to create the TOML file.
     ent_copy = create_path_entity_copy(ent)
 
-    parent.add_child(ent.ID)
+    parent.add_child(ent.ID, under_child=under_child)
     parent_copy = create_path_entity_copy(parent)
 
     parent_copy.to_TOML(parent_path)

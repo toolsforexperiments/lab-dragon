@@ -55,6 +55,14 @@ const ActionHint = styled(Typography)(({theme}) => ({
 }));
 
 
+const RelativeAddButton = styled(IconButton)(({theme}) => ({
+    width: 'fit-content',
+    height: 'fit-content',
+    marginLeft: -10,
+    marginRight: 8,
+
+}));
+
 const NewEntityNameTextField = styled(TextField, {shouldForwardProp: (prop) => prop !== 'entityType'})(
     ({theme, entityType}) => ({
         '& .MuiInputBase-input': {
@@ -87,19 +95,24 @@ export default function EntityDisplay({
                                           toggleParentCreationEntityDisplay,
                                           setParentErrorSnackbarOpen,
                                           setParentErrorSnackbarMessage,
+                                          underChildId,
                                       }) {
 
     const [entity, setEntity] = useState({})
     const [newNameHolder, setNewNameHolder] = useState("");
-    const [openCreationEntityDisplay, setOpenCreationEntityDisplay] = useState(false);
+
+    // The open states variables hold the ID of what thing the creation menu should be under what
+    const [openCreationEntityDisplay, setOpenCreationEntityDisplay] = useState("");
+    const [openNewImageBlock, setOpenNewImageBlock] = useState("");
+    const [openNewTextBlock, setOpenNewTextBlock] = useState("");
+    const [newTextBlockEditorState, setNewTextBlockEditorState] = useState("");
+
+    // Changes whenever the user presses the plus icon, used to keep track of the ID of the last clicked item to send to the creation menu.
+    const [lastClickedItemId, setLastClickedItemId] = useState("");
 
     // Creation menu state
     const [anchorEl, setAnchorEl] = useState(null);
     const [openCreationMenu, setOpenCreationMenu] = useState(false);
-
-    const [openNewTextBlock, setOpenNewTextBlock] = useState(false);
-    const [newTextBlockEditorState, setNewTextBlockEditorState] = useState("");
-    const [openNewImageBlock, setOpenNewImageBlock] = useState(false);
 
 
     const textFieldRef = useRef(null);
@@ -115,19 +128,28 @@ export default function EntityDisplay({
         reloadTrees();
     }
 
-    const toggleCreationEntityDisplay = () => {
-        setOpenCreationEntityDisplay(!openCreationEntityDisplay);
+    const toggleCreationEntityDisplay = (itemId) => {
+        if (openCreationEntityDisplay !== "") {
+            setOpenCreationEntityDisplay("");
+        } else {
+            setOpenCreationEntityDisplay(itemId);
+        }
     }
 
     // Add handler for IconButton click
-    const handleAddClick = (event) => {
+    const handleAddClick = (event, itemId) => {
         setAnchorEl(event.currentTarget);
+        setLastClickedItemId(itemId)
         setOpenCreationMenu(true);
     };
 
     const handleMenuClose = () => {
         setAnchorEl(null);
         setOpenCreationMenu(false);
+        setLastClickedItemId("");
+        setOpenCreationEntityDisplay("");
+        setOpenNewTextBlock("");
+        setOpenNewImageBlock("");
     };
 
     // TODO: Add snackbar error if this fails
@@ -167,7 +189,7 @@ export default function EntityDisplay({
 
     const handleClickAway = () => {
         if (newNameHolder !== "") {
-            createEntity(newNameHolder, activeUsersEmailStr, entityType, parentId).then((ret) => {
+            createEntity(newNameHolder, activeUsersEmailStr, entityType, parentId, underChildId).then((ret) => {
                 if (ret === true) {
                     reload();
                 } else {
@@ -233,45 +255,85 @@ export default function EntityDisplay({
                 <CardContent>
                     <Stack spacing={1}>
                         {entity.order && entity.order.map(([child, type]) => (
-                            type === "entity" ? (
-                                <EntityDisplay
-                                    key={child}
-                                    entityId={child}
-                                    reloadParent={reloadEntity}
-                                    reloadTrees={reloadTrees}
-                                    toggleParentCreationEntityDisplay={toggleCreationEntityDisplay}
-                                />
-                            ) : (
-                                <ContentBlock key={child} contentBlock={contentBlocksIndex.current[child]}
-                                              parentId={entity.ID} reloadParent={reloadEntity}/>
-                            )
+                            <Box display="flex" flexDirection="row" alignItems="top" width="100%" flex={1} key={child}>
+                                <RelativeAddButton onClick={(e) => handleAddClick(e, child)} >
+                                    <Add/>
+                                </RelativeAddButton>
+                                <Box flex={1}>
+                                    {type === "entity" ? (
+                                        <EntityDisplay
+                                            // key={child}
+                                            entityId={child}
+                                            reloadParent={reloadEntity}
+                                            reloadTrees={reloadTrees}
+                                            toggleParentCreationEntityDisplay={toggleCreationEntityDisplay}
+                                        />
+                                    ) : (
+                                        <ContentBlock  contentBlock={contentBlocksIndex.current[child]}
+                                                      parentId={entity.ID} reloadParent={reloadEntity}/>
+                                    )}
+
+                                    {openNewTextBlock === child && (
+                                        <TextBlockEditor parentId={entityId}
+                                                         onEditorChange={setNewTextBlockEditorState}
+                                                         initialContent={newTextBlockEditorState}
+                                                         editorState={newTextBlockEditorState}
+                                                         onClose={() => setOpenNewTextBlock("")}
+                                                         reloadParent={reloadEntity}
+                                                         underChild={child}
+                                        />
+                                    )}
+
+                                    {openNewImageBlock === child && (
+                                        <ImageBlockDrop parentId={entityId}
+                                                        reloadParent={reloadEntity}
+                                                        handleOnClose={() => setOpenNewImageBlock("")}
+                                                        underChild={child}/>
+
+                                    )}
+
+                                    {/* Empty EntityDisplay for the user to insert new name */}
+                                    {openCreationEntityDisplay === child && (
+                                        <EntityDisplay entityId={null}
+                                                       parentId={entityId}
+                                                       reloadParent={reloadEntity}
+                                                       reloadTrees={reloadTrees}
+                                                       entityType={creationMenuItems[entity.type][creationMenuItems[entity.type].length - 1]}
+                                                       toggleParentCreationEntityDisplay={() => toggleCreationEntityDisplay(child)}
+                                                       setParentErrorSnackbarOpen={setParentErrorSnackbarOpen}
+                                                       setParentErrorSnackbarMessage={setParentErrorSnackbarMessage}
+                                                       underChildId={child}
+                                        />
+                                    )}
+                                </Box>
+                            </Box>
                         ))}
 
-                        {openNewTextBlock && (
+                        {openNewTextBlock === entityId && (
                             <TextBlockEditor parentId={entity.ID}
                                              onEditorChange={setNewTextBlockEditorState}
                                              initialContent={newTextBlockEditorState}
                                              editorState={newTextBlockEditorState}
-                                             onClose={() => setOpenNewTextBlock(false)}
+                                             onClose={() => setOpenNewTextBlock("")}
                                              reloadParent={reloadEntity}
                             />
                         )}
 
-                        {openNewImageBlock && (
+                        {openNewImageBlock === entityId && (
                             <ImageBlockDrop parentId={entityId}
                                             reloadParent={reloadEntity}
-                                            handleOnClose={() => setOpenNewImageBlock(false)}/>
+                                            handleOnClose={() => setOpenNewImageBlock("")}/>
 
                         )}
 
                         {/* Empty EntityDisplay for the user to insert new name */}
-                        {openCreationEntityDisplay && (
+                        {openCreationEntityDisplay === entityId && (
                             <EntityDisplay entityId={null}
                                            parentId={entityId}
                                            reloadParent={reloadEntity}
                                            reloadTrees={reloadTrees}
                                            entityType={creationMenuItems[entity.type][creationMenuItems[entity.type].length - 1]}
-                                           toggleParentCreationEntityDisplay={toggleCreationEntityDisplay}
+                                           toggleParentCreationEntityDisplay={() => toggleCreationEntityDisplay(entityId)}
                                            setParentErrorSnackbarOpen={setParentErrorSnackbarOpen}
                                            setParentErrorSnackbarMessage={setParentErrorSnackbarMessage}
                             />
@@ -279,7 +341,7 @@ export default function EntityDisplay({
                     </Stack>
                 </CardContent>
                 <HoverAddSection>
-                    <IconButton onClick={handleAddClick}>
+                    <IconButton onClick={(e) => handleAddClick(e, entityId)}>
                         <Add/>
                     </IconButton>
                     <ActionHint variant="body1" sx={{color: '#0000004D',}}>Click the plus icon to add a story entity or
@@ -302,9 +364,9 @@ export default function EntityDisplay({
                     <CreationMenu entityType={entity.type}
                                   entityName={entity.name}
                                   onClose={handleMenuClose}
-                                  actions={[toggleParentCreationEntityDisplay, toggleCreationEntityDisplay]}
-                                  openTextBlock={() => setOpenNewTextBlock(true)}
-                                  openImageBlock={() => setOpenNewImageBlock(true)}/>
+                                  actions={[toggleParentCreationEntityDisplay, () => toggleCreationEntityDisplay(lastClickedItemId)]}
+                                  openTextBlock={() => setOpenNewTextBlock(lastClickedItemId)}
+                                  openImageBlock={() => setOpenNewImageBlock(lastClickedItemId)}/>
                 </Popover>
             </HoverCard>
         )
