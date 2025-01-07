@@ -55,13 +55,18 @@ const ActionHint = styled(Typography)(({theme}) => ({
 }));
 
 
-const RelativeAddButton = styled(IconButton)(({theme}) => ({
-    width: 'fit-content',
-    height: 'fit-content',
-    marginLeft: -10,
-    marginRight: 8,
+const RelativeAddButton = styled(IconButton, {shouldForwardProp: (prop) => prop !== 'show'})(
+    ({theme, show}) => ({
+        width: 'fit-content',
+        height: 'fit-content',
+        marginLeft: -10,
+        marginRight: 8,
+        opacity: show? 1 : 0,
+        transition: 'opacity 0.3s ease',
 
 }));
+
+
 
 const NewEntityNameTextField = styled(TextField, {shouldForwardProp: (prop) => prop !== 'entityType'})(
     ({theme, entityType}) => ({
@@ -100,6 +105,8 @@ export default function EntityDisplay({
 
     const [entity, setEntity] = useState({})
     const [newNameHolder, setNewNameHolder] = useState("");
+    // Used to keep track of the current hover state of the card
+    const [currentHover, setCurrentHover] = useState("");
 
     // The open states variables hold the ID of what thing the creation menu should be under what
     const [openCreationEntityDisplay, setOpenCreationEntityDisplay] = useState("");
@@ -126,6 +133,14 @@ export default function EntityDisplay({
 
         reloadParent();
         reloadTrees();
+    }
+
+    const onHover = (itemId) => {
+        setCurrentHover(itemId);
+    }
+
+    const offHover = () => {
+        setCurrentHover(false);
     }
 
     const toggleCreationEntityDisplay = (itemId) => {
@@ -255,8 +270,9 @@ export default function EntityDisplay({
                 <CardContent>
                     <Stack spacing={1}>
                         {entity.order && entity.order.map(([child, type]) => (
-                            <Box display="flex" flexDirection="row" alignItems="top" width="100%" flex={1} key={child}>
-                                <RelativeAddButton onClick={(e) => handleAddClick(e, child)} >
+                            <Box display="flex" flexDirection="row" alignItems="top" width="100%" flex={1} key={child} onMouseEnter={() => onHover(child)}>
+                                <RelativeAddButton show={currentHover === child}
+                                    onClick={(e) => handleAddClick(e, child)} >
                                     <Add/>
                                 </RelativeAddButton>
                                 <Box flex={1}>
