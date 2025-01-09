@@ -1,13 +1,24 @@
 "use client"
 
 import {useState, useEffect, useContext, useRef} from "react";
-import {Box, Typography, Card, CardHeader, CardContent, Stack, TextField, IconButton, Popover} from "@mui/material";
+import {
+    Box,
+    Typography,
+    Card,
+    CardHeader,
+    CardContent,
+    Stack,
+    TextField,
+    IconButton,
+    Popover,
+    Dialog, DialogTitle, DialogContent, DialogActions, Button
+} from "@mui/material";
 import {styled} from "@mui/material/styles";
 import {ClickAwayListener} from '@mui/base/ClickAwayListener';
 import {Add} from "@mui/icons-material";
+import DeleteIcon from '@mui/icons-material/Delete';
 
-
-import {getEntity, createEntity} from "@/app/calls";
+import {getEntity, createEntity, deleteEntity, editEntityName} from "@/app/calls";
 import {entityHeaderTypo, creationMenuItems} from "@/app/constants";
 import TypeChip from "@/app/components/EntityDisplayComponents/TypeChip";
 import {UserContext} from "@/app/contexts/userContext";
@@ -15,11 +26,21 @@ import CreationMenu from "@/app/components/EntityDisplayComponents/CreationMenu"
 import ContentBlock from "@/app/components/EntityDisplayComponents/ContentBlocks/ContentBlock";
 import TextBlockEditor from "@/app/components/EntityDisplayComponents/ContentBlocks/TextBlockEditor";
 import ImageBlockDrop from "@/app/components/EntityDisplayComponents/ContentBlocks/ImageBlockDrop";
+import * as PropTypes from "prop-types";
 
 const Header = styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'})(
     ({theme, entityType}) => ({
         color: theme.palette.entities.text[entityType],
         backgroundColor: theme.palette.entities.background[entityType],
+        '& .MuiButtonBase-root': {
+            opacity: 0,
+            transition: 'opacity 0.3s',
+            marginRight: "10px",
+            color: 'red',
+        },
+        '&:hover .MuiButtonBase-root': {
+            opacity: 1,
+        }
     })
 );
 
@@ -55,6 +76,19 @@ const ActionHint = styled(Typography)(({theme}) => ({
 }));
 
 
+const RelativeAddButton = styled(IconButton, {shouldForwardProp: (prop) => prop !== 'show'})(
+    ({theme, show}) => ({
+        width: 'fit-content',
+        height: 'fit-content',
+        marginLeft: -10,
+        marginRight: 8,
+        opacity: show? 1 : 0,
+        transition: 'opacity 0.3s ease',
+
+}));
+
+
+
 const NewEntityNameTextField = styled(TextField, {shouldForwardProp: (prop) => prop !== 'entityType'})(
     ({theme, entityType}) => ({
         '& .MuiInputBase-input': {
@@ -87,19 +121,28 @@ export default function EntityDisplay({
                                           toggleParentCreationEntityDisplay,
                                           setParentErrorSnackbarOpen,
                                           setParentErrorSnackbarMessage,
+                                          underChildId,
                                       }) {
 
     const [entity, setEntity] = useState({})
     const [newNameHolder, setNewNameHolder] = useState("");
-    const [openCreationEntityDisplay, setOpenCreationEntityDisplay] = useState(false);
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [openEditNameTextField, setOpenEditNameTextField] = useState(false);
+    // Used to keep track of the current hover state of the card
+    const [currentHover, setCurrentHover] = useState("");
+
+    // The open states variables hold the ID of what thing the creation menu should be under what
+    const [openCreationEntityDisplay, setOpenCreationEntityDisplay] = useState("");
+    const [openNewImageBlock, setOpenNewImageBlock] = useState("");
+    const [openNewTextBlock, setOpenNewTextBlock] = useState("");
+    const [newTextBlockEditorState, setNewTextBlockEditorState] = useState("");
+
+    // Changes whenever the user presses the plus icon, used to keep track of the ID of the last clicked item to send to the creation menu.
+    const [lastClickedItemId, setLastClickedItemId] = useState("");
 
     // Creation menu state
     const [anchorEl, setAnchorEl] = useState(null);
     const [openCreationMenu, setOpenCreationMenu] = useState(false);
-
-    const [openNewTextBlock, setOpenNewTextBlock] = useState(false);
-    const [newTextBlockEditorState, setNewTextBlockEditorState] = useState("");
-    const [openNewImageBlock, setOpenNewImageBlock] = useState(false);
 
 
     const textFieldRef = useRef(null);
@@ -111,23 +154,86 @@ export default function EntityDisplay({
         // Stops nextjs from caching the image to allow for real time updates
         const timestamp = new Date().getTime();
 
+        // Stops it from asking null for the entity
+        if (entity) {
+            reloadEntity();
+        }
         reloadParent();
         reloadTrees();
     }
 
-    const toggleCreationEntityDisplay = () => {
-        setOpenCreationEntityDisplay(!openCreationEntityDisplay);
+    const onOpenEditTextField = () => {
+        setNewNameHolder(entity.name);
+        setOpenEditNameTextField(true);
+    }
+
+    const onCloseEditTextField = () => {
+        setOpenEditNameTextField(false);
+    }
+
+    const handleEditName = () => {
+        console.log("I am in edit name with the name,", newNameHolder);
+        onCloseEditTextField();
+        if (newNameHolder !== entity.name) {
+            editEntityName(entityId, newNameHolder).then((ret) => {
+                if (ret === true) {
+                    reload();
+                } else {
+                    setParentErrorSnackbarMessage(`Error editing ${entity.type}, please try again.`);
+                    setParentErrorSnackbarOpen(true);
+                    reload();
+                }
+            });
+        }
+    }
+
+    const onDeleteDialogOpen = () => {
+        setOpenDeleteDialog(true);
+    }
+
+    const onDeleteDialogClose = () => {
+        setOpenDeleteDialog(false);
+    }
+
+    const handleDeleteEntity = () => {
+        setOpenDeleteDialog(false);
+        deleteEntity(entityId, activeUsersEmailStr).then((ret) => {
+            if (ret === true) {
+                reload();
+            } else {
+                setParentErrorSnackbarMessage(`Error deleting ${entity.type}, please try again.`);
+                setParentErrorSnackbarOpen(true);
+                reload();
+            }
+        });
+    }
+
+    const onHover = (itemId) => {
+        setCurrentHover(itemId);
+    }
+
+    const toggleCreationEntityDisplay = (itemId) => {
+        if (openCreationEntityDisplay !== "") {
+            setOpenCreationEntityDisplay("");
+        } else {
+            setOpenCreationEntityDisplay(itemId);
+        }
     }
 
     // Add handler for IconButton click
-    const handleAddClick = (event) => {
+    const handleAddClick = (event, itemId) => {
         setAnchorEl(event.currentTarget);
+        setLastClickedItemId(itemId)
         setOpenCreationMenu(true);
     };
 
     const handleMenuClose = () => {
         setAnchorEl(null);
         setOpenCreationMenu(false);
+        setLastClickedItemId("");
+        setOpenCreationEntityDisplay("");
+        setOpenNewTextBlock("");
+        setOpenNewImageBlock("");
     };
 
     // TODO: Add snackbar error if this fails
@@ -167,7 +273,7 @@ export default function EntityDisplay({
 
     const handleClickAway = () => {
         if (newNameHolder !== "") {
-            createEntity(newNameHolder, activeUsersEmailStr, entityType, parentId).then((ret) => {
+            createEntity(newNameHolder, activeUsersEmailStr, entityType, parentId, underChildId).then((ret) => {
                 if (ret === true) {
                     reload();
                 } else {
@@ -221,57 +327,116 @@ export default function EntityDisplay({
         ) : (
             <HoverCard sx={{margin: 'inherit', position: 'relative'}}>
                 <Header title={
-                    <Box display="flex" alignItems="center">
-                        <TypeChip type={entity.type}/>
-                        <Typography variant={entityHeaderTypo[entity.type]}>
-                            {entity.name}
-                        </Typography>
-                    </Box>
+                    openEditNameTextField ? (
+                        <ClickAwayListener onClickAway={handleEditName}>
+                            <NewEntityNameTextField
+                                autoFocus
+                                autoComplete="off"
+                                fullWidth
+                                label={`Edit ${entity.type} name`}
+                                value={newNameHolder}
+                                onChange={(e) => setNewNameHolder(e.target.value)}
+                                entityType={entity.type}
+                            />
+                        </ClickAwayListener>
+                    ) : (
+                        <Box display="flex" flexDirection="row" justifyContent="space-between" onDoubleClick={onOpenEditTextField}>
+                            <Box display="flex" alignItems="center">
+                                <TypeChip type={entity.type}/>
+                                <Typography variant={entityHeaderTypo[entity.type]}>
+                                    {entity.name}
+                                </Typography>
+                            </Box>
+                            <IconButton onClick={onDeleteDialogOpen}>
+                                <DeleteIcon/>
+                            </IconButton>
+                        </Box>
+                    )
                 }
                         entityType={entity.type}
                 />
                 <CardContent>
                     <Stack spacing={1}>
-                        {entity.order && entity.order.map(([child, type]) => (
-                            type === "entity" ? (
-                                <EntityDisplay
-                                    key={child}
-                                    entityId={child}
-                                    reloadParent={reloadEntity}
-                                    reloadTrees={reloadTrees}
-                                    toggleParentCreationEntityDisplay={toggleCreationEntityDisplay}
-                                />
-                            ) : (
-                                <ContentBlock key={child} contentBlock={contentBlocksIndex.current[child]}
-                                              parentId={entity.ID} reloadParent={reloadEntity}/>
-                            )
+                        {entity.order && entity.order.map(([child, type, show]) => show==="True" && (
+                            <Box display="flex" flexDirection="row" alignItems="top" width="100%" flex={1} key={child} onMouseEnter={() => onHover(child)}>
+                                <RelativeAddButton show={currentHover === child}
+                                    onClick={(e) => handleAddClick(e, child)} >
+                                    <Add/>
+                                </RelativeAddButton>
+                                <Box flex={1}>
+                                    {type === "entity" ? (
+                                        <EntityDisplay
+                                            entityId={child}
+                                            reloadParent={reloadEntity}
+                                            reloadTrees={reloadTrees}
+                                            toggleParentCreationEntityDisplay={toggleCreationEntityDisplay}
+                                        />
+                                    ) : (
+                                        <ContentBlock  contentBlock={contentBlocksIndex.current[child]}
+                                                      parentId={entity.ID} reloadParent={reloadEntity}/>
+                                    )}
+
+                                    {openNewTextBlock === child && (
+                                        <TextBlockEditor parentId={entityId}
+                                                         onEditorChange={setNewTextBlockEditorState}
+                                                         initialContent={newTextBlockEditorState}
+                                                         editorState={newTextBlockEditorState}
+                                                         onClose={() => setOpenNewTextBlock("")}
+                                                         reloadParent={reloadEntity}
+                                                         underChild={child}
+                                        />
+                                    )}
+
+                                    {openNewImageBlock === child && (
+                                        <ImageBlockDrop parentId={entityId}
+                                                        reloadParent={reloadEntity}
+                                                        handleOnClose={() => setOpenNewImageBlock("")}
+                                                        underChild={child}/>
+
+                                    )}
+
+                                    {/* Empty EntityDisplay for the user to insert new name */}
+                                    {openCreationEntityDisplay === child && (
+                                        <EntityDisplay entityId={null}
+                                                       parentId={entityId}
+                                                       reloadParent={reloadEntity}
+                                                       reloadTrees={reloadTrees}
+                                                       entityType={creationMenuItems[entity.type][creationMenuItems[entity.type].length - 1]}
+                                                       toggleParentCreationEntityDisplay={() => toggleCreationEntityDisplay(child)}
+                                                       setParentErrorSnackbarOpen={setParentErrorSnackbarOpen}
+                                                       setParentErrorSnackbarMessage={setParentErrorSnackbarMessage}
+                                                       underChildId={child}
+                                        />
+                                    )}
+                                </Box>
+                            </Box>
                         ))}
 
-                        {openNewTextBlock && (
+                        {openNewTextBlock === entityId && (
                             <TextBlockEditor parentId={entity.ID}
                                              onEditorChange={setNewTextBlockEditorState}
                                              initialContent={newTextBlockEditorState}
                                              editorState={newTextBlockEditorState}
-                                             onClose={() => setOpenNewTextBlock(false)}
+                                             onClose={() => setOpenNewTextBlock("")}
                                              reloadParent={reloadEntity}
                             />
                         )}
 
-                        {openNewImageBlock && (
+                        {openNewImageBlock === entityId && (
                             <ImageBlockDrop parentId={entityId}
                                             reloadParent={reloadEntity}
-                                            handleOnClose={() => setOpenNewImageBlock(false)}/>
+                                            handleOnClose={() => setOpenNewImageBlock("")}/>
 
                         )}
 
                         {/* Empty EntityDisplay for the user to insert new name */}
-                        {openCreationEntityDisplay && (
+                        {openCreationEntityDisplay === entityId && (
                             <EntityDisplay entityId={null}
                                            parentId={entityId}
                                            reloadParent={reloadEntity}
                                            reloadTrees={reloadTrees}
                                            entityType={creationMenuItems[entity.type][creationMenuItems[entity.type].length - 1]}
-                                           toggleParentCreationEntityDisplay={toggleCreationEntityDisplay}
+                                           toggleParentCreationEntityDisplay={() => toggleCreationEntityDisplay(entityId)}
                                            setParentErrorSnackbarOpen={setParentErrorSnackbarOpen}
                                            setParentErrorSnackbarMessage={setParentErrorSnackbarMessage}
                             />
@@ -279,7 +444,7 @@ export default function EntityDisplay({
                     </Stack>
                 </CardContent>
                 <HoverAddSection>
-                    <IconButton onClick={handleAddClick}>
+                    <IconButton onClick={(e) => handleAddClick(e, entityId)}>
                         <Add/>
                     </IconButton>
                     <ActionHint variant="body1" sx={{color: '#0000004D',}}>Click the plus icon to add a story entity or
@@ -302,10 +467,23 @@ export default function EntityDisplay({
                     <CreationMenu entityType={entity.type}
                                   entityName={entity.name}
                                   onClose={handleMenuClose}
-                                  actions={[toggleParentCreationEntityDisplay, toggleCreationEntityDisplay]}
-                                  openTextBlock={() => setOpenNewTextBlock(true)}
-                                  openImageBlock={() => setOpenNewImageBlock(true)}/>
+                                  actions={[toggleParentCreationEntityDisplay, () => toggleCreationEntityDisplay(lastClickedItemId)]}
+                                  openTextBlock={() => setOpenNewTextBlock(lastClickedItemId)}
+                                  openImageBlock={() => setOpenNewImageBlock(lastClickedItemId)}/>
                 </Popover>
+
+                <Dialog open={openDeleteDialog} onClose={onDeleteDialogClose}>
+                    <DialogTitle>Delete Entity</DialogTitle>
+                    <DialogContent>
+                        <Typography>
+                            Are you sure you want to delete "{entity.name}"? This action cannot be undone without contacting the administrator.
+                        </Typography>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={onDeleteDialogClose}>Cancel</Button>
+                        <Button onClick={handleDeleteEntity} color="error">Delete</Button>
+                    </DialogActions>
+                </Dialog>
             </HoverCard>
         )
     )

@@ -1,11 +1,25 @@
 import {useState} from "react";
 
-import {Box, Card, CardContent, CardHeader, CardMedia, styled, Typography} from "@mui/material";
+import {
+    Box, Button,
+    Card,
+    CardContent,
+    CardHeader,
+    CardMedia,
+    Dialog, DialogActions, DialogContent,
+    DialogTitle,
+    IconButton,
+    styled,
+    Typography
+} from "@mui/material";
 import ReactMarkdown from 'react-markdown';
 import ImageIcon from '@mui/icons-material/Image';
+import DeleteIcon from "@mui/icons-material/Delete";
 
 import TextBlockEditor from "@/app/components/EntityDisplayComponents/ContentBlocks/TextBlockEditor";
 import ImageUploader from "@/app/components/EntityDisplayComponents/ContentBlocks/ImageBlockDrop";
+import {deleteContentBlock} from "@/app/calls";
+
 
 const StyledBlock = styled(Box)(({theme}) => ({
     padding: theme.spacing(2),
@@ -39,6 +53,15 @@ const ImageCard = styled(Card)(({theme}) => ({
 const ImageHeader = styled(CardHeader)(({theme}) => ({
     backgroundColor: theme.palette.background.contentBlockHeader,
     color: theme.palette.text.primary,
+    '& .MuiButtonBase-root': {
+        opacity: 0,
+        transition: 'opacity 0.3s',
+        marginRight: "10px",
+        color: 'red',
+    },
+    '&:hover .MuiButtonBase-root': {
+        opacity: 1,
+    }
 
 }));
 
@@ -64,6 +87,7 @@ export default function ContentBlock({contentBlock, parentId, reloadParent}) {
     // This has the state of the editor for the content block
     const [textEditorState, setTextEditorState] = useState("");
     const [openImageEditor, setOpenImageEditor] = useState(false);
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
 
     const onCloseTextEditor = () => {
@@ -80,6 +104,27 @@ export default function ContentBlock({contentBlock, parentId, reloadParent}) {
 
     const onOpenImageEditor = () => {
         setOpenImageEditor(true);
+    }
+
+    const onOpenDeleteDialog = (e) => {
+        e.stopPropagation();
+        setOpenDeleteDialog(true)
+    }
+
+    const onCloseDeleteDialog = () => {
+        setOpenDeleteDialog(false)
+    }
+
+    const handleDeleteImage = (e) => {
+        e.stopPropagation();
+        onCloseDeleteDialog()
+        deleteContentBlock(parentId, contentBlock.ID).then((res) => {
+            if (res === true) {
+                reloadParent();
+            } else {
+                console.error("Could not delete Image Block")
+            }
+        })
     }
 
     if (contentBlock && contentBlock.deleted === true) {
@@ -117,14 +162,19 @@ export default function ContentBlock({contentBlock, parentId, reloadParent}) {
                 ) : (
                     <ImageCard onClick={onOpenImageEditor}>
                         <ImageHeader title={
-                            <Box display="flex" alignItems="center">
-                                <ImageHeaderIcon/>
-                                <Typography variant="subtitle1"
-                                            display="inline-block"
-                                            sx={{cursor: 'text'}}
-                                >
-                                    {displayContent[1]}
-                                </Typography>
+                            <Box display="flex" flexDirection="row" justifyContent="space-between">
+                                <Box display="flex" alignItems="center">
+                                    <ImageHeaderIcon/>
+                                    <Typography variant="subtitle1"
+                                                display="inline-block"
+                                                sx={{cursor: 'text'}}
+                                    >
+                                        {displayContent[1]}
+                                    </Typography>
+                                </Box>
+                                <IconButton onClick={onOpenDeleteDialog}>
+                                    <DeleteIcon />
+                                </IconButton>
                             </Box>
                         }/>
 
@@ -133,6 +183,18 @@ export default function ContentBlock({contentBlock, parentId, reloadParent}) {
                             // the `?t=${Date.now()}` is to stop nextjs from caching the image to allow for real time updates
                             image={`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${parentId}/${contentBlock.ID}?t=${Date.now()}`}
                         />
+                        <Dialog open={openDeleteDialog} onClick={(e) => e.stopPropagation()}>
+                            <DialogTitle>Delete Entity</DialogTitle>
+                            <DialogContent>
+                                <Typography>
+                                    Are you sure you want to delete "{displayContent[1]}"? This action cannot be undone without contacting the administrator.
+                                </Typography>
+                            </DialogContent>
+                            <DialogActions>
+                                <Button onClick={onCloseDeleteDialog}>Cancel</Button>
+                                <Button onClick={handleDeleteImage} color="error">Delete</Button>
+                            </DialogActions>
+                        </Dialog>
                     </ImageCard>
                 )
             )

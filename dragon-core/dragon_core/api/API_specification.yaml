@@ -86,6 +86,14 @@ components:
       schema:
         type: "string"
 
+    under_child:
+      name: "under_child"
+      in: query
+      required: false
+      description: "The ID of the item right on top of where the new item (entity/content block) should be placed. e.i. place the new item under object with id 'under_child'"
+      schema:
+          type: "string"
+
 paths:
 
   /health:
@@ -136,6 +144,11 @@ paths:
           application/json:
               schema:
                 type: "object"
+                required:
+                  - name
+                  - user
+                  - type
+                  - parent
                 properties:
                   name:
                     type: "string"
@@ -145,6 +158,10 @@ paths:
                     type: "string"
                   parent:
                     type: "string"
+                  under_child:
+                    type: "string"
+                    description: "The ID of the item right above where the new entity should be. e.i. place the new entity under object with id 'under_child'"
+
 
       responses:
         "200":
@@ -193,6 +210,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/ID"
         - $ref: "#/components/parameters/user"
+        - $ref: "#/components/parameters/under_child"
       responses:
         "200":
             description: "Successfully added text block"
@@ -350,7 +368,7 @@ paths:
           description: "content block not found"
 
   /entities/{ID}/add_image_block:
-    post:
+    put:
       operationId: "dragon_core.api.entities.add_image_block"
       tags:
         - Entities
@@ -360,6 +378,7 @@ paths:
       parameters:
         - $ref: "#/components/parameters/ID"
         - $ref: "#/components/parameters/user"
+        - $ref: "#/components/parameters/under_child"
       requestBody:
         description: "Image to upload"
         required: true

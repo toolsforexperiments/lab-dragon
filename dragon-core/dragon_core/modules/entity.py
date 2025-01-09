@@ -8,6 +8,7 @@ from dragon_core.utils import create_timestamp
 from dragon_core.components import ContentBlock, SupportedContentBlockType, Table, create_text_block, create_image_block
 
 
+# FIXME: The items in the order should all be the same, not some tuple and some list.
 class Entity(object):
 
     # If True, checks everytime the entity is saved to_TOML if the filename starts with the first 8 digits of the ID. If it doesn't it adds them.
@@ -128,7 +129,7 @@ class Entity(object):
         
         vals['end_time'] = self.end_time
 
-        vals['order'] = [(str(x[0]), str(x[1])) for x in self.order]
+        vals['order'] = [(str(x[0]), str(x[1]), str(x[2])) for x in self.order]
         
         
         doc[self.name] = vals
@@ -152,25 +153,48 @@ class Entity(object):
             return self.__dict__ == other.__dict__
         return False
 
-    def add_child(self, child, _add_to_order=True):
+    def _find_order_index(self, item_id):
+        for i, item in enumerate(self.order):
+            if item[0] == item_id:
+                return i
+        raise ValueError(f"Item with id {item_id} not found in order.")
+
+    def add_child(self, child, under_child=None, _add_to_order=True):
+        """
+        under_child is used to place entities under a specific child. A child can be an entity child or a content block
+        """
         if not hasattr(self, 'children'):
             self.children = []
         self.children.append(child)
 
+        if under_child is not None:
+            index = self._find_order_index(under_child)
+            self.order.insert(index+1, (child, "entity", True))
+            return
         if _add_to_order:
-            self.order.append((child, "entity"))
+            self.order.append((child, "entity", True))
 
-    def add_text_block(self, content, user=None, _add_to_order=True):
+    def add_text_block(self, content, user=None, under_child=None, _add_to_order=True):
         new_content_block = create_text_block(content, user)
         self.content_blocks.append(new_content_block)
-        if _add_to_order:
-            self.order.append((new_content_block.ID, "content_block"))
+        if under_child is not None:
+            index = self._find_order_index(under_child)
+            self.order.insert(index+1, (new_content_block.ID, "content_block", True))
+            return
 
-    def add_image_block(self, image_path, title, user=None, _add_to_order=True):
+        if _add_to_order:
+            self.order.append((new_content_block.ID, "content_block", True))
+
+    def add_image_block(self, image_path, title, user=None, under_child=None, _add_to_order=True):
         new_image_block = create_image_block(image_path, title, user)
         self.content_blocks.append(new_image_block)
+        if under_child is not None:
+            index = self._find_order_index(under_child)
+            self.order.insert(index+1, (new_image_block.ID, "content_block", True))
+            return
+
         if _add_to_order:
-            self.order.append((new_image_block.ID, "content_block"))
+            self.order.append((new_image_block.ID, "content_block", True))
 
     def modify_content_block(self, block_id, content, user):
 
@@ -215,7 +239,16 @@ class Entity(object):
         if block is None:
             raise ValueError(f"Content block with id {block_id} does not exist.")
 
+        order = self._find_order_index(block_id)
+        self.order[order] = (block_id, "content_block", False)
+
         block.deleted = True
+        return True
+
+    def delete_child(self, child_id):
+        order = self._find_order_index(child_id)
+        self.order[order] = (child_id, "entity", False)
+
         return True
 
     def suggest_data(self, query: str = "", min_threshold=5) -> List[str]:

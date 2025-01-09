@@ -5,7 +5,7 @@ create_testing_environment = false
 # Path of the directory containg the lair.
 # No one should ever touch it.
 
-lairs_directory = "./test/tmp/resource"
+lairs_directory = "./test/tmp/"
 
 # Resource path. This is a path to a directory where all of the uploaded images and content will go on disk.
 # It is good practice to have it inside the volume origin to not have any unintended consequences.

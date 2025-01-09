@@ -12,7 +12,7 @@ import {deleteContentBlock, submitContentBlockEdition, submitNewContentBlock} fr
 import Snackbar from "@mui/material/Snackbar";
 import Alert from "@mui/material/Alert";
 
-export default function TextBlockEditor({ parentId, onEditorChange, initialContent, editorState, onClose, reloadParent, contentBlockId }) {
+export default function TextBlockEditor({ parentId, onEditorChange, initialContent, editorState, onClose, reloadParent, contentBlockId, underChild }) {
 
     // When contentBlockId is null, it means it is creating a new contentBlock instead of editing one.
 
@@ -64,7 +64,7 @@ export default function TextBlockEditor({ parentId, onEditorChange, initialConte
         }
 
         // New content block case
-        submitNewContentBlock(parentId, activeUsersEmailStr, editorState).then((res) => {
+        submitNewContentBlock(parentId, activeUsersEmailStr, editorState, underChild).then((res) => {
             if (res === true) {
                 reloadParent();
                 onEditorChange("");

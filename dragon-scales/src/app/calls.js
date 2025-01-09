@@ -22,8 +22,8 @@ export async function submitContentBlockEdition(entID, user, contentBlockId, new
     return response.status === 201;
 }
 
-export async function submitNewContentBlock(entID, user, newContent) {
-    let response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/` + entID + "?user=" + user, {
+export async function submitNewContentBlock(entID, user, newContent, under_child) {
+    let response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${entID}?user=${user}&under_child=${under_child}`, {
         method: 'PUT',
         headers: {
             'Content-Type': 'application/json',
@@ -46,9 +46,10 @@ export async function deleteContentBlock(entID, contentBlockId) {
     return response.status === 200;
 }
 
-export async function createEntity(name, user, type, parent) {
+export async function createEntity(name, user, type, parent, under_child) {
+    // Breaking naming convention here to match the API.
     const newEntity = {
-        name, user, type, parent
+        name, user, type, parent, under_child,
     }
 
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities`, {
@@ -61,6 +62,20 @@ export async function createEntity(name, user, type, parent) {
 
     return response.status === 201;
 }
+
+
+export async function editEntityName(entID, newName) {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${entID}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({new_name: newName})
+    });
+
+    return response.status === 201;
+}
+
 
 export async function deleteEntity(entID) {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${entID}`, {
@@ -154,12 +169,12 @@ export async function getNotebookParent(id) {
 }
 
 
-export async function addImageBlock(id, user, image) {
+export async function addImageBlock(id, user, image, under_child) {
     const formData = new FormData();
     formData.append("image", image);
 
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${id}/add_image_block?user=${user}`, {
-        method: "POST",
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${id}/add_image_block?user=${user}&under_child=${under_child}`, {
+        method: "PUT",
         body: formData
     });
 

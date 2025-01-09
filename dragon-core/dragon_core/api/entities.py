@@ -4,14 +4,12 @@ import json
 import copy
 import random
 import string
-import warnings
 from pathlib import Path
 from enum import Enum, auto
 from typing import Optional, Union, Tuple
 
 import nbformat
 import markdown
-import imagehash
 from PIL import Image
 from nbconvert import HTMLExporter
 from werkzeug.utils import secure_filename
@@ -193,11 +191,11 @@ def create_path_entity_copy(ent: Entity) -> Entity:
     copy_ent.children = children_paths
 
     order = []
-    for item, item_type in copy_ent.order:
+    for item, item_type, deleted in copy_ent.order:
         if item_type == "entity":
-            order.append((UUID_TO_PATH_INDEX[item], item_type))
+            order.append((UUID_TO_PATH_INDEX[item], item_type, deleted))
         else:
-            order.append((item, item_type))
+            order.append((item, item_type, deleted))
 
     return copy_ent
 
@@ -395,17 +393,16 @@ def load_all_entities():
 
         # Update the order:
         order_copy = val.order.copy()
-        for i, (item, item_type) in enumerate(order_copy):
+        for i, (item, item_type, show) in enumerate(order_copy):
             if item_type == "entity":
                 path = Path(item)
                 if path.is_file():
-                    val.order[i] = (PATH_TO_UUID_INDEX[str(path)], item_type)
+                    val.order[i] = (PATH_TO_UUID_INDEX[str(path)], item_type, show)
 
 
-def _generate_structure_helper(ID):
+def _generate_structure_helper(ent):
 
-    ent = INDEX[ID]
-    children = [_generate_structure_helper(child) for child in ent.children]
+    children = [_generate_structure_helper(INDEX[child]) for child in ent.children if INDEX[child].deleted is False]
     name = ent.name
     ID = ent.ID
     type_ = ent.__class__.__name__
@@ -417,11 +414,11 @@ def generate_structure(ID=None):
     ret = []
     if ID is None:
         for lib in DRAGONLAIR.libraries:
-            ret.append(_generate_structure_helper(lib.ID))
+            ret.append(_generate_structure_helper(INDEX[lib.ID]))
     else:
         if ID not in INDEX:
             abort(404, f"Entity with ID {ID} not found")
-        ret = _generate_structure_helper(ID)
+        ret = _generate_structure_helper(INDEX[ID])
 
     return make_response(json.dumps(ret), 200)
 
@@ -631,7 +628,7 @@ def read_entity_info(ID):
     return make_response(json.dumps({"rank": rank, "num_children": num_children}), 201)
 
 
-def add_text_block(ID, body, user: str):
+def add_text_block(ID, body, user: str, under_child: str = None):
     """
     Adds a text block to the indicated entity. It does not handle images or tables yet.
 
@@ -644,11 +641,13 @@ def add_text_block(ID, body, user: str):
     if ID not in INDEX:
         abort(404, f"Entity with ID {ID} not found")
 
+    under_child = under_child if (under_child is not None and under_child != "undefined") else None
+
     user = _parse_and_validate_user(user)
 
     ent = INDEX[ID]
 
-    ent.add_text_block(body, user)
+    ent.add_text_block(body, user, under_child)
 
     # After adding the content blocks update the file location
     ent_path = Path(UUID_TO_PATH_INDEX[ID])
@@ -684,20 +683,20 @@ def _add_image(image, filename=None):
     converted_image = Image.open(image.stream)
     if filename is None:
         filename = secure_filename(image.filename)
-    file_path = RESOURCEPATH.joinpath(filename)
+    file_path = RESOURCEPATH.joinpath(filename).resolve()
 
     while file_path.is_file():
         f_parts = filename.split('.')
         if len(f_parts) != 2:
             abort(400, "The filename is not in the correct format")
         new_name = f_parts[0] + '_' + ''.join(random.choice(string.ascii_letters) for i in range(6)) + '.' + f_parts[1]
-        file_path = RESOURCEPATH.joinpath(new_name)
+        file_path = RESOURCEPATH.joinpath(new_name).resolve()
 
     converted_image.save(file_path)
     return file_path, filename
 
 
-def add_image_block(ID, user, body, image):
+def add_image_block(ID, user, body, image, under_child=None):
 
     if ID not in INDEX:
         abort(404, f"Entity with ID {ID} not found")
@@ -706,9 +705,11 @@ def add_image_block(ID, user, body, image):
 
     ent = INDEX[ID]
 
+    under_child = under_child if (under_child is not None and under_child != "undefined") else None
+
     file_path, filename = _add_image(image)
 
-    ent.add_image_block(file_path, filename, user)
+    ent.add_image_block(file_path, filename, user, under_child)
 
     # After adding the content blocks update the file location
     ent_path = Path(UUID_TO_PATH_INDEX[ID])
@@ -810,6 +811,8 @@ def add_entity(body):
         * type: Type of the entity
         * parent: ID of the parent entity
         * user: User that created the entity
+        * under_child: Optional argument. If passed, the entity will be added under the child with the given ID.
+            Content blocks count as children.
     """
     if "name" not in body or body['name'] == "":
         abort(400, "Name of entity is required")
@@ -819,6 +822,8 @@ def add_entity(body):
         abort(400, "Parent of entity is required")
     if "user" not in body or body['user'] == "":
         abort(400, "User of entity is required")
+
+    under_child = body["under_child"] if "under_child" in body else None
 
     user = _parse_and_validate_user(body['user'])
 
@@ -845,7 +850,7 @@ def add_entity(body):
     # Create copy of the entity with paths to create the TOML file.
     ent_copy = create_path_entity_copy(ent)
 
-    parent.add_child(ent.ID)
+    parent.add_child(ent.ID, under_child=under_child)
     parent_copy = create_path_entity_copy(parent)
 
     parent_copy.to_TOML(parent_path)
@@ -860,7 +865,13 @@ def delete_entity(ID):
         abort(404, f"Entity with ID {ID} not found")
 
     ent = INDEX[ID]
+    if ent.parent not in INDEX:
+        abort(404, f"Parent entity with ID {ent.parent} not found")
+
     parent = INDEX[ent.parent]
+    parent.delete_child(ID)
+    parent_copy = create_path_entity_copy(parent)
+    parent_copy.to_TOML(Path(UUID_TO_PATH_INDEX[parent.ID]))
 
     # Flag the entity as deleted
     ent.deleted = True
@@ -870,7 +881,7 @@ def delete_entity(ID):
     return make_response("Entity deleted", 201)
 
 
-# FIXME: At the moment you cannot change the name of the root of the notebook.
+# TODO: Better record keeping of when the name is change and who changed it is needed.
 def change_entity_name(ID, body):
     """
     Changes the name of an entity and updates the TOML file.

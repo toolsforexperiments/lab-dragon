@@ -34,7 +34,7 @@ const NewImageHeaderTextField = styled(TextField)(({ theme }) => ({
 
 }));
 
-export default function ImageUploader({ parentId, reloadParent, handleOnClose, contentBlock }) {
+export default function ImageUploader({ parentId, reloadParent, handleOnClose, contentBlock, underChild }) {
 
     // When contentBlock is null, it means it is creating a new contentBlock instead of editing one.
 
@@ -71,7 +71,7 @@ export default function ImageUploader({ parentId, reloadParent, handleOnClose, c
                     }
                 });
             } else {
-                addImageBlock(parentId, activeUsersEmailStr, file).then((res) => {
+                addImageBlock(parentId, activeUsersEmailStr, file, underChild).then((res) => {
                     if (res === true) {
                         reloadParent();
                     } else {

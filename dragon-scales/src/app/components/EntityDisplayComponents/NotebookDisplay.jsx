@@ -114,8 +114,8 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName, re
                             </Stack>
                         </Box>
                     </Stack>
-
-                    {notebook.children && notebook.children.length > 0 ? (
+                    {/* Checks if notebook has children, if it has more than 0 children and that not all of those children are deleted */}
+                    {notebook.children && notebook.children.length > 0 && notebook.order.some(x => x[2] === "True") ? (
                         <Stack spacing={2}>
                             {notebook.children.map(child => (
                                 <EntityDisplay key={child + "-EntityDisplay"} entityId={child} reloadParent={reloadNotebook} reloadTrees={reloadTrees} toggleParentCreationEntityDisplay={toggleCreationEntityDisplay} />
