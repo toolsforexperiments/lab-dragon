@@ -1,13 +1,24 @@
 "use client"
 
 import {useState, useEffect, useContext, useRef} from "react";
-import {Box, Typography, Card, CardHeader, CardContent, Stack, TextField, IconButton, Popover} from "@mui/material";
+import {
+    Box,
+    Typography,
+    Card,
+    CardHeader,
+    CardContent,
+    Stack,
+    TextField,
+    IconButton,
+    Popover,
+    Dialog, DialogTitle, DialogContent, DialogActions, Button
+} from "@mui/material";
 import {styled} from "@mui/material/styles";
 import {ClickAwayListener} from '@mui/base/ClickAwayListener';
 import {Add} from "@mui/icons-material";
+import DeleteIcon from '@mui/icons-material/Delete';
 
-
-import {getEntity, createEntity} from "@/app/calls";
+import {getEntity, createEntity, deleteEntity} from "@/app/calls";
 import {entityHeaderTypo, creationMenuItems} from "@/app/constants";
 import TypeChip from "@/app/components/EntityDisplayComponents/TypeChip";
 import {UserContext} from "@/app/contexts/userContext";
@@ -15,11 +26,21 @@ import CreationMenu from "@/app/components/EntityDisplayComponents/CreationMenu"
 import ContentBlock from "@/app/components/EntityDisplayComponents/ContentBlocks/ContentBlock";
 import TextBlockEditor from "@/app/components/EntityDisplayComponents/ContentBlocks/TextBlockEditor";
 import ImageBlockDrop from "@/app/components/EntityDisplayComponents/ContentBlocks/ImageBlockDrop";
+import * as PropTypes from "prop-types";
 
 const Header = styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'})(
     ({theme, entityType}) => ({
         color: theme.palette.entities.text[entityType],
         backgroundColor: theme.palette.entities.background[entityType],
+        '& .MuiButtonBase-root': {
+            opacity: 0,
+            transition: 'opacity 0.3s',
+            marginRight: "10px",
+            color: 'red',
+        },
+        '&:hover .MuiButtonBase-root': {
+            opacity: 1,
+        }
     })
 );
 
@@ -105,6 +126,7 @@ export default function EntityDisplay({
 
     const [entity, setEntity] = useState({})
     const [newNameHolder, setNewNameHolder] = useState("");
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     // Used to keep track of the current hover state of the card
     const [currentHover, setCurrentHover] = useState("");
 
@@ -131,16 +153,37 @@ export default function EntityDisplay({
         // Stops nextjs from caching the image to allow for real time updates
         const timestamp = new Date().getTime();
 
+        // Stops it from asking null for the entity
+        if (entity) {
+            reloadEntity();
+        }
         reloadParent();
         reloadTrees();
     }
 
-    const onHover = (itemId) => {
-        setCurrentHover(itemId);
+    const onDeleteDialogOpen = () => {
+        setDeleteDialogOpen(true);
     }
 
-    const offHover = () => {
-        setCurrentHover(false);
+    const onDeleteDialogClose = () => {
+        setDeleteDialogOpen(false);
+    }
+
+    const handleDeleteEntity = () => {
+        setDeleteDialogOpen(false);
+        deleteEntity(entityId, activeUsersEmailStr).then((ret) => {
+            if (ret === true) {
+                reload();
+            } else {
+                setParentErrorSnackbarMessage(`Error deleting ${entity.type}, please try again.`);
+                setParentErrorSnackbarOpen(true);
+                reload();
+            }
+        });
+    }
+
+    const onHover = (itemId) => {
+        setCurrentHover(itemId);
     }
 
     const toggleCreationEntityDisplay = (itemId) => {
@@ -258,18 +301,23 @@ export default function EntityDisplay({
         ) : (
             <HoverCard sx={{margin: 'inherit', position: 'relative'}}>
                 <Header title={
-                    <Box display="flex" alignItems="center">
-                        <TypeChip type={entity.type}/>
-                        <Typography variant={entityHeaderTypo[entity.type]}>
-                            {entity.name}
-                        </Typography>
+                    <Box display="flex" flexDirection="row" justifyContent="space-between">
+                        <Box display="flex" alignItems="center">
+                            <TypeChip type={entity.type}/>
+                            <Typography variant={entityHeaderTypo[entity.type]}>
+                                {entity.name}
+                            </Typography>
+                        </Box>
+                        <IconButton onClick={onDeleteDialogOpen}>
+                            <DeleteIcon/>
+                        </IconButton>
                     </Box>
                 }
                         entityType={entity.type}
                 />
                 <CardContent>
                     <Stack spacing={1}>
-                        {entity.order && entity.order.map(([child, type]) => (
+                        {entity.order && entity.order.map(([child, type, show]) => show==="True" && (
                             <Box display="flex" flexDirection="row" alignItems="top" width="100%" flex={1} key={child} onMouseEnter={() => onHover(child)}>
                                 <RelativeAddButton show={currentHover === child}
                                     onClick={(e) => handleAddClick(e, child)} >
@@ -384,6 +432,19 @@ export default function EntityDisplay({
                                   openTextBlock={() => setOpenNewTextBlock(lastClickedItemId)}
                                   openImageBlock={() => setOpenNewImageBlock(lastClickedItemId)}/>
                 </Popover>
+
+                <Dialog open={deleteDialogOpen} onClose={onDeleteDialogClose}>
+                    <DialogTitle>Delete Entity</DialogTitle>
+                    <DialogContent>
+                        <Typography>
+                            Are you sure you want to delete "{entity.name}"? This action cannot be undone without contacting the administrator.
+                        </Typography>
+                    </DialogContent>
+                    <DialogActions>
+                        <Button onClick={onDeleteDialogClose}>Cancel</Button>
+                        <Button onClick={handleDeleteEntity} color="error">Delete</Button>
+                    </DialogActions>
+                </Dialog>
             </HoverCard>
         )
     )

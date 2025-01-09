@@ -4,14 +4,12 @@ import json
 import copy
 import random
 import string
-import warnings
 from pathlib import Path
 from enum import Enum, auto
 from typing import Optional, Union, Tuple
 
 import nbformat
 import markdown
-import imagehash
 from PIL import Image
 from nbconvert import HTMLExporter
 from werkzeug.utils import secure_filename
@@ -193,11 +191,11 @@ def create_path_entity_copy(ent: Entity) -> Entity:
     copy_ent.children = children_paths
 
     order = []
-    for item, item_type in copy_ent.order:
+    for item, item_type, deleted in copy_ent.order:
         if item_type == "entity":
-            order.append((UUID_TO_PATH_INDEX[item], item_type))
+            order.append((UUID_TO_PATH_INDEX[item], item_type, deleted))
         else:
-            order.append((item, item_type))
+            order.append((item, item_type, deleted))
 
     return copy_ent
 
@@ -395,17 +393,16 @@ def load_all_entities():
 
         # Update the order:
         order_copy = val.order.copy()
-        for i, (item, item_type) in enumerate(order_copy):
+        for i, (item, item_type, show) in enumerate(order_copy):
             if item_type == "entity":
                 path = Path(item)
                 if path.is_file():
-                    val.order[i] = (PATH_TO_UUID_INDEX[str(path)], item_type)
+                    val.order[i] = (PATH_TO_UUID_INDEX[str(path)], item_type, show)
 
 
-def _generate_structure_helper(ID):
+def _generate_structure_helper(ent):
 
-    ent = INDEX[ID]
-    children = [_generate_structure_helper(child) for child in ent.children]
+    children = [_generate_structure_helper(INDEX[child]) for child in ent.children if INDEX[child].deleted is False]
     name = ent.name
     ID = ent.ID
     type_ = ent.__class__.__name__
@@ -417,11 +414,11 @@ def generate_structure(ID=None):
     ret = []
     if ID is None:
         for lib in DRAGONLAIR.libraries:
-            ret.append(_generate_structure_helper(lib.ID))
+            ret.append(_generate_structure_helper(INDEX[lib.ID]))
     else:
         if ID not in INDEX:
             abort(404, f"Entity with ID {ID} not found")
-        ret = _generate_structure_helper(ID)
+        ret = _generate_structure_helper(INDEX[ID])
 
     return make_response(json.dumps(ret), 200)
 
@@ -868,7 +865,13 @@ def delete_entity(ID):
         abort(404, f"Entity with ID {ID} not found")
 
     ent = INDEX[ID]
+    if ent.parent not in INDEX:
+        abort(404, f"Parent entity with ID {ent.parent} not found")
+
     parent = INDEX[ent.parent]
+    parent.delete_child(ID)
+    parent_copy = create_path_entity_copy(parent)
+    parent_copy.to_TOML(Path(UUID_TO_PATH_INDEX[parent.ID]))
 
     # Flag the entity as deleted
     ent.deleted = True
