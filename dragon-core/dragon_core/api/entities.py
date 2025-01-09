@@ -881,7 +881,7 @@ def delete_entity(ID):
     return make_response("Entity deleted", 201)
 
 
-# FIXME: At the moment you cannot change the name of the root of the notebook.
+# TODO: Better record keeping of when the name is change and who changed it is needed.
 def change_entity_name(ID, body):
     """
     Changes the name of an entity and updates the TOML file.

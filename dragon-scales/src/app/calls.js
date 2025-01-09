@@ -63,6 +63,20 @@ export async function createEntity(name, user, type, parent, under_child) {
     return response.status === 201;
 }
 
+
+export async function editEntityName(entID, newName) {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${entID}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({new_name: newName})
+    });
+
+    return response.status === 201;
+}
+
+
 export async function deleteEntity(entID) {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${entID}`, {
         method: "DELETE",

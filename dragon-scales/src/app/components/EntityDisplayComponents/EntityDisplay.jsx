@@ -18,7 +18,7 @@ import {ClickAwayListener} from '@mui/base/ClickAwayListener';
 import {Add} from "@mui/icons-material";
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import {getEntity, createEntity, deleteEntity} from "@/app/calls";
+import {getEntity, createEntity, deleteEntity, editEntityName} from "@/app/calls";
 import {entityHeaderTypo, creationMenuItems} from "@/app/constants";
 import TypeChip from "@/app/components/EntityDisplayComponents/TypeChip";
 import {UserContext} from "@/app/contexts/userContext";
@@ -126,7 +126,8 @@ export default function EntityDisplay({
 
     const [entity, setEntity] = useState({})
     const [newNameHolder, setNewNameHolder] = useState("");
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
+    const [openEditNameTextField, setOpenEditNameTextField] = useState(false);
     // Used to keep track of the current hover state of the card
     const [currentHover, setCurrentHover] = useState("");
 
@@ -161,16 +162,41 @@ export default function EntityDisplay({
         reloadTrees();
     }
 
+    const onOpenEditTextField = () => {
+        setNewNameHolder(entity.name);
+        setOpenEditNameTextField(true);
+    }
+
+    const onCloseEditTextField = () => {
+        setOpenEditNameTextField(false);
+    }
+
+    const handleEditName = () => {
+        console.log("I am in edit name with the name,", newNameHolder);
+        onCloseEditTextField();
+        if (newNameHolder !== entity.name) {
+            editEntityName(entityId, newNameHolder).then((ret) => {
+                if (ret === true) {
+                    reload();
+                } else {
+                    setParentErrorSnackbarMessage(`Error editing ${entity.type}, please try again.`);
+                    setParentErrorSnackbarOpen(true);
+                    reload();
+                }
+            });
+        }
+    }
+
     const onDeleteDialogOpen = () => {
-        setDeleteDialogOpen(true);
+        setOpenDeleteDialog(true);
     }
 
     const onDeleteDialogClose = () => {
-        setDeleteDialogOpen(false);
+        setOpenDeleteDialog(false);
     }
 
     const handleDeleteEntity = () => {
-        setDeleteDialogOpen(false);
+        setOpenDeleteDialog(false);
         deleteEntity(entityId, activeUsersEmailStr).then((ret) => {
             if (ret === true) {
                 reload();
@@ -301,17 +327,31 @@ export default function EntityDisplay({
         ) : (
             <HoverCard sx={{margin: 'inherit', position: 'relative'}}>
                 <Header title={
-                    <Box display="flex" flexDirection="row" justifyContent="space-between">
-                        <Box display="flex" alignItems="center">
-                            <TypeChip type={entity.type}/>
-                            <Typography variant={entityHeaderTypo[entity.type]}>
-                                {entity.name}
-                            </Typography>
+                    openEditNameTextField ? (
+                        <ClickAwayListener onClickAway={handleEditName}>
+                            <NewEntityNameTextField
+                                autoFocus
+                                autoComplete="off"
+                                fullWidth
+                                label={`Edit ${entity.type} name`}
+                                value={newNameHolder}
+                                onChange={(e) => setNewNameHolder(e.target.value)}
+                                entityType={entity.type}
+                            />
+                        </ClickAwayListener>
+                    ) : (
+                        <Box display="flex" flexDirection="row" justifyContent="space-between" onDoubleClick={onOpenEditTextField}>
+                            <Box display="flex" alignItems="center">
+                                <TypeChip type={entity.type}/>
+                                <Typography variant={entityHeaderTypo[entity.type]}>
+                                    {entity.name}
+                                </Typography>
+                            </Box>
+                            <IconButton onClick={onDeleteDialogOpen}>
+                                <DeleteIcon/>
+                            </IconButton>
                         </Box>
-                        <IconButton onClick={onDeleteDialogOpen}>
-                            <DeleteIcon/>
-                        </IconButton>
-                    </Box>
+                    )
                 }
                         entityType={entity.type}
                 />
@@ -326,7 +366,6 @@ export default function EntityDisplay({
                                 <Box flex={1}>
                                     {type === "entity" ? (
                                         <EntityDisplay
-                                            // key={child}
                                             entityId={child}
                                             reloadParent={reloadEntity}
                                             reloadTrees={reloadTrees}
@@ -433,7 +472,7 @@ export default function EntityDisplay({
                                   openImageBlock={() => setOpenNewImageBlock(lastClickedItemId)}/>
                 </Popover>
 
-                <Dialog open={deleteDialogOpen} onClose={onDeleteDialogClose}>
+                <Dialog open={openDeleteDialog} onClose={onDeleteDialogClose}>
                     <DialogTitle>Delete Entity</DialogTitle>
                     <DialogContent>
                         <Typography>
