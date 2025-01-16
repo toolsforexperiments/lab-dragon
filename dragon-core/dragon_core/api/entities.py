@@ -759,6 +759,30 @@ def edit_image_block(ID, blockID, user, body, image=None, title=None):
     return abort(400, "Something went wrong, try again")
 
 
+def add_image_link_block(ID, user, instance_id, image_path, under_child=None):
+    if ID not in INDEX:
+        abort(404, f"Entity with ID {ID} not found")
+
+    if instance_id not in INDEX:
+        abort(404, f"Instance with ID {instance_id} not found")
+
+    user = _parse_and_validate_user(user)
+    under_child = under_child if (under_child is not None and under_child != "undefined" and ID != under_child) else None
+
+    ent = INDEX[ID]
+
+    image_path = image_path.replace("#", "/")
+
+    ent.add_image_link_block(instance_id, image_path, user, under_child)
+
+    # After adding the content blocks update the file location
+    ent_path = Path(UUID_TO_PATH_INDEX[ID])
+    copy_ent = create_path_entity_copy(ent)
+    copy_ent.to_TOML(ent_path)
+
+    return make_response("Content block added", 201)
+
+
 def delete_content_block(ID, blockID):
 
     if ID not in INDEX:
@@ -1176,21 +1200,19 @@ def get_graphic_suggestions(ID, query_filter="", num_matches=10):
         if ent is None:
             return json.dumps({}), 201
 
-    for bucket_path in ent.data_buckets:
-        bucket_id = PATH_TO_UUID_INDEX[str(bucket_path)]
+    for bucket_id in ent.data_buckets:
         bucket = INDEX[bucket_id]
         pattern = re.compile(query_filter)
         for p, uuid in bucket.path_to_uuid.items():
             if len(matches) >= num_matches:
                 break
             instance = INDEX[uuid]
-            if 'star' in instance.tags:
-                for im_p in instance.images:
-                    p_obj = Path(im_p)
-                    image_name = p_obj.parts[-2] + "/" + p_obj.parts[-1] # The folder name + the image
-                    if (p_obj.suffix == '.html' or p_obj.suffix == '.jpg' or p_obj.suffix == '.png') and pattern.search(image_name):
-                        matches[image_name] = (im_p.replace('/', '%23'), instance.ID)
-                    
+            for im_p in instance.images:
+                p_obj = Path(im_p)
+                image_name = p_obj.parts[-2] + "/" + p_obj.parts[-1] # The folder name + the image
+                if (p_obj.suffix == '.html' or p_obj.suffix == '.jpg' or p_obj.suffix == '.png') and pattern.search(image_name):
+                    matches[image_name] = (im_p.replace('/', '%23'), instance.ID)
+
     return json.dumps(matches), 201
 
 

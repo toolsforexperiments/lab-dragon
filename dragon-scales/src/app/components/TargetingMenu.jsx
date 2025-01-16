@@ -52,7 +52,6 @@ export default function TargetingMenu({ entity }){
                     setIsSnackbarOpen(true);
                 });
         } else {
-            console.log("Unsetting target bucket, ", value);
             unsetTargetBucket(entity.ID, value)
                 .then((response) => {
                     if (response === true) {
@@ -87,12 +86,18 @@ export default function TargetingMenu({ entity }){
             });
     }, []);
 
-    console.log(entity)
-    console.log(checked)
+
+    if (Object.keys(buckets).length === 0) {
+        return (
+            <Typography variant="body1">
+                No buckets to select
+            </Typography>
+        );
+    }
     return (
         <Box>
-            <Paper sx={{ width: 320, maxWidth: '100%' }}>
-                <MenuList dense sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
+            <Paper sx={{ width: 320, minWidth: 320, maxWidth: '100%' }}>
+                <MenuList dense sx={{ width: '100%', bgcolor: 'background.paper' }}>
                     {Object.entries(buckets).map(([key, value]) => (
                         <MenuItem key={key}>
                             <ListItemText primary={value} secondary={key} onClick={handleToggle(key)} />

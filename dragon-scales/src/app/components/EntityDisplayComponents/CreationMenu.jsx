@@ -1,11 +1,22 @@
-import {Divider, ListItemIcon, ListItemText, MenuItem, MenuList, Paper, Typography} from "@mui/material";
+"use client"
+
+import {Divider, ListItemIcon, ListItemText, MenuItem, MenuList, Paper, TextField, Typography} from "@mui/material";
 import FormatAlignLeftIcon from '@mui/icons-material/FormatAlignLeft';
 import ImageIcon from '@mui/icons-material/Image';
+import SearchIcon from '@mui/icons-material/Search';
+import InputAdornment from '@mui/material/InputAdornment';
 
 import { creationMenuItems } from "@/app/constants";
 import {EntityIcon} from "@/app/components/icons/EntityIcons";
+import {useEffect, useState} from "react";
+import {getImageSuggestions} from "@/app/calls";
 
-export default function CreationMenu( { entityType, entityName, onClose, actions, openTextBlock, openImageBlock } ) {
+// FIXME: This should just accept the whole entity object at this point.
+export default function CreationMenu( { entityId, entityType, entityName, onClose, actions, openTextBlock, openImageBlock, handleImageLink } ) {
+
+    const [query, setQuery] = useState("");
+    const [searchResults, setSearchResults] = useState([]);
+
 
     const handleOnCloseEntity = (index) => {
         onClose();
@@ -17,8 +28,22 @@ export default function CreationMenu( { entityType, entityName, onClose, actions
         closeAction();
     }
 
+    const handleImageLinkAction = (imagePath, instanceID) => {
+        onClose();
+        handleImageLink(imagePath, instanceID);
+    }
+
+    useEffect(() => {
+        getImageSuggestions(entityId, query).then((response) => {
+            if (response) {
+                setSearchResults(JSON.parse(response));
+            }
+        });
+
+    }, [query]);
+
     return (
-        <Paper sx={{ width: 320, maxWidth: '100%' }}>
+        <Paper sx={{ maxWidth: '100%' }}>
             <MenuList>
                 <Typography
                     variant="subtitle2"
@@ -52,7 +77,33 @@ export default function CreationMenu( { entityType, entityName, onClose, actions
                     <ListItemText>Image Block</ListItemText>
                 </MenuItem>
 
-
+                <Divider />
+                
+                <MenuItem sx={{ py: 1 }}>
+                    <TextField 
+                        fullWidth
+                        size="small"
+                        placeholder="Search for image suggestions"
+                        value={query}
+                        onChange={(e) => setQuery(e.target.value)}
+                        InputProps={{
+                            startAdornment: (
+                                <InputAdornment position="start">
+                                    <SearchIcon />
+                                </InputAdornment>
+                            ),
+                        }}
+                    />
+                </MenuItem>
+                {Object.keys(searchResults).slice(0, 5).map((result) => (
+                    <MenuItem key={result} onClick={() => handleOnCloseAction(() => handleImageLinkAction(searchResults[result][0], searchResults[result][1]))}>
+                        <ListItemIcon>
+                            <ImageIcon />
+                        </ListItemIcon>
+                        <ListItemText>{result}</ListItemText>
+                    </MenuItem>
+                ))}
+                
 
             </MenuList>
         </Paper>

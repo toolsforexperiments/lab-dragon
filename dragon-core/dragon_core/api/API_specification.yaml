@@ -408,6 +408,40 @@ paths:
         "404":
           description: "Entity not found"
 
+  /entities/{ID}/add_image_link_block:
+    put:
+      operationId: "dragon_core.api.entities.add_image_link_block"
+      tags:
+        - Entities
+        - Content Blocks
+        - Images
+      summary: "Add image link to the entity with the given ID"
+      parameters:
+        - $ref: "#/components/parameters/ID"
+        - $ref: "#/components/parameters/user"
+        - $ref: "#/components/parameters/under_child"
+        - in: query
+          name: "instance_id"
+          description: "The ID of the instance to link the image to"
+          required: true
+          schema:
+              type: "string"
+        - in: query
+          name: "image_path"
+          description: "The path of the image to link"
+          required: true
+          schema:
+              type: "string"
+      responses:
+        "200":
+          description: "Successfully added image link"
+        "400":
+          description: "Invalid image link"
+        "403":
+          description: "User not found"
+        "404":
+          description: "Entity not found"
+
   /entities/{ID}/target_bucket:
      put:
        operationId: "dragon_core.api.entities.set_target_bucket"
@@ -811,7 +845,7 @@ paths:
         - $ref: "#/components/parameters/ID"
         - $ref: "#/components/parameters/query_filter"
       responses:
-        "200":
+        "201":
           description: "Successfully read entity info"
         "404":
           description: "Entity not found"

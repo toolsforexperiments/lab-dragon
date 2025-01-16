@@ -5,7 +5,10 @@ from pathlib import Path
 from typing import List, Tuple, Optional, Union
 
 from dragon_core.utils import create_timestamp
-from dragon_core.components import ContentBlock, SupportedContentBlockType, Table, create_text_block, create_image_block
+from dragon_core.components import (ContentBlock,
+                                    SupportedContentBlockType,
+                                    Table, create_text_block,
+                                    create_image_block, create_image_link_block)
 
 
 # FIXME: The items in the order should all be the same, not some tuple and some list.
@@ -195,6 +198,18 @@ class Entity(object):
 
         if _add_to_order:
             self.order.append((new_image_block.ID, "content_block", True))
+
+    def add_image_link_block(self, instance_id, image_path, user=None, under_child=None, _add_to_order=True):
+        new_image_block = create_image_link_block(image_path, instance_id, user)
+        self.content_blocks.append(new_image_block)
+        if under_child is not None:
+            index = self._find_order_index(under_child)
+            self.order.insert(index+1, (new_image_block.ID, "content_block", True))
+            return
+
+        if _add_to_order:
+            self.order.append((new_image_block.ID, "content_block", True))
+
 
     def modify_content_block(self, block_id, content, user):
 

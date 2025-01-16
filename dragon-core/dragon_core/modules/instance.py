@@ -10,7 +10,7 @@ from labcore.data.datadict_storage import datadict_from_hdf5
 class Instance(Entity):
     def __init__(self,
                  version: int = 0,
-                 stored_params: Union[List[Path], List[str]] = '',
+                 stored_params = [],
                  tags: List[str] = '',
                  images: Union[List[Path], List[str]] = [],
                  data: Union[List[Path], List[str]] = [],
@@ -46,6 +46,12 @@ class Instance(Entity):
             self.analysis = analysis
         else:
             self.analysis = [].copy()
+
+        if isinstance(stored_params, list) and len(stored_params) != 0:
+            self.stored_params = stored_params
+        else:
+            self.stored_params = [].copy()
+
         # If you start with data, populate itself by loading values from file system.
         # if len(data) != 0:
         #     self.populate_itself()

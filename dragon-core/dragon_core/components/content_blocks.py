@@ -147,7 +147,7 @@ def create_image_block(image_path: Path, title: str, user: str) -> ContentBlock:
                         block_type=SupportedContentBlockType.image)
 
 
-def create_image_link(image_path: Path, instance_id: str, user: str) -> ContentBlock:
+def create_image_link_block(image_path: Path, instance_id: str, user: str) -> ContentBlock:
     ID = str(uuid.uuid4())
     time = create_timestamp()
     return ContentBlock(ID=ID,

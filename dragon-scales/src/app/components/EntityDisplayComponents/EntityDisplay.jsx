@@ -18,7 +18,7 @@ import {ClickAwayListener} from '@mui/base/ClickAwayListener';
 import {Add} from "@mui/icons-material";
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import {getEntity, createEntity, deleteEntity, editEntityName} from "@/app/calls";
+import {getEntity, createEntity, deleteEntity, editEntityName, addImageBlock, addImageLinkBlock} from "@/app/calls";
 import {entityHeaderTypo, creationMenuItems} from "@/app/constants";
 import TypeChip from "@/app/components/EntityDisplayComponents/TypeChip";
 import {UserContext} from "@/app/contexts/userContext";
@@ -164,6 +164,18 @@ export default function EntityDisplay({
         }
         reloadParent();
         reloadTrees();
+    }
+
+    const handleImageLinkBlockCreation = (imagePath, instanceId) => {
+        addImageLinkBlock(entityId, activeUsersEmailStr, imagePath, instanceId, lastClickedItemId).then((ret) => {
+            if (ret === true) {
+                reload();
+            } else {
+                setParentErrorSnackbarMessage(`Error creating new image block, please try again.`);
+                setParentErrorSnackbarOpen(true);
+                reload();
+            }
+        });
     }
 
     const onOpenEditTextField = () => {
@@ -479,16 +491,18 @@ export default function EntityDisplay({
                     onClose={handleTargetMenuClose}
                     anchorOrigin={{
                         vertical: 'bottom',
-                        horizontal: 'left',
+                        horizontal: 'right',
                     }}
                     transformOrigin={{
                         vertical: 'top',
-                        horizontal: 'left',
+                        horizontal: 'right',
                     }}
-                    >
-
+                    marginThreshold={16}
+                    sx={{
+                        transform: 'translateX(-50px)',
+                    }}
+                >
                     <TargetingMenu entity={entity}/>
-
                 </Popover>
 
                 {/* Menu that pops up when the plus is pressed */}
@@ -504,12 +518,14 @@ export default function EntityDisplay({
                         vertical: 'top',
                         horizontal: 'left',
                     }}>
-                    <CreationMenu entityType={entity.type}
+                    <CreationMenu entityId={entity.ID}
+                                  entityType={entity.type}
                                   entityName={entity.name}
                                   onClose={handleMenuClose}
                                   actions={[toggleParentCreationEntityDisplay, () => toggleCreationEntityDisplay(lastClickedItemId)]}
                                   openTextBlock={() => setOpenNewTextBlock(lastClickedItemId)}
-                                  openImageBlock={() => setOpenNewImageBlock(lastClickedItemId)}/>
+                                  openImageBlock={() => setOpenNewImageBlock(lastClickedItemId)}
+                                  handleImageLink={handleImageLinkBlockCreation}/>
                 </Popover>
 
                 <Dialog open={openDeleteDialog} onClose={onDeleteDialogClose}>

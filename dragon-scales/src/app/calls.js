@@ -226,3 +226,27 @@ export async function unsetTargetBucket(entId, bucketId) {
 
    return res.status === 201;
 }
+
+
+export async function getImageSuggestions(entId, query){
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/properties/graphic_suggestions/${entId}?query_filter=${query}`);
+
+    if (res.status === 201) {
+        return await res.json();
+    } else {
+        return null;
+    }
+}
+
+
+export async function addImageLinkBlock(id, user, image_path, instance_id, under_child=null) {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${id}/add_image_link_block?user=${user}&image_path=${image_path}&instance_id=${instance_id}&under_child=${under_child}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+    });
+
+    return response.status === 201;
+}
+
