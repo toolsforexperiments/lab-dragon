@@ -15,10 +15,12 @@ import {
 import ReactMarkdown from 'react-markdown';
 import ImageIcon from '@mui/icons-material/Image';
 import DeleteIcon from "@mui/icons-material/Delete";
+import LeaderboardIcon from '@mui/icons-material/Leaderboard';
 
 import TextBlockEditor from "@/app/components/EntityDisplayComponents/ContentBlocks/TextBlockEditor";
 import ImageUploader from "@/app/components/EntityDisplayComponents/ContentBlocks/ImageBlockDrop";
 import {deleteContentBlock} from "@/app/calls";
+import Link from "next/link";
 
 
 const StyledBlock = styled(Box)(({theme}) => ({
@@ -89,6 +91,12 @@ export default function ContentBlock({contentBlock, parentId, reloadParent}) {
     const [openImageEditor, setOpenImageEditor] = useState(false);
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
+    const getFilePathDisplay = (path) => {
+        const parts = path.split('/');
+        return parts.length > 1 
+            ? `${parts[parts.length - 2]}/${parts[parts.length - 1]}`
+            : parts[parts.length - 1];
+    }
 
     const onCloseTextEditor = () => {
         setOpenTextEditor(false);
@@ -197,6 +205,53 @@ export default function ContentBlock({contentBlock, parentId, reloadParent}) {
                         </Dialog>
                     </ImageCard>
                 )
+            )
+
+        case 5:
+            return (
+                <Card>
+                    <ImageHeader title={
+                        <Box display="flex" flexDirection="row" justifyContent="space-between">
+                            <Box display="flex" alignItems="center">
+                                <LeaderboardIcon sx={{ color: "#0000008A", marginRight: 2}}/>
+                                <ImageHeaderIcon/>
+                                <Link href={`/instance/${displayContent[1]}`}>
+                                    <Typography variant="subtitle1"
+                                                display="inline-block"
+                                                sx={{cursor: 'pointer', "&:hover": {textDecoration: "underline"}}}
+                                    >
+                                        {getFilePathDisplay(displayContent[0])}
+                                    </Typography>
+                                </Link>
+                            </Box>
+                            <IconButton onClick={onOpenDeleteDialog}>
+                                <DeleteIcon />
+                            </IconButton>
+                        </Box>
+                    }/>
+
+                    <Link href={`/instance/${displayContent[1]}`}>
+                        <ImageCardContent
+                            component="img"
+                            // the `?t=${Date.now()}` is to stop nextjs from caching the image to allow for real time updates
+                            image={`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/data/instance_image/${encodeURIComponent(displayContent[0].replace(/\//g, '#'))}`}
+                        />
+                    </Link>
+                    
+                    <Dialog open={openDeleteDialog} onClick={(e) => e.stopPropagation()}>
+                        <DialogTitle>Delete Entity</DialogTitle>
+                        <DialogContent>
+                            <Typography>
+                                Are you sure you want to delete "{displayContent[1]}"? This action cannot be undone without contacting the administrator.
+                            </Typography>
+                        </DialogContent>
+                        <DialogActions>
+                            <Button onClick={onCloseDeleteDialog}>Cancel</Button>
+                            <Button onClick={handleDeleteImage} color="error">Delete</Button>
+                        </DialogActions>
+                    </Dialog>
+
+                </Card>
             )
 
         default:

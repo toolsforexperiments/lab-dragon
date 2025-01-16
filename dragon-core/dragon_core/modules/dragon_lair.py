@@ -35,9 +35,33 @@ class DragonLair:
 
     config fields go here ...
 
-    ["Libraries"]
-    library1 = "path/to/library1"
-    library2 = "path/to/library2"
+    [buckets]
+    bucket1ID = "/path/to/bucket1"
+    bucket2ID = "/path/to/bucket2"
+
+    [[users]]
+    email = "user1@illinois.edu"
+    name = "User 1"
+    profile_color = "#FF0000"
+    extra_user_configs...
+
+    [[users]]
+    email = "user2@illinois.edu"
+    name = "User 2"
+    profile_color = "#FF0000"
+    extra_user_configs...~
+
+    ["Library1"]
+    name = "Library1"
+    ID = "1234"
+    deleted = false
+    path = "/path/to/library1"
+
+    ["Library2"]
+    name = "Library2"
+    ID = "5678"
+    deleted = false
+    path = "/path/to/library2"
     ```
 
     Loading the libraries is handled in the following way:
@@ -70,7 +94,7 @@ class DragonLair:
         self.modified_timestamps = None
         # keys, email of the user; value the User dataclass
         self.users: dict[str, User] = {}
-
+        self.buckets: dict[str, Path] = {}
         self.libraries: List[DragonLibrary] = []
 
         # loads itself from file.
@@ -97,6 +121,9 @@ class DragonLair:
         meta['creation_timestamp'] = create_timestamp()
         meta['modified_timestamps'] = [create_timestamp()]
         doc.add("meta", meta)
+
+        buckets = table()
+        doc.add("buckets", buckets)
 
         users_aot = aot()
         doc.append("users", users_aot)
@@ -128,6 +155,10 @@ class DragonLair:
                     self.creation_timestamp = tab['creation_timestamp']
                     self.modified_timestamps = tab['modified_timestamps']
 
+                case "buckets":
+                    for bucket_name, bucket_path in tab.items():
+                        self.buckets[bucket_name] = Path(bucket_path)
+
                 # so nested, so ugly
                 case "users":
                     for user in tab:
@@ -141,6 +172,20 @@ class DragonLair:
                                                         deleted=tab['deleted'],
                                                         path=tab['path'],
                                                         instance=None))
+
+    def add_bucket(self, name, bucket, bucket_path):
+        if name in self.buckets:
+            raise ValueError(f"Bucket with name {name} already exists in the lair")
+
+        self.buckets[name] = bucket_path
+        self.to_file()
+
+    def delete_bucket(self, name):
+        if name not in self.buckets:
+            raise ValueError(f"Bucket with name {name} does not exist in the lair")
+
+        del self.buckets[name]
+        self.to_file()
 
     def add_user(self, email, name, profile_color=""):
         if email in self.users:
@@ -202,6 +247,11 @@ class DragonLair:
         self.modified_timestamps.append(create_timestamp())  # Add another modification timestamp
         meta['modified_timestamps'] = self.modified_timestamps
         doc.add("meta", meta)
+
+        buckets = table()
+        for bucket_id, bucket_path in self.buckets.items():
+            buckets[bucket_id] = str(bucket_path)
+        doc.add("buckets", buckets)
 
         users = aot()
         for user in self.users.values():
