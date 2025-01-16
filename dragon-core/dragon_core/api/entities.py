@@ -190,12 +190,18 @@ def create_path_entity_copy(ent: Entity) -> Entity:
         children_paths.append(UUID_TO_PATH_INDEX[child])
     copy_ent.children = children_paths
 
+    # TODO: This should probably get removed
     order = []
     for item, item_type, deleted in copy_ent.order:
         if item_type == "entity":
             order.append((UUID_TO_PATH_INDEX[item], item_type, deleted))
         else:
             order.append((item, item_type, deleted))
+
+    data_buckets = []
+    for bucket in copy_ent.data_buckets:
+        data_buckets.append(UUID_TO_PATH_INDEX[bucket])
+    copy_ent.data_buckets = data_buckets
 
     return copy_ent
 
@@ -339,15 +345,14 @@ def recursively_load_entity(entity_path: Path):
                 print(f"Error reading child {ent.name} with path {UUID_TO_PATH_INDEX[ent.ID]} exception: \n{e}")
                 raise e
 
-    data_buckets = []
-    for bucket_path in ent.data_buckets:
-        bucket = initialize_bucket(bucket_path)
-        data_buckets.append(bucket.ID)
+    # TODO: Change this to check if the bucket has been initialized.
+    # data_buckets = []
+    # for bucket_path in ent.data_buckets:
+    #     bucket = initialize_bucket(bucket_path)
+    #     data_buckets.append(bucket.ID)
 
     process_content_blocks(ent)
 
-    # TODO: Figure out why this line is commented
-    # ent.data_buckets = data_buckets
 
     ret_dict = {"id": ent.ID,
                 "name": ent.name,
@@ -370,6 +375,9 @@ def load_all_entities():
     Function that reads all the entities and return a dictionary with nested entities
     :return:
     """
+
+    for bucket_path in DRAGONLAIR.buckets.values():
+        bucket = initialize_bucket(bucket_path)
 
     for dragon_library in DRAGONLAIR.libraries:
         ret_dict, library = recursively_load_entity(dragon_library.path)
@@ -398,6 +406,11 @@ def load_all_entities():
                 path = Path(item)
                 if path.is_file():
                     val.order[i] = (PATH_TO_UUID_INDEX[str(path)], item_type, show)
+
+        for buck in val.data_buckets:
+            path = Path(buck)
+            if path.is_file():
+                val.data_buckets[val.data_buckets.index(buck)] = PATH_TO_UUID_INDEX[str(path)]
 
 
 def _generate_structure_helper(ent):
@@ -431,6 +444,9 @@ def read_one(ID, name_only=False):
 
     if ID == DRAGONLAIR.ID:
         abort(405, "That ID belongs to the lair, you should not be accessing it directly.")
+
+    if ID == "null":
+        abort(404, "ID is null")
 
     if ID not in INDEX:
         load_all_entities()
@@ -473,17 +489,6 @@ def read_one(ID, name_only=False):
         return json.dumps(ent_copy.to_TOML()[ent_copy.name]), 201
     else:
         abort(404, f"Entity with ID {ID} not found")
-
-
-def read_image(imagePath):
-    """
-    API function that returns an image based on the ID of the entity and the name of the image
-    """
-    try:
-        path = Path(imagePath.replace('#', '/')).resolve()
-        return send_file(path)
-    except Exception as e:
-        abort(404, f"Image with path {imagePath} not found")
 
 
 def read_content_block(ID, blockID, whole_content_block=False):
@@ -1032,6 +1037,89 @@ def _search_parents_with_buckets(ent):
     return ret_ent
 
 
+def add_bucket(user, name, location=None):
+    """
+    API function that adds a bucket to the system
+
+    :param user: The user that created the bucket
+    :param location: The path to the bucket
+    :param name: The name of the bucket
+    """
+
+    user = _parse_and_validate_user(user)
+
+    if name in DRAGONLAIR.buckets.keys():
+        abort(402, "Bucket with that name already exists")
+
+    bucket = Bucket(name=name, user=user)
+
+    if location is None:
+        bucket_path = LAIRSPATH.joinpath(bucket.ID[:8] + '_' + bucket.name + '.toml')
+    else:
+        location = Path(location)
+        if not Path(location).is_dir():
+            abort(401, f"Location {location} not found")
+        if not location.exists():
+            location.mkdir()
+
+        bucket_path = Path(location).joinpath(bucket.ID[:8] + '_' + bucket.name + '.toml')
+
+
+    path_copy = create_path_entity_copy(bucket)
+    path_copy.to_TOML(bucket_path)
+    DRAGONLAIR.add_bucket(name, bucket, bucket_path)
+
+    add_ent_to_index(bucket, bucket_path)
+
+    return make_response(f"Bucket named {name} added", 201)
+
+
+def delete_bucket(bucketID):...
+
+
+
+
+def set_target_bucket(ID, bucket_ID):
+
+    if bucket_ID not in INDEX:
+        abort(404, f"Bucket with ID {bucket_ID} not found")
+
+    if ID not in INDEX:
+        abort(404, f"Entity with ID {ID} not found")
+
+    bucket = INDEX[bucket_ID]
+
+    if not isinstance(bucket, Bucket):
+        abort(400, f"Entity with ID {bucket_ID} is not a bucket")
+
+
+    entity = INDEX[ID]
+    entity.set_bucket_target(bucket.ID)
+
+    # Update the TOML file
+    entity = create_path_entity_copy(entity)
+    entity.to_TOML(Path(UUID_TO_PATH_INDEX[entity.ID]))
+
+    return make_response("Target set", 201)
+
+
+def unset_target_bucket(ID, bucket_ID):
+    if ID not in INDEX:
+        abort(404, f"Entity with ID {ID} not found")
+
+    if bucket_ID not in INDEX:
+        abort(404, f"Bucket with ID {bucket_ID} not found")
+
+    entity = INDEX[ID]
+    entity.unset_bucket_target(bucket_ID)
+
+    # Update the TOML file
+    entity = create_path_entity_copy(entity)
+    entity.to_TOML(Path(UUID_TO_PATH_INDEX[entity.ID]))
+
+    return make_response("Target unset", 201)
+
+
 # FIXME: The return value should have the keys and value of the dictionary flipped.
 def get_data_suggestions(ID, query_filter="", num_matches=10):
     """
@@ -1113,7 +1201,7 @@ def add_instance(body):
     body should be a dictionary with the following keys
         * bucket_ID: The ID of the bucket to add the instance to
         * data_loc: The path of the data that the instance is based on
-        * username: The user that created the instance
+        * user: The user that created the instance
         * start_time: The start time of the instance
         * end_time: The end time of the instance
     """
@@ -1124,9 +1212,9 @@ def add_instance(body):
     if "data_loc" not in body or body['data_loc'] == "":
         abort(404, f"Data loc is required")
     data_path = body['data_loc']
-    if "username" not in body or body['username'] == "":
-        abort(404, f"Username is required")
-    username = _parse_and_validate_user(body['username'])
+    if "user" not in body or body['user'] == "":
+        abort(404, f"User is required")
+    user = _parse_and_validate_user(body['user'])
 
     start_time = body.get('start_time', None)
     end_time = body.get('end_time', None)
@@ -1148,7 +1236,12 @@ def add_instance(body):
     if not data_file.is_file():
         abort(403, f"Data with path {data_file} not found")
 
-    instance = Instance(name=data_path.name, data=[str(data_file)], user=username, start_time=start_time, end_time=end_time)
+    instance = Instance(name=data_path.name,
+                        data=[str(data_file)],
+                        user=user,
+                        start_time=start_time,
+                        end_time=end_time,
+                        parent=bucket_ID)
 
     instance_path = data_path.joinpath(instance.ID[:8] + '_' + data_path.name + '.toml')
     bucket.add_instance(instance_path, instance.ID)
@@ -1213,6 +1306,15 @@ def add_analysis_files_to_instance(body):
     return make_response("Analysis files added", 201)
 
 
+def get_instance_image(imagePath):
+
+    path = Path(imagePath.replace('#', '/'))
+    if not path.is_file() or not path.exists():
+        abort(404, f"Image with path {path} not found")
+
+    return send_file(path)
+
+
 def toggle_star(data_loc: str):
     """
     Toggles the star tag of an instance.This changes both the parameter in the folder containing the instance as well as the TOML file.
@@ -1256,6 +1358,7 @@ def toggle_star(data_loc: str):
     return make_response("Star toggled", 201)
 
 
+# TODO: This should work through the dragon_lair instead of iterating over the entire index
 def get_buckets():
     """
     API function that returns a dictionary of all the buckets

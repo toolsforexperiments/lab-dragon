@@ -26,7 +26,8 @@ import CreationMenu from "@/app/components/EntityDisplayComponents/CreationMenu"
 import ContentBlock from "@/app/components/EntityDisplayComponents/ContentBlocks/ContentBlock";
 import TextBlockEditor from "@/app/components/EntityDisplayComponents/ContentBlocks/TextBlockEditor";
 import ImageBlockDrop from "@/app/components/EntityDisplayComponents/ContentBlocks/ImageBlockDrop";
-import * as PropTypes from "prop-types";
+import TargetIcon from "@/app/components/icons/TargetIcon";
+import TargetingMenu from "@/app/components/TargetingMenu";
 
 const Header = styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'})(
     ({theme, entityType}) => ({
@@ -141,9 +142,12 @@ export default function EntityDisplay({
     const [lastClickedItemId, setLastClickedItemId] = useState("");
 
     // Creation menu state
-    const [anchorEl, setAnchorEl] = useState(null);
+    const [anchorCreationMenu, setAnchorCreationMenu] = useState(null);
     const [openCreationMenu, setOpenCreationMenu] = useState(false);
 
+    // Targeting menu
+    const [anchorTargetingMenu, setAnchorTargetingMenu] = useState(null);
+    const [openTargetingMenu, setOpenTargetingMenu] = useState(false);
 
     const textFieldRef = useRef(null);
     const contentBlocksIndex = useRef({});
@@ -172,7 +176,6 @@ export default function EntityDisplay({
     }
 
     const handleEditName = () => {
-        console.log("I am in edit name with the name,", newNameHolder);
         onCloseEditTextField();
         if (newNameHolder !== entity.name) {
             editEntityName(entityId, newNameHolder).then((ret) => {
@@ -220,15 +223,28 @@ export default function EntityDisplay({
         }
     }
 
+    const handleTargetClick = (event, itemId) => {
+        event.stopPropagation();
+        setAnchorTargetingMenu(event.currentTarget);
+        setLastClickedItemId(itemId);
+        setOpenTargetingMenu(true);
+    }
+
+    const handleTargetMenuClose = () => {
+        setOpenTargetingMenu(false);
+        setAnchorTargetingMenu(null);
+        setLastClickedItemId("");
+    }
+
     // Add handler for IconButton click
     const handleAddClick = (event, itemId) => {
-        setAnchorEl(event.currentTarget);
+        setAnchorCreationMenu(event.currentTarget);
         setLastClickedItemId(itemId)
         setOpenCreationMenu(true);
     };
 
     const handleMenuClose = () => {
-        setAnchorEl(null);
+        setAnchorCreationMenu(null);
         setOpenCreationMenu(false);
         setLastClickedItemId("");
         setOpenCreationEntityDisplay("");
@@ -347,9 +363,14 @@ export default function EntityDisplay({
                                     {entity.name}
                                 </Typography>
                             </Box>
-                            <IconButton onClick={onDeleteDialogOpen}>
-                                <DeleteIcon/>
-                            </IconButton>
+                            <Box>
+                                <IconButton onClick={handleTargetClick}>
+                                    <TargetIcon sx={{color: "#0000008A"}}/>
+                                </IconButton>
+                                <IconButton onClick={onDeleteDialogOpen}>
+                                    <DeleteIcon/>
+                                </IconButton>
+                            </Box>
                         </Box>
                     )
                 }
@@ -451,10 +472,29 @@ export default function EntityDisplay({
                         content block</ActionHint>
                 </HoverAddSection>
 
+                {/* Targeting Menu */}
+                <Popover
+                    open={openTargetingMenu}
+                    anchorEl={anchorTargetingMenu}
+                    onClose={handleTargetMenuClose}
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left',
+                    }}
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'left',
+                    }}
+                    >
+
+                    <TargetingMenu entity={entity}/>
+
+                </Popover>
+
                 {/* Menu that pops up when the plus is pressed */}
                 <Popover
                     open={openCreationMenu}
-                    anchorEl={anchorEl}
+                    anchorEl={anchorCreationMenu}
                     onClose={handleMenuClose}
                     anchorOrigin={{
                         vertical: 'bottom',

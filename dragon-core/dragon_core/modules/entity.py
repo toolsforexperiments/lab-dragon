@@ -296,6 +296,13 @@ class Entity(object):
         self.previous_names.append(self.name)
         self.name = new_name
     
+    def set_bucket_target(self, bucket_id: str):
+        if bucket_id not in self.data_buckets:
+            self.data_buckets.append(bucket_id)
+
+    def unset_bucket_target(self, bucket_id: str):
+        if bucket_id in self.data_buckets:
+            self.data_buckets.remove(bucket_id)
 
     
     

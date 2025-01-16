@@ -10,7 +10,7 @@ from ..utils import create_timestamp
 from .table import Table
 
 
-# FIXME: Simplify the enum here.
+
 class SupportedContentBlockType(Enum):
     """
     Enum class that holds the supported types of content blocks.
@@ -19,6 +19,7 @@ class SupportedContentBlockType(Enum):
     image = 2
     table = 3
     code = 4
+    image_link = 5
 
 
 
@@ -146,6 +147,17 @@ def create_image_block(image_path: Path, title: str, user: str) -> ContentBlock:
                         block_type=SupportedContentBlockType.image)
 
 
+def create_image_link(image_path: Path, instance_id: str, user: str) -> ContentBlock:
+    ID = str(uuid.uuid4())
+    time = create_timestamp()
+    return ContentBlock(ID=ID,
+                        creation_user=user,
+                        creation_time=time,
+                        deleted=False,
+                        content=[(image_path, instance_id)],
+                        dates=[time],
+                        authors=[user],
+                        block_type=SupportedContentBlockType.image_link)
 
 
 

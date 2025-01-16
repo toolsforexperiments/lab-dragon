@@ -47,8 +47,8 @@ class Instance(Entity):
         else:
             self.analysis = [].copy()
         # If you start with data, populate itself by loading values from file system.
-        if len(data) != 0:
-            self.populate_itself()
+        # if len(data) != 0:
+        #     self.populate_itself()
 
     def to_TOML(self, path: Optional[Union[str,Path]] = None):
 

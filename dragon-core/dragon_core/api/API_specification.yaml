@@ -94,6 +94,14 @@ components:
       schema:
           type: "string"
 
+    bucket_ID:
+       name: "bucket_ID"
+       description: "The ID of the bucket to target"
+       in: query
+       required: true
+       schema:
+         type: "string"
+
 paths:
 
   /health:
@@ -400,8 +408,45 @@ paths:
         "404":
           description: "Entity not found"
 
+  /entities/{ID}/target_bucket:
+     put:
+       operationId: "dragon_core.api.entities.set_target_bucket"
+       tags:
+         - Entities
+         - Data
+       summary: "Sets a target bucket for the entity with the given ID"
+       parameters:
+           - $ref: "#/components/parameters/ID"
+           - $ref: "#/components/parameters/bucket_ID"
+       responses:
+           "201":
+               description: "Successfully set target bucket"
+           "400":
+               description: "Invalid bucket"
+           "404":
+               description: "Entity or bucket not found"
 
-
+  # This should be the same as the above, but with a delete method, but for some reason that does not work
+  /entities/{ID}/unset_target/{bucket_ID}:
+    get:
+      operationId: "dragon_core.api.entities.unset_target_bucket"
+      tags:
+        - Entities
+        - Data
+      summary: "Unsets the target bucket for the entity with the given ID"
+      parameters:
+          - $ref: "#/components/parameters/ID"
+          - in: path
+            name: "bucket_ID"
+            required: true
+            description: "The bucket to unset"
+            schema:
+              type: "string"
+      responses:
+        "201":
+          description: "Successfully unset target bucket"
+        "404":
+          description: "Entity or bucket not found"
 
   /entities/{ID}/info:
     get:
@@ -591,6 +636,56 @@ paths:
       responses:
         "200":
           description: "Successfully read buckets"
+
+    post:
+      operationId: "dragon_core.api.entities.add_bucket"
+      tags:
+        - Data
+        - Properties
+      summary: "Adds a new bucket to the system"
+      parameters:
+        - in: query
+          name: "name"
+          required: true
+          schema:
+            type: "string"
+          description: "The name of the bucket to add"
+        - in: query
+          name: "user"
+          required: true
+          schema:
+            type: "string"
+          description: "The user/s adding the bucket"
+        - in: query
+          name: "location"
+          required: false
+          schema:
+            type: "string"
+          description: "The location of the bucket"
+      responses:
+        "201":
+          description: "Successfully added bucket"
+        "401":
+          description: "Location is invalid"
+        "402":
+          description: "bucket with that name already exists"
+        "403":
+          description: "Invalid name or user"
+
+  /data/instance_image/{imagePath}:
+     get:
+       operationId: "dragon_core.api.entities.get_instance_image"
+       tags:
+         - Data
+         - Images
+       summary: "Returns the image of the instance with the given path"
+       parameters:
+         - $ref: "#/components/parameters/imagePath"
+       responses:
+         "200":
+           description: "Successfully read image"
+         "404":
+           description: "Image not found"
 
   /data/toggle_star:
     patch:
