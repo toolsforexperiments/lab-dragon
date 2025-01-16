@@ -6,6 +6,7 @@ import {useContext, useState, useEffect} from 'react';
 import {styled} from '@mui/material/styles';
 import { Box, SvgIcon, IconButton, Button, Stack } from "@mui/material";
 import SearchIcon from '@mui/icons-material/Search';
+import AddBoxOutlinedIcon from '@mui/icons-material/AddBoxOutlined';
 
 import ToolbarAvatarGroup from './ToolbarAvatarGroup';
 import LogoIcon from './icons/Logo';
@@ -15,6 +16,7 @@ import {LibraryIcon} from './icons/EntityIcons';
 import {getLibraries} from "@/app/calls";
 
 import {UserContext} from '../contexts/userContext';
+import NewLibraryDialog from "@/app/components/dialogs/NewLibraryDialog";
 
 
 const VerticalBar = styled(Box)(( {theme }) => ({
@@ -58,10 +60,15 @@ export default function Toolbar() {
     const pathname = usePathname();
     const [libraries, setLibraries] = useState([]);
 
+    const [openLibraryDialog, setOpenLibraryDialog] = useState(false);
+
     // Add 1 to this integer to trigger a reload of the Libraries
     const [triggerReload, setTriggerReload] = useState(0);
 
     const { activeUsers } = useContext(UserContext);
+
+
+
 
     const reloadLibraries = () => {
         setTriggerReload(triggerReload + 1);
@@ -102,9 +109,18 @@ export default function Toolbar() {
                 <ToolbarButton title="Search">
                     <SearchIcon/>
                 </ToolbarButton>
+
+                <ToolbarButton title="Add New Library" onClick={() => setOpenLibraryDialog(true)}>
+                    <AddBoxOutlinedIcon/>
+                </ToolbarButton>
+
             </Stack>
 
             <ToolbarAvatarGroup activeUsers={activeUsers} />
+
+            <NewLibraryDialog open={openLibraryDialog} onClose={()=>setOpenLibraryDialog(false)} reloadParent={reloadLibraries}/>
+
+
         </VerticalBar>
     );
 

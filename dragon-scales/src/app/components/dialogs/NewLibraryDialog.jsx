@@ -1,24 +1,12 @@
 "use client"
 
 import { useState, useContext } from "react";
-import Draggable from 'react-draggable';
 import {Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle, TextField, Paper, Box } from "@mui/material";
 
 import {createLibrary} from "@/app/calls";
 import ErrorSnackbar from "@/app/components/ErrorSnackbar";
 
 import {UserContext} from "@/app/contexts/userContext";
-
-function PaperComponent(props) {
-    return (
-      <Draggable
-        handle="#draggable-dialog-title"
-        cancel={'[class*="MuiDialogContent-root"]'}
-      >
-        <Paper {...props} />
-      </Draggable>
-    );
-  }
 
 export default function NewLibraryDialog({open, onClose, reloadParent }) {
 
@@ -47,8 +35,6 @@ export default function NewLibraryDialog({open, onClose, reloadParent }) {
                 fullWidth
                 open={open}
                 onClose={onClose}
-                PaperComponent={PaperComponent}
-                aria-labelledby="draggable-dialog-title"
                 PaperProps={{
                     component: 'form',
                     onSubmit: (e) => {
