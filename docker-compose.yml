@@ -1,4 +1,5 @@
 
+
 services:
   traefik:
 
@@ -19,21 +20,15 @@ services:
     image: marcosf2/dragon-core
     build:
       context: ./dragon-core
+    volumes:
+      - .:/home/pfafflab/data
     container_name: "dragon-core"
     environment:
       COMPOSE_PROJECT_NAME: dev
-      TRAEFIK_HOST: kaladin.ncsa.illinois.edu
-      VOLUME_ORIGIN: ./pytest/tmp
-      LAIRS_DIRECTORY: .
-      RESOURCE_PATH: .
-      USERS: '["Smaug", "Spyro", "Drogon", "Charizard"]'
-      API_URL_PREFIX: http://kaladin.ncsa.illinois.edu
-      URL_HOST: http://kaladin.ncsa.illinois.edu
-      CREATE_TESTING_ENVIRONMENT: True
 
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.connexion.rule=Host(`labdragon.software.ncsa.Illinois.edu`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.connexion.rule=Host(`localhost`) && PathPrefix(`/api`)"
       - "traefik.http.services.connexion.loadbalancer.server.port=8000"
 
 
@@ -44,7 +39,7 @@ services:
       context: ./dragon-scales
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nextjs.rule=Host(`labdragon.software.ncsa.Illinois.edu`)"
+      - "traefik.http.routers.nextjs.rule=Host(`localhost`)"
       - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
 
 networks:
