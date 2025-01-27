@@ -339,6 +339,13 @@ export default function EntityDisplay({
                                     value={newNameHolder}
                                     onChange={(e) => setNewNameHolder(e.target.value)}
                                     entityType={entityType}
+                                    onKeyDown={(e) => {
+                                        console.log(e);
+                                        if (e.key === 'Enter') {
+                                            e.stopPropagation();
+                                            handleClickAway();
+                                        }
+                                    }}
                                 />
                             </Box>
                         }
@@ -365,6 +372,13 @@ export default function EntityDisplay({
                                 value={newNameHolder}
                                 onChange={(e) => setNewNameHolder(e.target.value)}
                                 entityType={entity.type}
+                                onKeyDown={(e) => {
+                                    console.log(e);
+                                    if (e.key === 'Enter') {
+                                        e.stopPropagation();
+                                        handleEditName();
+                                    }
+                                }}
                             />
                         </ClickAwayListener>
                     ) : (
