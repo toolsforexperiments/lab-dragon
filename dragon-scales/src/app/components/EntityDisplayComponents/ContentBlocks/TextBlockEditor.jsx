@@ -81,7 +81,12 @@ export default function TextBlockEditor({ parentId, onEditorChange, initialConte
 
         <Box>
             <ClickAwayListener onClickAway={handleOnClose}>
-                <Box>
+                <Box onKeyDown={(e) => {
+                    if (e.key === "Enter" && e.shiftKey) {
+                        e.preventDefault();
+                        handleOnClose();
+                    }
+                }}>
                     <Lexical autoFocus onChange={onEditorChange} initialContent={initialContent} editorId={editorId} />
                 </Box>
             </ClickAwayListener>
