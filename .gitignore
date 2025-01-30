@@ -59,3 +59,5 @@ users.txt
 /dragon-core/test/tmp/
 /dragon-core/test/tmp/*
 /dragon-core/test/pytest/tmp/*
+
+*.log
