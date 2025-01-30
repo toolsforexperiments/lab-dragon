@@ -211,7 +211,7 @@ class Entity(object):
             self.order.append((new_image_block.ID, "content_block", True))
 
 
-    def modify_content_block(self, block_id, content, user):
+    def modify_text_block(self, block_id, content, user):
 
         block = None
         for blo in self.content_blocks:

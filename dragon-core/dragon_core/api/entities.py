@@ -157,6 +157,9 @@ def set_initial_indices():
 
     INSTANCEIMAGE = {}
 
+    if not RESOURCEPATH.exists():
+        RESOURCEPATH.mkdir(parents=True)
+
 
 def reset():
     set_initial_indices()
@@ -1209,7 +1212,7 @@ def get_graphic_suggestions(ID, query_filter="", num_matches=10):
             instance = INDEX[uuid]
             for im_p in instance.images:
                 p_obj = Path(im_p)
-                image_name = p_obj.parts[-2] + "/" + p_obj.parts[-1] # The folder name + the image
+                image_name = p_obj.parts[-3] + "/" + p_obj.parts[-2] + "/" + p_obj.parts[-1] # the parent of the folder name + The folder name + the image
                 if (p_obj.suffix == '.html' or p_obj.suffix == '.jpg' or p_obj.suffix == '.png') and pattern.search(image_name):
                     matches[image_name] = (im_p.replace('/', '%23'), instance.ID)
 

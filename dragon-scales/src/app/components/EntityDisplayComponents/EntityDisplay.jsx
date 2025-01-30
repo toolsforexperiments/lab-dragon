@@ -490,8 +490,10 @@ export default function EntityDisplay({
                         )}
                     </Stack>
                 </CardContent>
-                <HoverAddSection>
-                    <IconButton onClick={(e) => handleAddClick(e, entityId)}>
+                <HoverAddSection
+                    onClick={(e) => handleAddClick(e, entityId)}
+                    sx={{cursor: "pointer"}}>
+                    <IconButton>
                         <Add/>
                     </IconButton>
                     <ActionHint variant="body1" sx={{color: '#0000004D',}}>Click the plus icon to add a story entity or
@@ -531,7 +533,11 @@ export default function EntityDisplay({
                     transformOrigin={{
                         vertical: 'top',
                         horizontal: 'left',
-                    }}>
+                    }}
+                    marginThreshold={16}
+                    keepMounted={false}
+                    disablePortal={false}
+                >
                     <CreationMenu entityId={entity.ID}
                                   entityType={entity.type}
                                   entityName={entity.name}
@@ -557,7 +563,6 @@ export default function EntityDisplay({
             </HoverCard>
         )
     )
-
 }
 
 
