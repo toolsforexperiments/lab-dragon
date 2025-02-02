@@ -1,12 +1,14 @@
 "use client";
 
-import { useSearchParams, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useState, useEffect, useContext, useRef } from "react";
 import {Drawer, Typography, Stack} from "@mui/material";
 import { styled } from "@mui/material/styles";
 
 import {getLibraryStructure} from "@/app/calls";
 import NotebookAccordion from "@/app/components/ExplorerDrawerComponents/NotebookAccordion";
+import { EntitiesRefContext } from "@/app/contexts/entitiesRefContext";
+
 
 
 const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'drawerWidth' })(({ theme, drawerWidth }) => ({
@@ -22,7 +24,10 @@ const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'dra
     "& .MuiDrawer-paper": {
         width: drawerWidth,
         boxSizing: "border-box",
-        position: "relative",
+        position: "sticky",
+        top: 20,
+        paddingBottom: 20,  
+        height: "100vh",
         backgroundColor: "transparent",
         border: "none",
         borderRadius: "16px",
@@ -33,21 +38,27 @@ const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'dra
 export default function ExplorerDrawer({library, open, onClose, drawerWidth, updateTrees}) {
 
     const router = useRouter();
-    const searchParams = useSearchParams();
 
     const [libraryStructure, setLibraryStructure] = useState([]);
-    const [selectedEntity, setSelectedEntity] = useState("")
+
+    const selectedEntityRef = useRef("");
+    const { entitiesRef } = useContext(EntitiesRefContext);
+
 
     const handleEntitySelect = (event, entityId) => {
-        const current = new URLSearchParams(Array.from(searchParams.entries()));
-        
         if (entityId) {
-            current.set("selected", entityId);
+            selectedEntityRef.current = entityId; // Immediately update the state
+            router.push(`${window.location.pathname}#${entityId}`, { scroll: false });
+            if (entitiesRef.current.hasOwnProperty(entityId)) {
+                entitiesRef.current[entityId].current.scrollIntoView({behavior: "smooth", block: "start"});
+            }
         } else {
-            current.delete("selected");
+            selectedEntityRef.current = ""; // Immediately update the state
+            router.push(window.location.pathname, { scroll: false });
         }
-        router.push(window.location.pathname + "?" + current.toString());
-    };
+    }
+
+
 
     // Loads the initial library structure
     useEffect(() => {
@@ -60,13 +71,32 @@ export default function ExplorerDrawer({library, open, onClose, drawerWidth, upd
         });
     }, [library, updateTrees]);
 
-    // Updates the state variable to match the searchParams
     useEffect(() => {
-        const selected = searchParams.get("selected");
-        if (selected) {
-            setSelectedEntity(selected);
-        }
-    }, [searchParams]);
+        // Function to parse hash from URL
+        const getHashFromUrl = () => {
+            const hash = window.location.hash;
+            return hash ? hash.slice(1) : '';
+        };
+
+        // Handle hash changes
+        const handleHashChange = () => {
+            selectedEntityRef.current = getHashFromUrl();
+        };
+
+        // Set initial value
+        handleHashChange();
+
+        // Listen for hash changes
+        window.addEventListener('hashchange', handleHashChange);
+        
+        // Listen for popstate events (browser back/forward)
+        window.addEventListener('popstate', handleHashChange);
+
+        return () => {
+            window.removeEventListener('hashchange', handleHashChange);
+            window.removeEventListener('popstate', handleHashChange);
+        };
+    }, []);
 
     return(
         <StyledDrawer variant="persistent" open={open} onClose={onClose} drawerWidth={drawerWidth}>
@@ -78,7 +108,7 @@ export default function ExplorerDrawer({library, open, onClose, drawerWidth, upd
             ) : (
                 <Stack flexGrow={2} spacing={1}>
                     {libraryStructure.children && libraryStructure.children.map(child => (
-                        <NotebookAccordion key={child.id + "-NotebookAccordion"} notebookStructure={child} onSelectedItemsChange={handleEntitySelect} selectedEntity={selectedEntity} />
+                        <NotebookAccordion key={child.id + "-NotebookAccordion"} notebookStructure={child} onSelectedItemsChange={handleEntitySelect} selectedEntity={selectedEntityRef.current} />
                     ))}
                 </Stack>
             )}
