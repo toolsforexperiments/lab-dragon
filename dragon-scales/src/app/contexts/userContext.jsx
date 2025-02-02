@@ -93,7 +93,8 @@ export const UserProvider = ({ children }) => {
         setUserList,
         activeUsers,
         setActiveUsers,
-        activeUsersEmailStr}}>
+        activeUsersEmailStr,
+        setSelectUserDialogOpen}}>
         {children}
         <SelectUserDialog
             userList={userList}

@@ -20,7 +20,7 @@ export default function DataDen() {
         try {
             const success = await createBucket(
                 formData.get('name'),
-                // activeUsersEmailStr,
+                activeUsersEmailStr,
                 formData.get('location')
             );
 

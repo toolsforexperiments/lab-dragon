@@ -1,0 +1,10 @@
+# From qcodes station config, the first field must be instruments for instruments config
+instruments:
+
+  parameter_manager:
+    type: instrumentserver.params.ParameterManager
+    initialize: True
+
+    gui:
+      # By having the parameter manager GUI as the gui type, we can have it directly in the server instead of on a separate window.
+      type: instrumentserver.gui.instruments.ParameterManagerGui

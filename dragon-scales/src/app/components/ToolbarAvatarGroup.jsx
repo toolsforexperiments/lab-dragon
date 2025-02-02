@@ -1,11 +1,12 @@
+"use client"
 
-
-import Link from 'next/link';
+import { useState, useContext } from "react";
 import { Box, Tooltip, Avatar, Button } from "@mui/material";
 import { styled } from "@mui/material/styles";
 
 import LDAvatar from './AvatarStyled';
 import {usePathname} from "next/navigation";
+import {UserContext} from "@/app/contexts/userContext";
 
 
 const StyledVerticalAvatars = styled(Button)(({ theme }) => ({
@@ -32,6 +33,8 @@ export default function ToolbarAvatarGroup({ activeUsers }) {
     const extraCount = extraUsers.length;
     const extraNames = extraUsers.map(([_, value]) => value.name).join(', ');
 
+    const {setSelectUserDialogOpen} = useContext(UserContext);
+
     return (
         <Box sx={{
                 marginTop: 'auto',  // This pushes it to the bottom
@@ -41,20 +44,18 @@ export default function ToolbarAvatarGroup({ activeUsers }) {
                 justifyContent: 'center',
                 alignItems: 'center',
         }}>
-            <Link href="/users">
-                <StyledVerticalAvatars title="User Management">
-                    {extraCount > 0 && (
-                        <Tooltip title={extraNames}>
-                            <Avatar key="extra" name={`+${extraCount}`} alt={`+${extraCount}`}>
-                                +{extraCount}
-                            </Avatar>
-                        </Tooltip>
-                    )}
-                    {displayUsers.map(([key, value]) => (
-                        <LDAvatar key={key + "-LDAvatar"} bgColor={value.profile_color} name={value.name} alt={value.name} />
-                    ))}
-                </StyledVerticalAvatars>
-            </Link>
+            <StyledVerticalAvatars title="Change Users" onClick={() => setSelectUserDialogOpen(true)}>
+                {extraCount > 0 && (
+                    <Tooltip title={extraNames}>
+                        <Avatar key="extra" name={`+${extraCount}`} alt={`+${extraCount}`}>
+                            +{extraCount}
+                        </Avatar>
+                    </Tooltip>
+                )}
+                {displayUsers.map(([key, value]) => (
+                    <LDAvatar key={key + "-LDAvatar"} bgColor={value.profile_color} name={value.name} alt={value.name} />
+                ))}
+            </StyledVerticalAvatars>
         </Box>
     );
 }
