@@ -18,7 +18,7 @@ import {ClickAwayListener} from '@mui/base/ClickAwayListener';
 import {Add} from "@mui/icons-material";
 import DeleteIcon from '@mui/icons-material/Delete';
 
-import {getEntity, createEntity, deleteEntity, editEntityName, addImageBlock, addImageLinkBlock} from "@/app/calls";
+import {getEntity, createEntity, deleteEntity, editEntityName, addImageLinkBlock} from "@/app/calls";
 import {entityHeaderTypo, creationMenuItems} from "@/app/constants";
 import TypeChip from "@/app/components/EntityDisplayComponents/TypeChip";
 import {UserContext} from "@/app/contexts/userContext";
@@ -28,6 +28,7 @@ import TextBlockEditor from "@/app/components/EntityDisplayComponents/ContentBlo
 import ImageBlockDrop from "@/app/components/EntityDisplayComponents/ContentBlocks/ImageBlockDrop";
 import TargetIcon from "@/app/components/icons/TargetIcon";
 import TargetingMenu from "@/app/components/TargetingMenu";
+import {EntitiesRefContext} from "@/app/contexts/entitiesRefContext";
 
 const Header = styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'})(
     ({theme, entityType}) => ({
@@ -151,7 +152,10 @@ export default function EntityDisplay({
 
     const textFieldRef = useRef(null);
     const contentBlocksIndex = useRef({});
+    // used to handle scrolling to entity
+    const entityRef = useRef(null)
 
+    const { entitiesRef } = useContext(EntitiesRefContext);
     const {activeUsersEmailStr} = useContext(UserContext);
 
     const reload = () => {
@@ -299,6 +303,12 @@ export default function EntityDisplay({
         }
     }, [entityId]);
 
+    useEffect(() => {
+        if (entityRef.current) {
+            entitiesRef.current[entityId] = entityRef;
+        }
+    }, [entityRef.current]);
+
     const handleClickAway = () => {
         if (newNameHolder !== "") {
             createEntity(newNameHolder, activeUsersEmailStr, entityType, parentId, underChildId).then((ret) => {
@@ -359,7 +369,7 @@ export default function EntityDisplay({
 
             // the last option is the loaded entity display we actually want to show
         ) : (
-            <HoverCard sx={{margin: 'inherit', position: 'relative'}}>
+            <HoverCard sx={{margin: 'inherit', position: 'relative'}} ref={entityRef}>
                 <Header title={
                     openEditNameTextField ? (
                         <ClickAwayListener onClickAway={handleEditName}>
@@ -532,7 +542,7 @@ export default function EntityDisplay({
                         vertical: 'top',
                         horizontal: 'left',
                     }}
-                    marginThreshold={250}
+                    marginThreshold={200}
                     keepMounted={false}
                     disablePortal={false}
                 >

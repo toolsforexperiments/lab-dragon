@@ -2,7 +2,7 @@
 import {useEffect, useState, useRef, useContext, use} from "react";
 
 import { Box, IconButton, Stack, Typography, Button } from "@mui/material";
-import { Tune, Add } from "@mui/icons-material";
+import { Add } from "@mui/icons-material";
 import { styled } from "@mui/material/styles";
 
 import ErrorSnackbar from "@/app/components/ErrorSnackbar";
@@ -11,6 +11,7 @@ import ExplorerDrawer from "@/app/components/ExplorerDrawerComponents/ExplorerDr
 import NotebookDisplay from "@/app/components/EntityDisplayComponents/NotebookDisplay";
 import NewEntityDialog from "@/app/components/dialogs/NewEntityDialog";
 import {UserContext} from "@/app/contexts/userContext";
+import {EntitiesRefProvider} from "@/app/contexts/entitiesRefContext";
 
 
 const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' && prop !== 'drawerWidth' })(
@@ -64,14 +65,6 @@ export default function Library({ params }) {
     const isDraggingRef = useRef(false);
 
     const { activeUsersEmailStr } = useContext(UserContext);
-
-    const handleDrawerOpen = () => {
-        setDrawerOpen(true);
-    }
-
-    const handleDrawerClose = () => {
-        setDrawerOpen(false);
-    }
 
     const handleCreateNotebookDialogOpen = () => {
         setCreateNotebookDialogOpen(true);
@@ -156,22 +149,24 @@ export default function Library({ params }) {
                             <Add fontSize="inherit" />
                         </IconButton>
 
-                        <IconButton sx={{ fontSize: '1.5rem', color: 'black' }} title={"Placeholder for now"}>
+                        {/* <IconButton sx={{ fontSize: '1.5rem', color: 'black' }} title={"Placeholder for now"}>
                             <Tune fontSize="inherit" />
-                        </IconButton>
+                        </IconButton> */}
 
                         <Button onClick={() => { setDrawerOpen(!drawerOpen) }}>Toggle Drawer</Button>
                     </Stack>
 
                     <Main open={drawerOpen} drawerWidth={drawerWidth}>
                         <Stack direction="row" sx={{ width: "100%" }}>
-                            <ExplorerDrawer library={library} open={drawerOpen} onClose={() => { setDrawerOpen(false) }} drawerWidth={drawerWidth} updateTrees={updateTrees} />
-                            {drawerOpen && <DraggableBox onMouseDown={handleMouseDown} />}
-                            <Stack spacing={5} flexGrow={1} justifyContent="flex-start" sx={{ marginLeft: '12px', marginBottom: '50px', width: "100%", flexGrow: 1, minWidth: 0, overflow: "hidden" }}>
-                                {library.children && library.children.map(child => (
-                                    <NotebookDisplay key={child + "-NotebookDisplay"} notebookId={child} libraryName={library.name} libraryId={library.ID} reloadTrees={triggerUpdateTrees} />
-                                ))}
-                            </Stack>
+                            <EntitiesRefProvider>
+                                <ExplorerDrawer library={library} open={drawerOpen} onClose={() => { setDrawerOpen(false) }} drawerWidth={drawerWidth} updateTrees={updateTrees} />
+                                {drawerOpen && <DraggableBox onMouseDown={handleMouseDown} />}
+                                <Stack spacing={5} flexGrow={1} justifyContent="flex-start" sx={{ marginLeft: '12px', marginBottom: '50px', width: "100%", flexGrow: 1, minWidth: 0, overflow: "hidden" }}>
+                                    {library.children && library.children.map(child => (
+                                        <NotebookDisplay key={child + "-NotebookDisplay"} notebookId={child} libraryName={library.name} libraryId={library.ID} reloadTrees={triggerUpdateTrees} />
+                                    ))}
+                                </Stack>
+                            </EntitiesRefProvider>
                         </Stack>
                     </Main>
                 <NewEntityDialog
