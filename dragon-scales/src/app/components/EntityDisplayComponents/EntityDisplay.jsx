@@ -340,7 +340,6 @@ export default function EntityDisplay({
                                     onChange={(e) => setNewNameHolder(e.target.value)}
                                     entityType={entityType}
                                     onKeyDown={(e) => {
-                                        console.log(e);
                                         if (e.key === 'Enter') {
                                             e.stopPropagation();
                                             handleClickAway();
@@ -373,7 +372,6 @@ export default function EntityDisplay({
                                 onChange={(e) => setNewNameHolder(e.target.value)}
                                 entityType={entity.type}
                                 onKeyDown={(e) => {
-                                    console.log(e);
                                     if (e.key === 'Enter') {
                                         e.stopPropagation();
                                         handleEditName();

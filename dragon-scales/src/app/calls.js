@@ -107,7 +107,7 @@ export async function createLibrary(name, user) {
             return true
         } else {
             const errorDetails = await response.json();
-            console.log("Error creating new Library", errorDetails);
+            console.error("Error creating new Library", errorDetails);
             return false;
         }
 
@@ -205,6 +205,26 @@ export async function getBuckets() {
     } else {
         return null;
     }
+}
+
+
+export async function createBucket(name, user, location = '') {
+    const params = new URLSearchParams({
+        name,
+        user,
+        location
+    });
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/data/buckets?${params}`, {
+        method: 'POST',
+    });
+
+    // This means the location where the bucket is being created does not exist.
+    if (response.status === 401) {
+        return null;
+    }
+    
+    return response.status === 201;
 }
 
 

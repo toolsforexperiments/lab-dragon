@@ -101,14 +101,15 @@ export default function Toolbar() {
                         </Link>
                     )
                 })}
+                <Link href={`/DataDen`}>
+                    <ToolbarButton title="Data Den">
+                        <DenLogo />
+                    </ToolbarButton>
+                </Link>
 
-                <ToolbarButton title="Data Den">
-                    <DenLogo />
-                </ToolbarButton>
-
-                <ToolbarButton title="Search">
-                    <SearchIcon/>
-                </ToolbarButton>
+                {/*<ToolbarButton title="Search">*/}
+                {/*    <SearchIcon/>*/}
+                {/*</ToolbarButton>*/}
 
                 <ToolbarButton title="Add New Library" onClick={() => setOpenLibraryDialog(true)}>
                     <AddBoxOutlinedIcon/>
