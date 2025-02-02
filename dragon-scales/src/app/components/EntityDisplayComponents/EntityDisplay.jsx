@@ -532,7 +532,7 @@ export default function EntityDisplay({
                         vertical: 'top',
                         horizontal: 'left',
                     }}
-                    marginThreshold={16}
+                    marginThreshold={250}
                     keepMounted={false}
                     disablePortal={false}
                 >
