@@ -14,8 +14,8 @@ import {UserContext} from "@/app/contexts/userContext";
 import {EntitiesRefProvider} from "@/app/contexts/entitiesRefContext";
 
 
-const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' && prop !== 'drawerWidth' })(
-    ({ theme, open, drawerWidth }) => ({
+const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'openDrawer' && prop !== 'drawerWidth' })(
+    ({ theme, openDrawer, drawerWidth }) => ({
         display: "flex",
         flexGrow: 1,
         // Controls the animations for the drawer opening and closing
@@ -26,7 +26,7 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'open' && pr
         marginTop: '30px',
         marginLeft: `-${drawerWidth}px`,
         marginRight: '30px',
-        ...(open && {
+        ...(openDrawer && {
             marginLeft: 0,
             transition: theme.transitions.create('margin', {
                 easing: theme.transitions.easing.easeOut,
@@ -56,13 +56,17 @@ export default function Library({ params }) {
     const [drawerWidth, setDrawerWidth] = useState(410);
     const [drawerOpen, setDrawerOpen] = useState(true);
 
+    const [commentsPanelWidth, setCommentsPanelWidth] = useState(200);
+    const [commentsPanelOpen, setCommentsPanelOpen] = useState(false);
+
     // This is used to force a re-render of the tree when a new entity is created.
     const [updateTrees, setUpdateTrees] = useState(0);
     const [createNotebookDialogOpen, setCreateNotebookDialogOpen] = useState(false);
     const [errorSnackbarOpen, setErrorSnackbarOpen] = useState(false);
     const [errorSnackbarMessage, setErrorSnackbarMessage] = useState("");
 
-    const isDraggingRef = useRef(false);
+    const isDraggingDrawerRef = useRef(false);
+    const isDraggingCommentsPanelRef = useRef(false);
 
     const { activeUsersEmailStr } = useContext(UserContext);
 
@@ -75,24 +79,24 @@ export default function Library({ params }) {
     }
 
     // The following 3 handles are what is used to resize the drawer
-    const handleMouseDown = (e) => {
-        isDraggingRef.current = true;
-        document.addEventListener('mousemove', handleMouseMove);
-        document.addEventListener('mouseup', handleMouseUp);
+    const handleMouseDownDrawer = (e) => {
+        isDraggingDrawerRef.current = true;
+        document.addEventListener('mousemove', handleMouseMoveDrawer);
+        document.addEventListener('mouseup', handleMouseUpDrawer);
     }
 
-    const handleMouseMove = (e) => {
-        if (isDraggingRef.current) {
+    const handleMouseMoveDrawer = (e) => {
+        if (isDraggingDrawerRef.current) {
             const newWidth = e.clientX;
             // the 80 is the width of the toolbar and the 12px margin, this needs to change if any of that changes.
             setDrawerWidth(newWidth - 112);
         }
     };
 
-    const handleMouseUp = () => {
-        isDraggingRef.current = false;
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
+    const handleMouseUpDrawer = () => {
+        isDraggingDrawerRef.current = false;
+        document.removeEventListener('mousemove', handleMouseMoveDrawer);
+        document.removeEventListener('mouseup', handleMouseUpDrawer);
     };
 
     const triggerUpdateTrees = () => {
@@ -156,11 +160,11 @@ export default function Library({ params }) {
                         <Button onClick={() => { setDrawerOpen(!drawerOpen) }}>Toggle Drawer</Button>
                     </Stack>
 
-                    <Main open={drawerOpen} drawerWidth={drawerWidth}>
+                    <Main openDrawer={drawerOpen} drawerWidth={drawerWidth}>
                         <Stack direction="row" sx={{ width: "100%" }}>
                             <EntitiesRefProvider>
                                 <ExplorerDrawer library={library} open={drawerOpen} onClose={() => { setDrawerOpen(false) }} drawerWidth={drawerWidth} updateTrees={updateTrees} />
-                                {drawerOpen && <DraggableBox onMouseDown={handleMouseDown} />}
+                                {drawerOpen && <DraggableBox onMouseDown={handleMouseDownDrawer} />}
                                 <Stack spacing={5} flexGrow={1} justifyContent="flex-start" sx={{ marginLeft: '12px', marginBottom: '50px', width: "100%", flexGrow: 1, minWidth: 0, overflow: "hidden" }}>
                                     {library.children && library.children.map(child => (
                                         <NotebookDisplay key={child + "-NotebookDisplay"} notebookId={child} libraryName={library.name} libraryId={library.ID} reloadTrees={triggerUpdateTrees} />
@@ -169,6 +173,7 @@ export default function Library({ params }) {
                             </EntitiesRefProvider>
                         </Stack>
                     </Main>
+
                 <NewEntityDialog
                     user={activeUsersEmailStr}
                     type="Notebook"
