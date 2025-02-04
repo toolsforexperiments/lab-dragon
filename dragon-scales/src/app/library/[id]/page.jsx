@@ -12,10 +12,11 @@ import NotebookDisplay from "@/app/components/EntityDisplayComponents/NotebookDi
 import NewEntityDialog from "@/app/components/dialogs/NewEntityDialog";
 import {UserContext} from "@/app/contexts/userContext";
 import {EntitiesRefProvider} from "@/app/contexts/entitiesRefContext";
+import CommentsPanel from "@/app/components/CommentsPanelComponents/CommentsPanel";
 
 
-const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'openDrawer' && prop !== 'drawerWidth' })(
-    ({ theme, openDrawer, drawerWidth }) => ({
+const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'openDrawer' && prop !== 'drawerWidth' && prop !== 'commentsPanelOpen' && prop !== 'commentsPanelWidth'  })(
+    ({ theme, openDrawer, drawerWidth, commentsPanelOpen, commentsPanelWidth }) => ({
         display: "flex",
         flexGrow: 1,
         // Controls the animations for the drawer opening and closing
@@ -25,9 +26,16 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'openDrawer'
         }),
         marginTop: '30px',
         marginLeft: `-${drawerWidth}px`,
-        marginRight: '30px',
+        marginRight: `-${commentsPanelWidth}px`,
         ...(openDrawer && {
             marginLeft: 0,
+            transition: theme.transitions.create('margin', {
+                easing: theme.transitions.easing.easeOut,
+                duration: theme.transitions.duration.enteringScreen,
+            }),
+        }),
+        ...(commentsPanelOpen && {
+            marginRight: 0,
             transition: theme.transitions.create('margin', {
                 easing: theme.transitions.easing.easeOut,
                 duration: theme.transitions.duration.enteringScreen,
@@ -57,7 +65,7 @@ export default function Library({ params }) {
     const [drawerOpen, setDrawerOpen] = useState(true);
 
     const [commentsPanelWidth, setCommentsPanelWidth] = useState(200);
-    const [commentsPanelOpen, setCommentsPanelOpen] = useState(false);
+    const [commentsPanelOpen, setCommentsPanelOpen] = useState(true);
 
     // This is used to force a re-render of the tree when a new entity is created.
     const [updateTrees, setUpdateTrees] = useState(0);
@@ -98,6 +106,25 @@ export default function Library({ params }) {
         document.removeEventListener('mousemove', handleMouseMoveDrawer);
         document.removeEventListener('mouseup', handleMouseUpDrawer);
     };
+
+    const handleMouseDownCommentsPanel = (e) => {
+        isDraggingCommentsPanelRef.current = true;
+        document.addEventListener('mousemove', handleMouseMoveCommentsPanel);
+        document.addEventListener('mouseup', handleMouseUpCommentsPanel);
+    }
+
+    const handleMouseMoveCommentsPanel = (e) => {
+        if (isDraggingCommentsPanelRef.current) {
+            const newWidth = e.clientX;
+            setCommentsPanelWidth(window.innerWidth - newWidth - 40);
+        }
+    }
+
+    const handleMouseUpCommentsPanel = () => {
+        isDraggingCommentsPanelRef.current = false;
+        document.removeEventListener('mousemove', handleMouseMoveCommentsPanel);
+        document.removeEventListener('mouseup', handleMouseUpCommentsPanel);
+    }
 
     const triggerUpdateTrees = () => {
         setUpdateTrees(updateTrees + 1);
@@ -158,22 +185,47 @@ export default function Library({ params }) {
                         </IconButton> */}
 
                         <Button onClick={() => { setDrawerOpen(!drawerOpen) }}>Toggle Drawer</Button>
+                        <Button onClick={() => { setCommentsPanelOpen(!commentsPanelOpen) }}>Toggle Comments Panel</Button>
                     </Stack>
 
-                    <Main openDrawer={drawerOpen} drawerWidth={drawerWidth}>
+                    <Main openDrawer={drawerOpen} drawerWidth={drawerWidth} commentsPanelOpen={commentsPanelOpen} commentsPanelWidth={commentsPanelWidth}>
                         <Stack direction="row" sx={{ width: "100%" }}>
                             <EntitiesRefProvider>
-                                <ExplorerDrawer library={library} open={drawerOpen} onClose={() => { setDrawerOpen(false) }} drawerWidth={drawerWidth} updateTrees={updateTrees} />
+                                <ExplorerDrawer
+                                    library={library}
+                                    open={drawerOpen}
+                                    onClose={() => { setDrawerOpen(false) }}
+                                    drawerWidth={drawerWidth}
+                                    updateTrees={updateTrees} />
                                 {drawerOpen && <DraggableBox onMouseDown={handleMouseDownDrawer} />}
-                                <Stack spacing={5} flexGrow={1} justifyContent="flex-start" sx={{ marginLeft: '12px', marginBottom: '50px', width: "100%", flexGrow: 1, minWidth: 0, overflow: "hidden" }}>
+                                <Stack
+                                    spacing={5}
+                                    flexGrow={1}
+                                    justifyContent="flex-start"
+                                    sx={{ marginLeft: '12px',
+                                        marginBottom: '50px',
+                                        width: "100%",
+                                        flexGrow: 1,
+                                        minWidth: 0,
+                                        overflow: "auto" }}>
                                     {library.children && library.children.map(child => (
-                                        <NotebookDisplay key={child + "-NotebookDisplay"} notebookId={child} libraryName={library.name} libraryId={library.ID} reloadTrees={triggerUpdateTrees} />
+                                        <NotebookDisplay
+                                            key={child + "-NotebookDisplay"}
+                                            notebookId={child}
+                                            libraryName={library.name}
+                                            libraryId={library.ID}
+                                            reloadTrees={triggerUpdateTrees} />
                                     ))}
                                 </Stack>
+                                {commentsPanelOpen && <DraggableBox onMouseDown={handleMouseDownCommentsPanel} />}
+                                <CommentsPanel
+                                    open={commentsPanelOpen}
+                                    drawerWidth={commentsPanelWidth}
+                                    onClose={() => setCommentsPanelOpen(false)} />
                             </EntitiesRefProvider>
                         </Stack>
                     </Main>
-
+🔥🔥🔥🐉🐉🐉
                 <NewEntityDialog
                     user={activeUsersEmailStr}
                     type="Notebook"
