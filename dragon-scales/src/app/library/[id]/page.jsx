@@ -19,14 +19,14 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'openDrawer'
     ({ theme, openDrawer, drawerWidth, commentsPanelOpen, commentsPanelWidth }) => ({
         display: "flex",
         flexGrow: 1,
-        // Controls the animations for the drawer opening and closing
+        maxWidth: "100%",
         transition: theme.transitions.create('margin', {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
         }),
         marginTop: '30px',
         marginLeft: `-${drawerWidth}px`,
-        marginRight: `-${commentsPanelWidth}px`,
+        marginRight: commentsPanelOpen ? `-${commentsPanelWidth}px` : "0",
         ...(openDrawer && {
             marginLeft: 0,
             transition: theme.transitions.create('margin', {
@@ -42,6 +42,27 @@ const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'openDrawer'
             }),
         }),
     }),
+);
+
+const ContentStack = styled(Stack, { shouldForwardProp: (prop) => prop !== 'commentsPanelOpen' && prop !== 'commentsPanelWidth'  })(
+    ({ theme, commentsPanelOpen, commentsPanelWidth }) => ({
+        position: 'relative',
+        zIndex: 1,
+        spacing: 5,
+        flexGrow: 1,
+        justifyContent: "flex-start",
+        marginLeft: '12px',
+        marginBottom: '50px',
+        minWidth: 0,
+        overflow: "visible",
+        maxWidth: "100%",
+        marginRight: commentsPanelOpen ? "0px" : `-${commentsPanelWidth - 20}px`,
+        transition: theme.transitions.create('margin', {
+            easing: theme.transitions.easing.sharp,
+            duration: theme.transitions.duration.leavingScreen,
+        })
+    }),
+
 );
 
 const DraggableBox = styled(Box)(({ theme }) => ({
@@ -64,8 +85,8 @@ export default function Library({ params }) {
     const [drawerWidth, setDrawerWidth] = useState(410);
     const [drawerOpen, setDrawerOpen] = useState(true);
 
-    const [commentsPanelWidth, setCommentsPanelWidth] = useState(200);
-    const [commentsPanelOpen, setCommentsPanelOpen] = useState(true);
+    const [commentsPanelWidth, setCommentsPanelWidth] = useState(410);
+    const [commentsPanelOpen, setCommentsPanelOpen] = useState(false);
 
     // This is used to force a re-render of the tree when a new entity is created.
     const [updateTrees, setUpdateTrees] = useState(0);
@@ -75,6 +96,7 @@ export default function Library({ params }) {
 
     const isDraggingDrawerRef = useRef(false);
     const isDraggingCommentsPanelRef = useRef(false);
+    const stackRef = useRef(null);
 
     const { activeUsersEmailStr } = useContext(UserContext);
 
@@ -116,7 +138,7 @@ export default function Library({ params }) {
     const handleMouseMoveCommentsPanel = (e) => {
         if (isDraggingCommentsPanelRef.current) {
             const newWidth = e.clientX;
-            setCommentsPanelWidth(window.innerWidth - newWidth - 40);
+            setCommentsPanelWidth(window.innerWidth - newWidth - 25);
         }
     }
 
@@ -168,8 +190,8 @@ export default function Library({ params }) {
             ) : Object.keys(library).length === 0 ? (
                 <Typography variant="h6">Loading...</Typography>
             ) : (
-                <Box sx={{height: "100%", flexGrow: 1, display: "flex", flexDirection: "column", marginLeft: "35px"}}>
-                    <Stack direction="row" alignItems="center" spacing={2}>
+                <Box sx={{height: "100%", position: "sticky", flexGrow: 1, display: "flex", flexDirection: "column", marginLeft: "35px", maxWidth: "100%"}}>
+                    <Stack sx={{position: "sticky"}} direction="row" alignItems="center" spacing={2}>
                         <Typography variant="h6">{library.name}</Typography>
 
                         <IconButton
@@ -198,16 +220,7 @@ export default function Library({ params }) {
                                     drawerWidth={drawerWidth}
                                     updateTrees={updateTrees} />
                                 {drawerOpen && <DraggableBox onMouseDown={handleMouseDownDrawer} />}
-                                <Stack
-                                    spacing={5}
-                                    flexGrow={1}
-                                    justifyContent="flex-start"
-                                    sx={{ marginLeft: '12px',
-                                        marginBottom: '50px',
-                                        width: "100%",
-                                        flexGrow: 1,
-                                        minWidth: 0,
-                                        overflow: "auto" }}>
+                                <ContentStack ref={stackRef} commentsPanelOpen={commentsPanelOpen} commentsPanelWidth={commentsPanelWidth}>
                                     {library.children && library.children.map(child => (
                                         <NotebookDisplay
                                             key={child + "-NotebookDisplay"}
@@ -216,12 +229,14 @@ export default function Library({ params }) {
                                             libraryId={library.ID}
                                             reloadTrees={triggerUpdateTrees} />
                                     ))}
-                                </Stack>
+                                </ContentStack>
                                 {commentsPanelOpen && <DraggableBox onMouseDown={handleMouseDownCommentsPanel} />}
                                 <CommentsPanel
                                     open={commentsPanelOpen}
+                                    setOpen={setCommentsPanelOpen}
                                     drawerWidth={commentsPanelWidth}
-                                    onClose={() => setCommentsPanelOpen(false)} />
+                                    onClose={() => setCommentsPanelOpen(false)}
+                                    stackRef={stackRef} />
                             </EntitiesRefProvider>
                         </Stack>
                     </Main>
