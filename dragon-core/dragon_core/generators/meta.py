@@ -7,6 +7,7 @@ import tomllib as toml
 from jinja2 import Environment, FileSystemLoader
 
 from dragon_core.components.content_blocks import ContentBlock, SupportedContentBlockType
+from dragon_core.components.comments import Comment
 from dragon_core import SCHEMASDIR, MODULESDIR, TEMPLATESDIR, APISCHEMAS
 
 
@@ -117,6 +118,10 @@ def read_from_TOML(path: Union[str, Path]) -> object:
 
     if len(data['content_blocks']) > 0:
         data['content_blocks'] = [ContentBlock.from_dict(json.loads(x)) for x in data['content_blocks']]
+
+    # Comments were added after usage of notebook began, checking if they exist in the toml for that reason.
+    if "comments" in data and len(data['comments']) > 0:
+        data['comments'] = [Comment.from_dict(json.loads(x)) for x in data['comments']]
 
     ins = _class(**data)
     return ins

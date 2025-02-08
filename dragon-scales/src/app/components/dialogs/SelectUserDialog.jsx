@@ -20,7 +20,7 @@ function PaperComponent(props) {
     );
   };
 
-export default function SelectUserDialog({ userList, activeUsers, setActiveUsers, open, setOpen, onClose}) {
+export default function SelectUserDialog({ systemUsers, activeUsers, setActiveUsers, open, setOpen, onClose}) {
 
     const [openSnackBar, setOpenSnackBar] = useState(false);
 
@@ -50,7 +50,7 @@ export default function SelectUserDialog({ userList, activeUsers, setActiveUsers
         >
             <DialogTitle>Select User</DialogTitle>
             <DialogContent>
-                <UserSelect userList={userList} activeUsers={activeUsers} setActiveUsers={setActiveUsers}/>
+                <UserSelect systemUsers={systemUsers} activeUsers={activeUsers} setActiveUsers={setActiveUsers}/>
             </DialogContent>
             <DialogActions>
                 <Button type="submit" onClick={handleCloseDialog}>Done</Button>
