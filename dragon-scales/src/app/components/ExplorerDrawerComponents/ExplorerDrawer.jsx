@@ -50,7 +50,7 @@ export default function ExplorerDrawer({library, open, onClose, drawerWidth, upd
             selectedEntityRef.current = entityId; // Immediately update the state
             router.push(`${window.location.pathname}#${entityId}`, { scroll: false });
             if (entitiesRef.current.hasOwnProperty(entityId)) {
-                entitiesRef.current[entityId].current.scrollIntoView({behavior: "smooth", block: "start"});
+                entitiesRef.current[entityId].ref.current.scrollIntoView({behavior: "smooth", block: "start"});
             }
         } else {
             selectedEntityRef.current = ""; // Immediately update the state
@@ -88,7 +88,7 @@ export default function ExplorerDrawer({library, open, onClose, drawerWidth, upd
 
         // Listen for hash changes
         window.addEventListener('hashchange', handleHashChange);
-        
+
         // Listen for popstate events (browser back/forward)
         window.addEventListener('popstate', handleHashChange);
 

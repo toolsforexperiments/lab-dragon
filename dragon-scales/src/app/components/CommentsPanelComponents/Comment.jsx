@@ -9,6 +9,7 @@ import LDAvatar from "@/app/components/AvatarStyled";
 import {formatDate} from "@/app/utils";
 import {ClickAwayListener} from "@mui/base/ClickAwayListener";
 import {addCommentReply} from "@/app/calls";
+import {EntitiesRefContext} from "@/app/contexts/entitiesRefContext";
 
 
 
@@ -56,7 +57,10 @@ export default function Comment({comment, entityRef}) {
     const [isActive, setIsActive] = useState(false);
     const [newReply, setNewReply] = useState("");
 
-    const { activeUsers, systemUsers, activeUsersEmailStr } = useContext(UserContext);
+    const { systemUsers, activeUsersEmailStr } = useContext(UserContext);
+    const { entitiesRef } = useContext(EntitiesRefContext);
+
+    const reloadEntity = entitiesRef.current[comment.parent].reload;
 
     const handleClickAway = () => {
         setIsActive(false);
@@ -67,6 +71,7 @@ export default function Comment({comment, entityRef}) {
             if (ret === true) {
                 setNewReply("");
                 setIsActive(false);
+                reloadEntity();
             } else {
                 console.log("Error adding reply")
             }

@@ -313,6 +313,11 @@ export default function EntityDisplay({
                     return parsedComment;
                 })
                 setEntity(ent);
+                // Registering this entity in the entitiesRef. Both its ref as well as its reload function.
+                if (entityRef.current) {
+                    entitiesRef.current[entityId] = {"ref": entityRef, "reload": reloadEntity};
+                }
+
             } else {
                 setEntity(null);
             }
@@ -337,11 +342,6 @@ export default function EntityDisplay({
         }
     }, [entityId]);
 
-    useEffect(() => {
-        if (entityRef.current) {
-            entitiesRef.current[entityId] = entityRef;
-        }
-    }, [entityRef.current]);
 
     const handleClickAway = () => {
         if (newNameHolder !== "") {

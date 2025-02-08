@@ -8,6 +8,7 @@ import {styled} from "@mui/material/styles";
 import {UserContext} from "@/app/contexts/userContext";
 import LDAvatar from "@/app/components/AvatarStyled";
 import {addComment} from "@/app/calls";
+import {EntitiesRefContext} from "@/app/contexts/entitiesRefContext";
 
 
 const StyledNewComment = styled(Paper, { shouldForwardProp: (prop) => prop !== 'topHeight' })(({ theme, topHeight }) => ({
@@ -32,7 +33,7 @@ const NewCommentTextField = styled(TextField)(({ theme }) => ({
 
 
 
-export default function NewComment({entityRef, entityId, onClose}) {
+export default function NewComment({entityId, onClose}) {
 
     const [comment, setComment] = useState("");
 
@@ -41,6 +42,12 @@ export default function NewComment({entityRef, entityId, onClose}) {
     const [snackbarSeverity, setSnackbarSeverity] = useState("error");
 
     const { activeUsers, activeUsersEmailStr } = useContext(UserContext);
+    const { entitiesRef } = useContext(EntitiesRefContext);
+
+    // FIXME: This probably doesn't have to be a state variable.
+    const [entityRef, setEntityRef] = useState(entitiesRef.current[entityId].ref.current);
+    const reloadEntity = entitiesRef.current[entityId].reload;
+
 
     const handleSnackbarClose = () => {
         setIsSnackbarOpen(false);
@@ -52,6 +59,7 @@ export default function NewComment({entityRef, entityId, onClose}) {
             .then((ret) => {
                 if (ret === true) {
                     setComment("");
+                    reloadEntity();
                     onClose();
                 } else {
                     setSnackbarMessage("Error adding comment");

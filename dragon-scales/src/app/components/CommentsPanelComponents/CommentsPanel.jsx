@@ -6,6 +6,7 @@ import { styled } from "@mui/material/styles";
 import { EntitiesRefContext } from "@/app/contexts/entitiesRefContext";
 import NewComment from "@/app/components/CommentsPanelComponents/NewComment";
 import Comment from "@/app/components/CommentsPanelComponents/Comment";
+import {ClickAwayListener} from "@mui/base/ClickAwayListener";
 
 
 
@@ -68,7 +69,7 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth, sta
             setOpen(true);
             setNewCommentRequested(null);
             setNewCommentId(newCommentRequested);
-            setNewCommentRef(entitiesRef.current[newCommentRequested].current);
+            setNewCommentRef(entitiesRef.current[newCommentRequested].ref.current);
 
         }
     }, [newCommentRequested, setNewCommentRequested]);
@@ -80,7 +81,7 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth, sta
                     handleOpenSnackbar(`Comment with target ${comment.target} not found, please contact the administrator to get this fixed.`, "error");
                     return null;
                 } else {
-                    return [comment, entitiesRef.current[comment.target]];
+                    return [comment, entitiesRef.current[comment.target].ref];
                 }
             })
             .filter(comment => comment !== null);
@@ -96,12 +97,16 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth, sta
                 overflowY: "clip",
             }}>
                 {newCommentRef !== null &&
-                    <NewComment
-                        key="NewCommentElement"
-                        entityRef={newCommentRef}
-                        entityId={newCommentId}
-                        onClose={handleNewCommentClose} 
-                    />
+                    <ClickAwayListener onClickAway={handleNewCommentClose}>
+                        <Box>
+                            <NewComment
+                                    key="NewCommentElement"
+                                    entityRef={newCommentRef}
+                                    entityId={newCommentId}
+                                    onClose={handleNewCommentClose}
+                                />
+                        </Box>
+                    </ClickAwayListener>
                 }
                 {comments && comments.length > 0 && comments.map((comment) => {
                     return (
