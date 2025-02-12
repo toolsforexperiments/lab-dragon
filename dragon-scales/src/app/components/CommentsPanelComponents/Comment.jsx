@@ -60,7 +60,7 @@ export default function Comment({comment, entityRef}) {
     const { systemUsers, activeUsersEmailStr } = useContext(UserContext);
     const { entitiesRef } = useContext(EntitiesRefContext);
 
-    const reloadEntity = entitiesRef.current[comment.parent].reload;
+    const reloadEntity = entitiesRef[comment.parent].reload;
 
     const handleClickAway = () => {
         setIsActive(false);
@@ -73,7 +73,7 @@ export default function Comment({comment, entityRef}) {
                 setIsActive(false);
                 reloadEntity();
             } else {
-                console.log("Error adding reply")
+                console.error("Error adding reply")
             }
         });
     }

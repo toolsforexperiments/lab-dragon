@@ -37,7 +37,7 @@ const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'dra
 
 
 
-export default function CommentsPanel({ open, setOpen, onClose, drawerWidth, stackRef }) {
+export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
 
     const [newCommentRef, setNewCommentRef] = useState(null);
     const [newCommentId, setNewCommentId] = useState(null);
@@ -65,11 +65,11 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth, sta
     }
 
     useEffect(() => {
-        if (newCommentRequested && entitiesRef.current.hasOwnProperty(newCommentRequested)) {
+        if (newCommentRequested && entitiesRef.hasOwnProperty(newCommentRequested)) {
             setOpen(true);
             setNewCommentRequested(null);
             setNewCommentId(newCommentRequested);
-            setNewCommentRef(entitiesRef.current[newCommentRequested].ref.current);
+            setNewCommentRef(entitiesRef[newCommentRequested].ref.current);
 
         }
     }, [newCommentRequested, setNewCommentRequested]);
@@ -77,14 +77,17 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth, sta
     useEffect(() => {
         const newComments = Object.values(commentsIndex)
             .map((comment) => {
-                if (entitiesRef.current.hasOwnProperty(comment.target) === false) {
+                if (entitiesRef.hasOwnProperty(comment.target) === false) {
                     handleOpenSnackbar(`Comment with target ${comment.target} not found, please contact the administrator to get this fixed.`, "error");
                     return null;
                 } else {
-                    return [comment, entitiesRef.current[comment.target].ref];
+                    return [comment, entitiesRef[comment.target].ref];
                 }
             })
             .filter(comment => comment !== null);
+        if (newComments.length > 0) {
+            setOpen(true);
+        }
         setComments(newComments);
     }, [commentsIndex]);
 

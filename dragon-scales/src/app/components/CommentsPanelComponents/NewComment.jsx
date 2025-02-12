@@ -45,8 +45,8 @@ export default function NewComment({entityId, onClose}) {
     const { entitiesRef } = useContext(EntitiesRefContext);
 
     // FIXME: This probably doesn't have to be a state variable.
-    const [entityRef, setEntityRef] = useState(entitiesRef.current[entityId].ref.current);
-    const reloadEntity = entitiesRef.current[entityId].reload;
+    const [entityRef, setEntityRef] = useState(entitiesRef[entityId].ref.current);
+    const reloadEntity = entitiesRef[entityId].reload;
 
 
     const handleSnackbarClose = () => {

@@ -8,12 +8,11 @@ export const EntitiesRefProvider = ({ children }) => {
 
     const [newCommentRequested, setNewCommentRequested] = useState(null);
     const [commentsIndex, setCommentsIndex] = useState({});
-
-    const entitiesRef = useRef({});
+    const [entitiesRef, setEntitiesRef] = useState({});
 
 
     return (
-        <EntitiesRefContext.Provider value={{ entitiesRef, commentsIndex, setCommentsIndex, newCommentRequested, setNewCommentRequested }}>
+        <EntitiesRefContext.Provider value={{ entitiesRef, setEntitiesRef, commentsIndex, setCommentsIndex, newCommentRequested, setNewCommentRequested }}>
             {children}
         </EntitiesRefContext.Provider>
     );

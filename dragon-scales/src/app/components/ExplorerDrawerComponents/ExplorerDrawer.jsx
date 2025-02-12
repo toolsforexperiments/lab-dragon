@@ -49,8 +49,8 @@ export default function ExplorerDrawer({library, open, onClose, drawerWidth, upd
         if (entityId) {
             selectedEntityRef.current = entityId; // Immediately update the state
             router.push(`${window.location.pathname}#${entityId}`, { scroll: false });
-            if (entitiesRef.current.hasOwnProperty(entityId)) {
-                entitiesRef.current[entityId].ref.current.scrollIntoView({behavior: "smooth", block: "start"});
+            if (entitiesRef.hasOwnProperty(entityId)) {
+                entitiesRef[entityId].ref.current.scrollIntoView({behavior: "smooth", block: "start"});
             }
         } else {
             selectedEntityRef.current = ""; // Immediately update the state

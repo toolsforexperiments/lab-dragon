@@ -163,7 +163,7 @@ export default function EntityDisplay({
     // used to handle scrolling to entity
     const entityRef = useRef(null)
 
-    const { entitiesRef, commentsIndex, setCommentsIndex } = useContext(EntitiesRefContext);
+    const { setEntitiesRef, setCommentsIndex } = useContext(EntitiesRefContext);
     const {activeUsersEmailStr} = useContext(UserContext);
 
     const reload = () => {
@@ -303,7 +303,7 @@ export default function EntityDisplay({
                         return JSON.parse(reply);
 
                     });
-                    setCommentsIndex(prev => { 
+                    setCommentsIndex(prev => {
                         return {
                             ...prev,
                             [parsedComment.ID]: parsedComment
@@ -314,8 +314,13 @@ export default function EntityDisplay({
                 })
                 setEntity(ent);
                 // Registering this entity in the entitiesRef. Both its ref as well as its reload function.
-                if (entityRef.current) {
-                    entitiesRef.current[entityId] = {"ref": entityRef, "reload": reloadEntity};
+                if (entityRef) {
+                    setEntitiesRef((prev) => {
+                        return {
+                            ...prev,
+                            [entityId]: {"ref": entityRef, "reload": reloadEntity}
+                        }
+                    })
                 }
 
             } else {
