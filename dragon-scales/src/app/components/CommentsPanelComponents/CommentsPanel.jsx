@@ -42,6 +42,8 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
     const [newCommentRef, setNewCommentRef] = useState(null);
     const [newCommentId, setNewCommentId] = useState(null);
     const [comments, setComments] = useState([]);
+    // Object holding the id of comments as keys and the calculated offsetTop as values such that comments don't crop over each other.
+    const [calculatedOffsets, setCalculatedOffsets] = useState({});
 
     const [isSnackbarOpen, setIsSnackbarOpen] = useState(false);
     const [snackbarMessage, setSnackbarMessage] = useState("");
@@ -64,6 +66,39 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
         setIsSnackbarOpen(true);
     }
 
+    const calculateCommentsHeights = () => {
+        const lastPixels = {}; // Storing where each comment last pixel height is located
+        const offsets = {};  // Storing the real offset for each comment
+
+        // FIXME: When we fix adding comments to nested things and not just Projects, we need to check how many things are in element [1] and add all of their offsetTops together when comparing
+        // FIXME: We should probably take special care when aTop - bTop are 0, this means that they are commenting the same item and the creation time should be check to see which one goes first.
+        const sortedComments = [...comments].sort((a, b) => {
+            const aTop = a[1].current?.offsetTop || 0;
+            const bTop = b[1].current?.offsetTop || 0;
+            return aTop - bTop;
+        });
+
+        sortedComments.map(([comment, targetRef], index) => {
+            const commentOffsetTop = targetRef.current.offsetTop;
+            const height = commentsIndex[comment.ID].height;
+            let correctedOffset = commentOffsetTop;
+            let previousLastPixel;
+            if (index > 0) {
+                previousLastPixel = lastPixels[sortedComments[index -1][0].ID];
+            } else {
+                previousLastPixel = 0;
+            }
+
+            if (commentOffsetTop - previousLastPixel <= 0) {
+                correctedOffset = previousLastPixel + 5;
+            }
+            offsets[comment.ID] = correctedOffset;
+            lastPixels[comment.ID] = correctedOffset + height;
+
+        })
+        setCalculatedOffsets(offsets)
+    }
+
     useEffect(() => {
         if (newCommentRequested && entitiesRef.hasOwnProperty(newCommentRequested)) {
             setOpen(true);
@@ -76,7 +111,8 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
 
     useEffect(() => {
         const newComments = Object.values(commentsIndex)
-            .map((comment) => {
+            .map((ind) => {
+                const comment = ind["comment"];
                 if (entitiesRef.hasOwnProperty(comment.target) === false) {
                     handleOpenSnackbar(`Comment with target ${comment.target} not found, please contact the administrator to get this fixed.`, "error");
                     return null;
@@ -89,7 +125,13 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
             setOpen(true);
         }
         setComments(newComments);
+        calculateCommentsHeights();
     }, [commentsIndex]);
+
+
+    useEffect(() => {
+        calculateCommentsHeights();
+    }, [commentsIndex])
 
     return (
         <StyledDrawer variant="persistent" anchor="right" open={open} onClose={onClose} drawerWidth={drawerWidth}>
@@ -97,7 +139,7 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
                 position: "relative",
                 width: "100%",
                 height: "100%",
-                overflowY: "clip",
+                overflowY: "auto",
             }}>
                 {newCommentRef !== null &&
                     <ClickAwayListener onClickAway={handleNewCommentClose}>
@@ -113,7 +155,11 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
                 }
                 {comments && comments.length > 0 && comments.map((comment) => {
                     return (
-                        <Comment key={comment[0].ID} comment={comment[0]} entityRef={comment[1].current} />
+                        <Comment key={comment[0].ID}
+                                 comment={comment[0]}
+                                 topHeight={calculatedOffsets[comment[0].ID]}
+                                 recalculateHeight={calculateCommentsHeights}
+                        />
                     )
                 })}
 

@@ -1,9 +1,12 @@
 "use client"
 
-import {useContext, useState} from "react";
+import {useCallback, useContext, useEffect, useState} from "react";
 
 import {Box, Button, Paper, Stack, TextField, Typography} from "@mui/material";
 import {styled} from "@mui/material/styles";
+
+import { useResizeDetector } from 'react-resize-detector';
+
 import {UserContext} from "@/app/contexts/userContext";
 import LDAvatar from "@/app/components/AvatarStyled";
 import {formatDate} from "@/app/utils";
@@ -18,7 +21,6 @@ const StyledComment = styled(Paper, { shouldForwardProp: (prop) => prop !== 'top
     top: topHeight,
     right: 0,
     left: 0,
-    zIndex: 1000,
     padding: theme.spacing(1),
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
@@ -52,19 +54,27 @@ const ReplyCommentTextField = styled(TextField)(({ theme }) => ({
 }));
 
 
-export default function Comment({comment, entityRef}) {
+export default function Comment({comment, topHeight}) {
 
     const [isActive, setIsActive] = useState(false);
     const [newReply, setNewReply] = useState("");
 
     const { systemUsers, activeUsersEmailStr } = useContext(UserContext);
-    const { entitiesRef } = useContext(EntitiesRefContext);
+    const { entitiesRef, setCommentsIndex } = useContext(EntitiesRefContext);
 
     const reloadEntity = entitiesRef[comment.parent].reload;
+
+    const { width, height, ref } = useResizeDetector({
+        refreshMode: 'debounce',
+        refreshRate: 100,
+        handleHeight: true,
+        observerOptions: {box: 'border-box'},
+    });    
 
     const handleClickAway = () => {
         setIsActive(false);
     }
+
     const handleAddReply = (e) => {
         e.preventDefault();
         addCommentReply(comment.parent, comment.ID, activeUsersEmailStr, newReply).then((ret) => {
@@ -125,10 +135,23 @@ export default function Comment({comment, entityRef}) {
         )
     }
 
+    // Register the height variable state for this comment.
+    useEffect(() => {
+        if (height !== null) {
+            setCommentsIndex(prev => ({
+                ...prev,
+                [comment.ID]: {
+                    "comment": prev[comment.ID]?.comment || comment,
+                    "height": height
+                }
+            }));
+        }
+    }, [height, comment.ID, setCommentsIndex]);
+
     return (
         <ClickAwayListener onClickAway={handleClickAway} disableReactTree={isActive}>
             <Box>
-                <StyledComment topHeight={entityRef.offsetTop} isActive={isActive} onClick={() => (setIsActive(true))}>
+                <StyledComment ref={ref} topHeight={topHeight} isActive={isActive} onClick={() => (setIsActive(true))}>
                     {renderNamesAndDate(comment.creation_user)}
                     <Typography>{comment.body}</Typography>
                     {comment.replies.map((reply) => (

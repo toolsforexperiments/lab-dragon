@@ -306,7 +306,7 @@ export default function EntityDisplay({
                     setCommentsIndex(prev => {
                         return {
                             ...prev,
-                            [parsedComment.ID]: parsedComment
+                            [parsedComment.ID]: {"comment": parsedComment, "height": null}
                         }
                     });
 
