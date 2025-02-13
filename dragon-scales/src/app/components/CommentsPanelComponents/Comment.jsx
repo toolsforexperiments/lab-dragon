@@ -63,6 +63,8 @@ export default function Comment({comment, topHeight}) {
     const { entitiesRef, setCommentsIndex } = useContext(EntitiesRefContext);
 
     const reloadEntity = entitiesRef[comment.parent].reload;
+    const highlight = entitiesRef[comment.parent].highlight;
+    const deHighlight = entitiesRef[comment.parent].deHighlight;
 
     const { width, height, ref } = useResizeDetector({
         refreshMode: 'debounce',
@@ -151,7 +153,12 @@ export default function Comment({comment, topHeight}) {
     return (
         <ClickAwayListener onClickAway={handleClickAway} disableReactTree={isActive}>
             <Box>
-                <StyledComment ref={ref} topHeight={topHeight} isActive={isActive} onClick={() => (setIsActive(true))}>
+                <StyledComment ref={ref}
+                               topHeight={topHeight}
+                               isActive={isActive}
+                               onClick={() => (setIsActive(true))}
+                               onMouseEnter={() => highlight()}
+                               onMouseLeave={() => {deHighlight()}}>
                     {renderNamesAndDate(comment.creation_user)}
                     <Typography>{comment.body}</Typography>
                     {comment.replies.map((reply) => (

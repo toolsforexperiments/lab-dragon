@@ -63,16 +63,19 @@ const HoverAddSection = styled(Box)(({theme}) => ({
 
 }));
 
-const HoverCard = styled(Card)(({theme}) => ({
-    margin: 'inherit',
-    position: 'relative',
-    '&:hover': {
-        '& > *:last-child': {
-            opacity: 1,
-            backgroundColor: theme.palette.background.light,
+const HoverCard = styled(Card, {shouldForwardProp: (prop) => prop !== 'highlighted'})(
+    ({theme, highlighted}) => ({
+        margin: 'inherit',
+        position: 'relative',
+        backgroundColor: highlighted ? theme.palette.primary.light : theme.palette.background.default,
+        '&:hover': {
+            '& > *:last-child': {
+                opacity: 1,
+                backgroundColor: theme.palette.background.light,
+            }
         }
-    }
-}));
+    })
+);
 
 const ActionHint = styled(Typography)(({theme}) => ({
     color: theme.palette.text.light,
@@ -158,6 +161,9 @@ export default function EntityDisplay({
     const [anchorMoreOptionsMenu, setAnchorMoreOptionsMenu] = useState(null);
     const [openMoreOptionsMenu, setOpenMoreOptionsMenu] = useState(false);
 
+    // Highlighting when a comment is hovered
+    const [highlighted, setHighlighted] = useState(false);
+
     const textFieldRef = useRef(null);
     const contentBlocksIndex = useRef({});
     // used to handle scrolling to entity
@@ -177,6 +183,21 @@ export default function EntityDisplay({
         reloadParent();
         reloadTrees();
     }
+
+    const handleClickAway = () => {
+        if (newNameHolder !== "") {
+            createEntity(newNameHolder, activeUsersEmailStr, entityType, parentId, underChildId).then((ret) => {
+                if (ret === true) {
+                    reload();
+                } else {
+                    setParentErrorSnackbarMessage(`Error creating new ${entityType}, please try again.`);
+                    setParentErrorSnackbarOpen(true);
+                    reload();
+                }
+            });
+        }
+        toggleParentCreationEntityDisplay();
+    };
 
     const handleImageLinkBlockCreation = (imagePath, instanceId) => {
         addImageLinkBlock(entityId, activeUsersEmailStr, imagePath, instanceId, lastClickedItemId).then((ret) => {
@@ -321,7 +342,7 @@ export default function EntityDisplay({
                     setEntitiesRef((prev) => {
                         return {
                             ...prev,
-                            [entityId]: {"ref": entityRef, "reload": reloadEntity}
+                            [entityId]: {"ref": entityRef, "reload": reloadEntity, "highlight": (() => setHighlighted(true)), "deHighlight": (() => setHighlighted(false))}
                         }
                     })
                 }
@@ -349,22 +370,6 @@ export default function EntityDisplay({
             }, 0);
         }
     }, [entityId]);
-
-
-    const handleClickAway = () => {
-        if (newNameHolder !== "") {
-            createEntity(newNameHolder, activeUsersEmailStr, entityType, parentId, underChildId).then((ret) => {
-                if (ret === true) {
-                    reload();
-                } else {
-                    setParentErrorSnackbarMessage(`Error creating new ${entityType}, please try again.`);
-                    setParentErrorSnackbarOpen(true);
-                    reload();
-                }
-            });
-        }
-        toggleParentCreationEntityDisplay();
-    };
 
     if (entity && entity.deleted === true){
         return null;
@@ -411,7 +416,7 @@ export default function EntityDisplay({
 
             // the last option is the loaded entity display we actually want to show
         ) : (
-            <HoverCard sx={{margin: 'inherit', position: 'relative'}} ref={entityRef}>
+            <HoverCard sx={{margin: 'inherit', position: 'relative'}} highlighted={highlighted} ref={entityRef}>
                 <Header title={
                     openEditNameTextField ? (
                         <ClickAwayListener onClickAway={handleEditName}>
