@@ -1273,7 +1273,7 @@ def get_graphic_suggestions(ID, query_filter="", num_matches=10):
     for bucket_id in ent.data_buckets:
         bucket = INDEX[bucket_id]
         pattern = re.compile(query_filter)
-        for p, uuid in bucket.path_to_uuid.items():
+        for p, uuid in reversed(list(bucket.path_to_uuid.items())):
             if len(matches) >= num_matches:
                 break
             instance = INDEX[uuid]
