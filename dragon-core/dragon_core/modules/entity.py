@@ -301,6 +301,17 @@ class Entity(object):
         comment.add_reply(body, user)
         return True
 
+    def resolve_comment(self, comment_id):
+        comment = None
+        for com in self.comments:
+            if com.ID == comment_id:
+                comment = com
+                break
+        if comment is None:
+            raise ValueError(f"Comment with id {comment_id} does not exist.")
+
+        comment.resolved = True
+        return True
 
     def suggest_data(self, query: str = "", min_threshold=5) -> List[str]:
         """

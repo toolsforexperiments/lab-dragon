@@ -853,6 +853,25 @@ def add_comment_reply(ID, user, comment_id, body):
     return abort(400, "Something went wrong, try again")
 
 
+def resolve_comment(ID, comment_id):
+    if ID not in INDEX:
+        abort(404, f"Entity with ID {ID} not found")
+
+    ent = INDEX[ID]
+    try:
+        ret = ent.resolve_comment(comment_id)
+        if ret:
+            path_copy = create_path_entity_copy(ent)
+            path_copy.to_TOML(Path(UUID_TO_PATH_INDEX[ID]))
+            return make_response("Comment resolved", 201)
+
+    except ValueError as e:
+        abort(401, str(e))
+
+    return abort(400, "Something went wrong, try again")
+
+
+
 def add_library(body):
     """
     Creates a new library and adds it to the system.

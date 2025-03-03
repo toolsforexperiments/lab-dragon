@@ -320,19 +320,28 @@ export default function EntityDisplay({
                 });
                 ent.comments = ent.comments.map((comment) => {
                     let parsedComment = JSON.parse(comment);
-                    parsedComment.replies = parsedComment.replies.map((reply) => {
-                        return JSON.parse(reply);
-
-                    });
-                    setCommentsIndex(prev => {
-                        return {
-                            ...prev,
-                            [parsedComment.ID]: {
-                                "comment": parsedComment,
-                                "height": prev[parsedComment.ID] ? prev[parsedComment.ID].height : null
+                    if (!parsedComment.resolved) {
+                        parsedComment.replies = parsedComment.replies.map((reply) => {
+                            return JSON.parse(reply);
+                        });
+                        setCommentsIndex(prev => {
+                            return {
+                                ...prev,
+                                [parsedComment.ID]: {
+                                    "comment": parsedComment,
+                                    "height": prev[parsedComment.ID] ? prev[parsedComment.ID].height : null
+                                }
                             }
-                        }
-                    });
+                        });
+                    } else {
+                        setCommentsIndex(prev => {
+                            if (prev.hasOwnProperty(parsedComment.ID)) {
+                                const {[parsedComment.ID]: _, ...rest} = prev;
+                                return rest;
+                            }
+                            return prev;
+                        });
+                    }
 
                     return parsedComment;
                 })

@@ -302,3 +302,15 @@ export async function addCommentReply(id, commentId, user, reply) {
     return response.status === 201;
 
 }
+
+
+export async function resolveComment(id, commentId) {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${id}/resolve_comment/${commentId}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json"
+        },
+    });
+
+    return response.status === 201;
+}

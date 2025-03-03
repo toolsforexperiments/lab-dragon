@@ -79,21 +79,23 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
         });
 
         sortedComments.map(([comment, targetRef], index) => {
-            const commentOffsetTop = targetRef.current.offsetTop;
-            const height = commentsIndex[comment.ID].height;
-            let correctedOffset = commentOffsetTop;
-            let previousLastPixel;
-            if (index > 0) {
-                previousLastPixel = lastPixels[sortedComments[index -1][0].ID];
-            } else {
-                previousLastPixel = 0;
-            }
+            if (commentsIndex.hasOwnProperty(comment.ID)) {
+                const commentOffsetTop = targetRef.current.offsetTop;
+                const height = commentsIndex[comment.ID].height;
+                let correctedOffset = commentOffsetTop;
+                let previousLastPixel;
+                if (index > 0) {
+                    previousLastPixel = lastPixels[sortedComments[index -1][0].ID];
+                } else {
+                    previousLastPixel = 0;
+                }
 
-            if (commentOffsetTop - previousLastPixel <= 0) {
-                correctedOffset = previousLastPixel + 5;
-            }
-            offsets[comment.ID] = correctedOffset;
-            lastPixels[comment.ID] = correctedOffset + height;
+                if (commentOffsetTop - previousLastPixel <= 0) {
+                    correctedOffset = previousLastPixel + 5;
+                }
+                offsets[comment.ID] = correctedOffset;
+                lastPixels[comment.ID] = correctedOffset + height;
+        }
 
         })
         setCalculatedOffsets(offsets)
@@ -116,9 +118,14 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
                 if (entitiesRef.hasOwnProperty(comment.target) === false) {
                     handleOpenSnackbar(`Comment with target ${comment.target} not found, please contact the administrator to get this fixed.`, "error");
                     return null;
-                } else {
-                    return [comment, entitiesRef[comment.target].ref];
                 }
+                
+                if (comment.resolved === true){
+                    return null
+                }
+                
+                return [comment, entitiesRef[comment.target].ref];
+                
             })
             .filter(comment => comment !== null);
         if (newComments.length > 0) {

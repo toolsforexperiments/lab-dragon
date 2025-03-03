@@ -1,9 +1,11 @@
 "use client"
 
-import {useCallback, useContext, useEffect, useState} from "react";
+import {useContext, useEffect, useState} from "react";
 
-import {Box, Button, Paper, Stack, TextField, Typography} from "@mui/material";
-import {styled} from "@mui/material/styles";
+import {Box, Button, IconButton, Paper, Stack, TextField, Typography} from "@mui/material";
+import {styled, useTheme} from "@mui/material/styles";
+import CheckIcon from '@mui/icons-material/Check';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 import { useResizeDetector } from 'react-resize-detector';
 
@@ -11,7 +13,7 @@ import {UserContext} from "@/app/contexts/userContext";
 import LDAvatar from "@/app/components/AvatarStyled";
 import {formatDate} from "@/app/utils";
 import {ClickAwayListener} from "@mui/base/ClickAwayListener";
-import {addCommentReply} from "@/app/calls";
+import {addCommentReply, resolveComment} from "@/app/calls";
 import {EntitiesRefContext} from "@/app/contexts/entitiesRefContext";
 
 
@@ -25,6 +27,7 @@ const StyledComment = styled(Paper, { shouldForwardProp: (prop) => prop !== 'top
     marginLeft: theme.spacing(1),
     marginRight: theme.spacing(1),
     boxShadow: theme.shadows[4],
+    transition: 'all 0.3s ease-in-out',
 
     ...(!isActive && {
         "&:hover": {
@@ -54,7 +57,21 @@ const ReplyCommentTextField = styled(TextField)(({ theme }) => ({
 }));
 
 
+const CommentOptionsBox = styled(Box)(({ theme }) => ({
+    '& .MuiButtonBase-root': {
+        opacity: 0,
+        transition: 'opacity 0.3s',
+        marginRight: "10px",
+    },
+    '&:hover .MuiButtonBase-root': {
+        opacity: 1,
+    }
+}));
+
+
 export default function Comment({comment, topHeight}) {
+
+    const theme = useTheme();
 
     const [isActive, setIsActive] = useState(false);
     const [newReply, setNewReply] = useState("");
@@ -96,41 +113,69 @@ export default function Comment({comment, topHeight}) {
 
     }
 
-    const renderNamesAndDate = (users) => {
-        
+    const handleResolveComment = (e) => {
+        e.stopPropagation();
+        resolveComment(comment.parent, comment.ID).then((ret) => {
+            if (ret === true) {
+                reloadEntity();
+                
+            } else {
+                console.error("Error resolving comment")
+            }
+        });
+    }
+
+    const renderNamesAndDate = (users, time, topLevel=false) => {
         return (
         <Box>
-            <Stack direction="row" spacing={0.3} alignItems="center">
-                {users.map((userEmail) => {
-                    const user = systemUsers[userEmail];
-                    if (!user) {
-                        return null;
-                    }
-                    return (
-                        <LDAvatar
-                            key={userEmail + "userAvatar" + comment.ID}
-                            bgColor={user.profile_color}
-                            name={user.name}
-                            alt={user.name}
-                        />
-                    );
-                })}
-                <Stack sx={{paddingLeft: "10px"}}>
-                    <Box>
-                        <Stack direction="row" spacing={0.3}>
-                            {users.map((userEmail, index, array) => (
-                                <Typography
-                                    key={userEmail + "-newCommentAvatarName"}
-                                    variant="body1"
-                                    sx={{ fontWeight: "bold"}}>
-                                    {systemUsers[userEmail].name}{index < array.length - 1 ? ", " : ""}
-                                </Typography>
-                            ))}
-                        </Stack>
-                        <Typography>
-                            {formatDate(comment.creation_time)}
-                        </Typography>
-                    </Box>
+            <Stack justifyContent="space-between" direction="row" alignItems="center">
+                <Stack direction="row" spacing={0.3} alignItems="center">
+                    {users.map((userEmail) => {
+                        const user = systemUsers[userEmail];
+                        if (!user) {
+                            return null;
+                        }
+                        return (
+                            <LDAvatar
+                                key={userEmail + "userAvatar" + comment.ID}
+                                bgColor={user.profile_color}
+                                name={user.name}
+                                alt={user.name}
+                            />
+                        );
+                    })}
+                    <Stack sx={{paddingLeft: "10px"}}>
+                        <Box>
+                            <Stack direction="row" spacing={0.3}>
+                                {users.map((userEmail, index, array) => (
+                                    <Typography
+                                        key={userEmail + "-newCommentAvatarName"}
+                                        variant="body1"
+                                        sx={{ fontWeight: "bold"}}>
+                                        {systemUsers[userEmail].name}{index < array.length - 1 ? ", " : ""}
+                                    </Typography>
+                                ))}
+                            </Stack>
+                            <Typography>
+                                {formatDate(time)}
+                            </Typography>
+                        </Box>
+                    </Stack>
+                </Stack>
+                <Stack direction="row" spacing={0.3}>
+                    {(topLevel) && (
+                        <IconButton title="Mark as resolved and hide discussion"
+                                    onClick={handleResolveComment}
+                                    sx={{
+                                        color: theme.palette.primary.darker,
+                                    }}
+                        >
+                            <CheckIcon />
+                        </IconButton>
+                    )}
+                    <IconButton title="More options" sx={{color: theme.palette.buttons.iconButton.entityHeader}}>
+                        <MoreVertIcon />
+                    </IconButton>
                 </Stack>
             </Stack>
         </Box>
@@ -152,18 +197,19 @@ export default function Comment({comment, topHeight}) {
 
     return (
         <ClickAwayListener onClickAway={handleClickAway} disableReactTree={isActive}>
-            <Box>
+            {/* CommentOptionsBox because this has the css that hides the icon buttons and shows them on hover. This needs to be here because they apply to the comment as a whole */}
+            <CommentOptionsBox>
                 <StyledComment ref={ref}
                                topHeight={topHeight}
                                isActive={isActive}
                                onClick={() => (setIsActive(true))}
                                onMouseEnter={() => highlight()}
                                onMouseLeave={() => {deHighlight()}}>
-                    {renderNamesAndDate(comment.creation_user)}
+                    {renderNamesAndDate(comment.creation_user, comment.creation_time, true)}
                     <Typography>{comment.body}</Typography>
                     {comment.replies.map((reply) => (
                         <Box key={reply.ID}>
-                            {renderNamesAndDate(reply.user[reply.user.length - 1])}
+                            {renderNamesAndDate(reply.user[reply.user.length - 1], reply.timestamp[reply.timestamp.length - 1])}
                             <Typography>{reply.body}</Typography>
                         </Box>
                     ))}
@@ -192,7 +238,7 @@ export default function Comment({comment, topHeight}) {
                         </form>
                     )}
                 </StyledComment>
-            </Box>
+            </CommentOptionsBox>
         </ClickAwayListener>
 
 
