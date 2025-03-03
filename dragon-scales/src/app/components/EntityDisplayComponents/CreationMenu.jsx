@@ -17,6 +17,18 @@ export default function CreationMenu( { entityId, entityType, entityName, onClos
     const [query, setQuery] = useState("");
     const [searchResults, setSearchResults] = useState([]);
 
+    const handleOnQueryChange = (event) => {
+        setQuery(event.target.value);
+        event.stopPropagation();
+    }
+
+    const handleTextFieldKeyDown = (event) => {
+        // Allow up and down arrow keys to pass through for menu navigation
+        // Stop propagation for all other keys to prevent menu selection while typing
+        if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') {
+            event.stopPropagation();
+        }
+    }
 
     const handleOnCloseEntity = (index) => {
         onClose();
@@ -85,7 +97,8 @@ export default function CreationMenu( { entityId, entityType, entityName, onClos
                         size="small"
                         placeholder="Search for image suggestions"
                         value={query}
-                        onChange={(e) => setQuery(e.target.value)}
+                        onChange={handleOnQueryChange}
+                        onKeyDown={handleTextFieldKeyDown}
                         InputProps={{
                             startAdornment: (
                                 <InputAdornment position="start">
