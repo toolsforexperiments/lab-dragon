@@ -38,6 +38,16 @@ const StyledBlock = styled(Box)(({theme}) => ({
         ...theme.typography.body1,
         cursor: 'text',
         display: 'inline-block',
+    },
+
+    // Style links in markdown
+    '& a': {
+        color: theme.palette.primary.main,
+        textDecoration: 'none',
+        '&:hover': {
+            textDecoration: 'underline',
+        },
+        cursor: 'pointer',
     }
 }));
 
@@ -151,7 +161,13 @@ export default function ContentBlock({contentBlock, parentId, reloadParent}) {
                 ) : (
 
                     <StyledBlock onClick={onOpenTextEditor}>
-                        <ReactMarkdown>
+                        <ReactMarkdown components={{
+                            a: ({href, children}) => (
+                                <Link href={href} target="_blank" rel="noopener noreferrer">
+                                    {children}
+                                </Link>
+                            )
+                        }}>
                             {contentBlock.content[contentBlock.content.length - 1]}
                         </ReactMarkdown>
                     </StyledBlock>
