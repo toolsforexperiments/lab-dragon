@@ -15,54 +15,34 @@ import {EntitiesRefProvider} from "@/app/contexts/entitiesRefContext";
 import CommentsPanel from "@/app/components/CommentsPanelComponents/CommentsPanel";
 
 
-const Main = styled('main', { shouldForwardProp: (prop) => prop !== 'openDrawer' && prop !== 'drawerWidth' && prop !== 'commentsPanelOpen' && prop !== 'commentsPanelWidth'  })(
-    ({ theme, openDrawer, drawerWidth, commentsPanelOpen, commentsPanelWidth }) => ({
+const Main = styled('main')(({ theme}) => ({
         display: "flex",
         flexGrow: 1,
+        width: "100%",
         maxWidth: "100%",
-        transition: theme.transitions.create('margin', {
+        marginTop: '30px',
+        transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
-        }),
-        marginTop: '30px',
-        marginLeft: `-${drawerWidth}px`,
-        marginRight: commentsPanelOpen ? `-${commentsPanelWidth}px` : "0",
-        ...(openDrawer && {
-            marginLeft: 0,
-            transition: theme.transitions.create('margin', {
-                easing: theme.transitions.easing.easeOut,
-                duration: theme.transitions.duration.enteringScreen,
-            }),
-        }),
-        ...(commentsPanelOpen && {
-            marginRight: 0,
-            transition: theme.transitions.create('margin', {
-                easing: theme.transitions.easing.easeOut,
-                duration: theme.transitions.duration.enteringScreen,
-            }),
         }),
     }),
 );
 
-const ContentStack = styled(Stack, { shouldForwardProp: (prop) => prop !== 'commentsPanelOpen' && prop !== 'commentsPanelWidth'  })(
-    ({ theme, commentsPanelOpen, commentsPanelWidth }) => ({
+const ContentStack = styled(Stack, )(({ theme}) => ({
         position: 'relative',
         zIndex: 1,
         spacing: 5,
         flexGrow: 1,
         justifyContent: "flex-start",
-        marginLeft: '12px',
+        margin: '0 12px',
         marginBottom: '50px',
         minWidth: 0,
         overflow: "visible",
-        maxWidth: "100%",
-        marginRight: commentsPanelOpen ? "0px" : `-${commentsPanelWidth - 20}px`,
-        transition: theme.transitions.create('margin', {
+        transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
         })
     }),
-
 );
 
 const DraggableBox = styled(Box)(({ theme }) => ({
@@ -210,38 +190,67 @@ export default function Library({ params }) {
                         <Button onClick={() => { setCommentsPanelOpen(!commentsPanelOpen) }}>Toggle Comments Panel</Button>
                     </Stack>
 
-                    <Main openDrawer={drawerOpen} drawerWidth={drawerWidth} commentsPanelOpen={commentsPanelOpen} commentsPanelWidth={commentsPanelWidth}>
+                    <Main>
                         <Stack direction="row" sx={{ width: "100%" }}>
                             <EntitiesRefProvider>
-                                <ExplorerDrawer
-                                    library={library}
-                                    open={drawerOpen}
-                                    onClose={() => { setDrawerOpen(false) }}
-                                    drawerWidth={drawerWidth}
-                                    updateTrees={updateTrees} />
-                                {drawerOpen && <DraggableBox onMouseDown={handleMouseDownDrawer} />}
-                                <ContentStack ref={stackRef} commentsPanelOpen={commentsPanelOpen} commentsPanelWidth={commentsPanelWidth}>
-                                    {library.children && library.children.map(child => (
-                                        <NotebookDisplay
-                                            key={child + "-NotebookDisplay"}
-                                            notebookId={child}
-                                            libraryName={library.name}
-                                            libraryId={library.ID}
-                                            reloadTrees={triggerUpdateTrees} />
-                                    ))}
-                                </ContentStack>
-                                {commentsPanelOpen && <DraggableBox onMouseDown={handleMouseDownCommentsPanel} />}
-                                <CommentsPanel
-                                    open={commentsPanelOpen}
-                                    setOpen={setCommentsPanelOpen}
-                                    drawerWidth={commentsPanelWidth}
-                                    onClose={() => setCommentsPanelOpen(false)}
-                                    stackRef={stackRef} />
+                                <Box sx={{ 
+                                    display: 'flex', 
+                                    flexDirection: 'row',
+                                    width: '100%'
+                                }}>
+                                    <Box sx={{ 
+                                        width: drawerOpen ? `${drawerWidth}px` : '0px',
+                                        overflow: 'hidden',
+                                        transition: (theme) => theme.transitions.create(['width'], {
+                                            easing: theme.transitions.easing.sharp,
+                                            duration: theme.transitions.duration.leavingScreen,
+                                        }),
+                                    }}>
+                                        <ExplorerDrawer
+                                            library={library}
+              Fixed                               open={drawerOpen}
+                                            onClose={() => { setDrawerOpen(false) }}
+                                            drawerWidth={drawerWidth}
+                                            updateTrees={updateTrees} />
+                                    </Box>
+                                    {drawerOpen && <DraggableBox onMouseDown={handleMouseDownDrawer} />}
+                                    
+                                    <ContentStack 
+                                        ref={stackRef}>
+                                        {library.children && library.children.map(child => (
+                                            <NotebookDisplay
+                                                key={child + "-NotebookDisplay"}
+                                                notebookId={child}
+                                                libraryName={library.name}
+                                                libraryId={library.ID}
+                                                reloadTrees={triggerUpdateTrees} />
+                                        ))}
+                                    </ContentStack>
+                                    
+                                    {commentsPanelOpen && <DraggableBox onMouseDown={handleMouseDownCommentsPanel} />}
+                                    <Box sx={{ 
+                                        width: commentsPanelOpen ? `${commentsPanelWidth}px` : '0px',
+                                        overflow: 'hidden',
+                                        transition: (theme) => theme.transitions.create(['width'], {
+                                            easing: theme.transitions.easing.sharp,
+                                            duration: theme.transitions.duration.leavingScreen,
+                                        }),
+                                    }}>
+                                        <CommentsPanel
+                                            open={commentsPanelOpen}
+                                            setOpen={setCommentsPanelOpen}
+                                            drawerWidth={commentsPanelWidth}
+                                            onClose={() => setCommentsPanelOpen(false)}
+                                            stackRef={stackRef} />
+                                    </Box>
+                                </Box>
                             </EntitiesRefProvider>
                         </Stack>
                     </Main>
+
 🔥🔥🔥🐉🐉🐉
-                <NewEntityDialog
+
+                  <NewEntityDialog
                     user={activeUsersEmailStr}
                     type="Notebook"
                     parentName={library.name}
