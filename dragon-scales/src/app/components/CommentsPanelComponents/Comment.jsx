@@ -118,6 +118,8 @@ export default function Comment({comment, topHeight}) {
         resolveComment(comment.parent, comment.ID).then((ret) => {
             if (ret === true) {
                 reloadEntity();
+                // When resolved gets enacted, the comment disappears  so the hover away event never occurs.
+                deHighlight();
                 
             } else {
                 console.error("Error resolving comment")

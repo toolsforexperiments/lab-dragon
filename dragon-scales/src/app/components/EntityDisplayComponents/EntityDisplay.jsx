@@ -351,7 +351,7 @@ export default function EntityDisplay({
                     setEntitiesRef((prev) => {
                         return {
                             ...prev,
-                            [entityId]: {"ref": entityRef, "reload": reloadEntity, "highlight": (() => setHighlighted(true)), "deHighlight": (() => setHighlighted(false))}
+                            [entityId]: {"ref": entityRef, "reload": reloadEntity, "highlight": (() => setHighlighted(true)), "deHighlight": (() => setHighlighted(false)), "deleted": ent.deleted}
                         }
                     })
                 }

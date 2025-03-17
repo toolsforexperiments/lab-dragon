@@ -9,7 +9,6 @@ import Comment from "@/app/components/CommentsPanelComponents/Comment";
 import {ClickAwayListener} from "@mui/base/ClickAwayListener";
 
 
-
 const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'drawerWidth' })(({ theme, drawerWidth }) => ({
     position: "relative",
     anchor: "right",
@@ -34,7 +33,6 @@ const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'dra
         right: 0,
     },
 }));
-
 
 
 export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
@@ -80,11 +78,22 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
 
         sortedComments.map(([comment, targetRef], index) => {
             if (commentsIndex.hasOwnProperty(comment.ID)) {
+                // Catches the case of a comment that has a deleted parent as an entity.
+                if (targetRef.current == null) {
+                    return;
+                }
                 const commentOffsetTop = targetRef.current.offsetTop;
                 const height = commentsIndex[comment.ID].height;
                 let correctedOffset = commentOffsetTop;
                 let previousLastPixel;
                 if (index > 0) {
+                    while (lastPixels[sortedComments[index -1][0].ID] == null) {
+                        // If the first comment is deleted, there is no previous comment to compare to, so we need to break the loop
+                        if (index <= 1) {
+                            break;
+                        }
+                        index--;
+                    }
                     previousLastPixel = lastPixels[sortedComments[index -1][0].ID];
                 } else {
                     previousLastPixel = 0;
@@ -112,6 +121,7 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
     }, [newCommentRequested, setNewCommentRequested]);
 
     useEffect(() => {
+        // Filters the comments here. (deletes resolved and comments with targets that don't exist).
         const newComments = Object.values(commentsIndex)
             .map((ind) => {
                 const comment = ind["comment"];
@@ -123,13 +133,18 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
                 if (comment.resolved === true){
                     return null
                 }
-                
+                if (entitiesRef[comment.parent]["deleted"] === true) {
+                    return null;
+                }
+
                 return [comment, entitiesRef[comment.target].ref];
                 
             })
             .filter(comment => comment !== null);
         if (newComments.length > 0) {
             setOpen(true);
+        } else if (newComments.length === 0) {
+            setOpen(false);
         }
         setComments(newComments);
         calculateCommentsHeights();
