@@ -21,6 +21,8 @@ const Main = styled('main')(({ theme}) => ({
         width: "100%",
         maxWidth: "100%",
         marginTop: '30px',
+        overflow: "visible",
+        position: "relative",
         transition: theme.transitions.create(['margin', 'width'], {
             easing: theme.transitions.easing.sharp,
             duration: theme.transitions.duration.leavingScreen,
@@ -30,7 +32,7 @@ const Main = styled('main')(({ theme}) => ({
 
 const ContentStack = styled(Stack, )(({ theme}) => ({
         position: 'relative',
-        zIndex: 1,
+        zIndex: 0,
         spacing: 5,
         flexGrow: 1,
         justifyContent: "flex-start",
@@ -170,7 +172,16 @@ export default function Library({ params }) {
             ) : Object.keys(library).length === 0 ? (
                 <Typography variant="h6">Loading...</Typography>
             ) : (
-                <Box sx={{height: "100%", position: "sticky", flexGrow: 1, display: "flex", flexDirection: "column", marginLeft: "35px", maxWidth: "100%"}}>
+                <Box sx={{
+                    height: "100%", 
+                    position: "relative", 
+                    flexGrow: 1, 
+                    display: "flex", 
+                    flexDirection: "column", 
+                    marginLeft: "35px", 
+                    maxWidth: "100%",
+                    overflow: "auto"
+                }}>
                     <Stack sx={{
                         position: "sticky",
                         top: 0,
@@ -203,7 +214,8 @@ export default function Library({ params }) {
                                 <Box sx={{ 
                                     display: 'flex', 
                                     flexDirection: 'row',
-                                    width: '100%'
+                                    width: '100%',
+                                    position: 'relative'
                                 }}>
                                     <Box sx={{
                                         position: 'sticky',
@@ -212,6 +224,7 @@ export default function Library({ params }) {
                                         alignSelf: 'flex-start',
                                         width: drawerOpen ? `${drawerWidth}px` : '0px',
                                         overflow: 'hidden',
+                                        zIndex: 1,
                                         transition: (theme) => theme.transitions.create(['width'], {
                                             easing: theme.transitions.easing.sharp,
                                             duration: theme.transitions.duration.leavingScreen,
