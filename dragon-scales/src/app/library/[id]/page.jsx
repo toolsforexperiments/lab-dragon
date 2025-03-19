@@ -171,7 +171,14 @@ export default function Library({ params }) {
                 <Typography variant="h6">Loading...</Typography>
             ) : (
                 <Box sx={{height: "100%", position: "sticky", flexGrow: 1, display: "flex", flexDirection: "column", marginLeft: "35px", maxWidth: "100%"}}>
-                    <Stack sx={{position: "sticky"}} direction="row" alignItems="center" spacing={2}>
+                    <Stack sx={{
+                        position: "sticky",
+                        top: 0,
+                        backgroundColor: "white",
+                        zIndex: 10,
+                        padding: "10px 0",
+                        borderBottom: "1px solid rgba(0, 0, 0, 0.12)"
+                    }} direction="row" alignItems="center" spacing={2}>
                         <Typography variant="h6">{library.name}</Typography>
 
                         <IconButton
@@ -198,7 +205,11 @@ export default function Library({ params }) {
                                     flexDirection: 'row',
                                     width: '100%'
                                 }}>
-                                    <Box sx={{ 
+                                    <Box sx={{
+                                        position: 'sticky',
+                                        top: 60,
+                                        height: 'calc(100vh - 140px)',
+                                        alignSelf: 'flex-start',
                                         width: drawerOpen ? `${drawerWidth}px` : '0px',
                                         overflow: 'hidden',
                                         transition: (theme) => theme.transitions.create(['width'], {
