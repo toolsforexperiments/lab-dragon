@@ -48,6 +48,12 @@ export default function NewComment({entityId, onClose}) {
     const [entityRef, setEntityRef] = useState(entitiesRef[entityId].ref.current);
     const reloadEntity = entitiesRef[entityId].reload;
 
+    let completeOffsetTop = entitiesRef[entityId].ref.current?.offsetTop || 0;
+    let parentId = entitiesRef[entityId].parentId;
+    while (parentId != null && entitiesRef.hasOwnProperty(parentId)) {
+        completeOffsetTop += entitiesRef[parentId].ref.current?.offsetTop || 0;
+        parentId = entitiesRef[parentId].parentId;
+    }
 
     const handleSnackbarClose = () => {
         setIsSnackbarOpen(false);
@@ -75,7 +81,7 @@ export default function NewComment({entityId, onClose}) {
     };
 
     return (
-        <StyledNewComment topHeight={entityRef.offsetTop}>
+        <StyledNewComment topHeight={completeOffsetTop}>
             <Stack direction="row" spacing={0.3} alignItems="center">
                 {Object.entries(activeUsers).map(([key, value]) => (
                     <LDAvatar 

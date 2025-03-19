@@ -71,18 +71,18 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
         // FIXME: When we fix adding comments to nested things and not just Projects, we need to check how many things are in element [1] and add all of their offsetTops together when comparing
         // FIXME: We should probably take special care when aTop - bTop are 0, this means that they are commenting the same item and the creation time should be check to see which one goes first.
         const sortedComments = [...comments].sort((a, b) => {
-            const aTop = a[1].current?.offsetTop || 0;
-            const bTop = b[1].current?.offsetTop || 0;
+            const aTop = a[1];
+            const bTop = b[1];
             return aTop - bTop;
         });
 
-        sortedComments.map(([comment, targetRef], index) => {
+        sortedComments.map(([comment, initialHeight], index) => {
             if (commentsIndex.hasOwnProperty(comment.ID)) {
                 // Catches the case of a comment that has a deleted parent as an entity.
-                if (targetRef.current == null) {
+                if (initialHeight == null) {
                     return;
                 }
-                const commentOffsetTop = targetRef.current.offsetTop;
+                const commentOffsetTop = initialHeight;
                 const height = commentsIndex[comment.ID].height;
                 let correctedOffset = commentOffsetTop;
                 let previousLastPixel;
@@ -137,7 +137,14 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
                     return null;
                 }
 
-                return [comment, entitiesRef[comment.target].ref];
+                // Nested entities offsetTop are with respect of their parent, so we need to add the parent's offsetTop to the child's offsetTop
+                let completeOffsetTop = entitiesRef[comment.target].ref.current?.offsetTop || 0;
+                let parentId = entitiesRef[comment.target].parentId;
+                while (parentId != null && entitiesRef.hasOwnProperty(parentId)) {
+                    completeOffsetTop += entitiesRef[parentId].ref.current?.offsetTop || 0;
+                    parentId = entitiesRef[parentId].parentId;
+                }
+                return [comment, completeOffsetTop];
                 
             })
             .filter(comment => comment !== null);
@@ -148,12 +155,12 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
         }
         setComments(newComments);
         calculateCommentsHeights();
-    }, [commentsIndex]);
+    }, [commentsIndex, entitiesRef]);
 
 
     useEffect(() => {
         calculateCommentsHeights();
-    }, [commentsIndex])
+    }, [commentsIndex, entitiesRef])
 
     return (
         <StyledDrawer variant="persistent" anchor="right" open={open} onClose={onClose} drawerWidth={drawerWidth}>

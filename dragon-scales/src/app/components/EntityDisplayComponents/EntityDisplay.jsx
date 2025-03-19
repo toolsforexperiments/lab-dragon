@@ -351,7 +351,13 @@ export default function EntityDisplay({
                     setEntitiesRef((prev) => {
                         return {
                             ...prev,
-                            [entityId]: {"ref": entityRef, "reload": reloadEntity, "highlight": (() => setHighlighted(true)), "deHighlight": (() => setHighlighted(false)), "deleted": ent.deleted}
+                            [entityId]: {"ref": entityRef,
+                                "reload": reloadEntity,
+                                "highlight": (() => setHighlighted(true)),
+                                "deHighlight": (() => setHighlighted(false)),
+                                "deleted": ent.deleted,
+                                // we need the parent to accommodate for deeply nested entities. When the parent is not inj the entitiesRef, it means that it is not part of the visual tree so we can dismiss it
+                                "parentId": ent.parent,}
                         }
                     })
                 }

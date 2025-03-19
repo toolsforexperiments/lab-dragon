@@ -208,7 +208,7 @@ export default function Library({ params }) {
                                     }}>
                                         <ExplorerDrawer
                                             library={library}
-              Fixed                               open={drawerOpen}
+                                            open={drawerOpen}
                                             onClose={() => { setDrawerOpen(false) }}
                                             drawerWidth={drawerWidth}
                                             updateTrees={updateTrees} />
