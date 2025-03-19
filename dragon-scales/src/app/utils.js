@@ -1,4 +1,3 @@
-
 export function getNameInitials(name) {
     return name.split(' ').map(name => name[0]).join('').toUpperCase()
 }
@@ -23,4 +22,25 @@ export function getContrastTextColor(bgColor){
 }
 
 
+export function formatDate(dateStr) {
+    if (!dateStr) return '';
+    
+    try {
+        const date = new Date(dateStr);
+        if (isNaN(date.getTime())) {
+            return ''; // or return 'Invalid date'
+        }
+        
+        return new Intl.DateTimeFormat('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true
+        }).format(date);
+    } catch (error) {
+        return ''; // or return 'Invalid date'
+    }
+}
 

@@ -270,3 +270,47 @@ export async function addImageLinkBlock(id, user, image_path, instance_id, under
     return response.status === 201;
 }
 
+
+export async function addComment(id, user, comment, contentBlockId=null) {
+    let query = `user=${user}`;
+    if (contentBlockId) {
+        query += `&content_block_id=${contentBlockId}`;
+    }
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${id}/add_comment?${query}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({comment})
+    });
+
+    return response.status === 201;
+}
+
+
+export async function addCommentReply(id, commentId, user, reply) {
+
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${id}/add_comment_reply/${commentId}?user=${user}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({"reply_body": reply})
+    });
+
+    return response.status === 201;
+
+}
+
+
+export async function resolveComment(id, commentId) {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || ""}/api/entities/${id}/resolve_comment/${commentId}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json"
+        },
+    });
+
+    return response.status === 201;
+}

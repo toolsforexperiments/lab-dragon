@@ -805,6 +805,73 @@ def delete_content_block(ID, blockID):
     return abort(400, "Something went wrong, try again")
 
 
+def add_comment(ID, user, body, content_block_id = None):
+    if "comment" not in body:
+        abort(400, "Comment is required")
+    comment_text = body["comment"]
+
+    if ID not in INDEX:
+        abort(404, f"Entity with ID {ID} not found")
+
+    user = _parse_and_validate_user(user)
+
+    ent = INDEX[ID]
+    try:
+        ret = ent.add_comment(body=comment_text, user=user, content_block_id=content_block_id)
+        if ret:
+            path_copy = create_path_entity_copy(ent)
+            path_copy.to_TOML(Path(UUID_TO_PATH_INDEX[ID]))
+            return make_response("Comment added", 201)
+
+    except ValueError as e:
+        abort(401, str(e))
+
+    return abort(400, "Something went wrong, try again")
+
+
+def add_comment_reply(ID, user, comment_id, body):
+    if "reply_body" not in body:
+        abort(400, "reply_body is required")
+    reply_body = body["reply_body"]
+
+    if ID not in INDEX:
+        abort(404, f"Entity with ID {ID} not found")
+
+    user = _parse_and_validate_user(user)
+
+    ent = INDEX[ID]
+    try:
+        ret = ent.add_comment_reply(body=reply_body, user=user, comment_id=comment_id)
+        if ret:
+            path_copy = create_path_entity_copy(ent)
+            path_copy.to_TOML(Path(UUID_TO_PATH_INDEX[ID]))
+            return make_response("Comment added", 201)
+
+    except ValueError as e:
+        abort(401, str(e))
+
+    return abort(400, "Something went wrong, try again")
+
+
+def resolve_comment(ID, comment_id):
+    if ID not in INDEX:
+        abort(404, f"Entity with ID {ID} not found")
+
+    ent = INDEX[ID]
+    try:
+        ret = ent.resolve_comment(comment_id)
+        if ret:
+            path_copy = create_path_entity_copy(ent)
+            path_copy.to_TOML(Path(UUID_TO_PATH_INDEX[ID]))
+            return make_response("Comment resolved", 201)
+
+    except ValueError as e:
+        abort(401, str(e))
+
+    return abort(400, "Something went wrong, try again")
+
+
+
 def add_library(body):
     """
     Creates a new library and adds it to the system.

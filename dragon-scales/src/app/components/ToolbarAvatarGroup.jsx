@@ -26,7 +26,6 @@ const StyledVerticalAvatars = styled(Button)(({ theme }) => ({
 }));
 
 export default function ToolbarAvatarGroup({ activeUsers }) {
-    const pathname = usePathname();
     const userEntries = Object.entries(activeUsers);
     const displayUsers = userEntries.slice(0, 3);
     const extraUsers = userEntries.slice(3);

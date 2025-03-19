@@ -15,14 +15,13 @@ const StyledUserSelect = styled(Select)(({ theme }) => ({
 }));
 
 
-const UserSelect = ({ userList, activeUsers, setActiveUsers}) => {
+const UserSelect = ({ systemUsers, activeUsers, setActiveUsers}) => {
 
     // Active users are the user objects that are selected, the entire site uses that array.
     // Selected users is used to store simply the emails of the users that are selected and meant to be used for the select component.
     const [selectedUsers, setSelectedUsers] = useState([]);
 
     const handleChange = (event) => {
-
         const {
             target: { value },
         } = event;
@@ -30,14 +29,14 @@ const UserSelect = ({ userList, activeUsers, setActiveUsers}) => {
         // sets internal state
         setSelectedUsers(value);
 
-        // Gets the whole object instead of just emails
-        const newActiveUsers = userList.filter(user => value.includes(user.email));
-        const activeUsersMap = newActiveUsers.reduce((acc, user) => {
-            const { email, ...rest } = user;
-            acc[email] = rest;
+        const newActiveUsers = value.reduce((acc, email) => {
+            if (systemUsers[email]) {
+                acc[email] = systemUsers[email];
+            }
             return acc;
         }, {});
-        setActiveUsers(activeUsersMap);
+        
+        setActiveUsers(newActiveUsers);
     };
     
     return (
@@ -53,11 +52,11 @@ const UserSelect = ({ userList, activeUsers, setActiveUsers}) => {
                 </Box>
             )}
         >
-            {userList.map((user) => (
-                <MenuItem key={user.email} value={user.email}>
-                    <Checkbox checked={selectedUsers.includes(user.email)} />
-                    <ListItemText primary={user.name} secondary={user.email} />
-                    <LDAvatar bgColor={user.profile_color} name={user.name} />
+            {Object.entries(systemUsers).map(([email, userData]) => (
+                <MenuItem key={email} value={email}>
+                    <Checkbox checked={selectedUsers.includes(email)} />
+                    <ListItemText primary={userData.name} secondary={email} />
+                    <LDAvatar bgColor={userData.profile_color} name={userData.name} />
                 </MenuItem>
             ))}
         </StyledUserSelect>

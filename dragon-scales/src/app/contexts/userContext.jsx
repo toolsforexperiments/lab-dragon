@@ -12,8 +12,8 @@ export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
     
-    const [userList, setUserList] = useState([]);
-    const [activeUsers, setActiveUsers] = useState([]);
+    const [systemUsers, setSystemUsers] = useState({});
+    const [activeUsers, setActiveUsers] = useState({});
     const [activeUsersEmailStr, setActiveUsersEmailStr] = useState("");
     const [selectUserDialogOpen, setSelectUserDialogOpen] = useState(false);
     const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -54,8 +54,12 @@ export const UserProvider = ({ children }) => {
                         }, {});
                         setActiveUsers(selectedUsersMap);
                     }
-                    setUserList(data);
-
+                    const userListMap = data.reduce((acc, user) => {
+                        const { email, ...rest } = user;
+                        acc[email] = rest;
+                        return acc;
+                    }, {});
+                    setSystemUsers(userListMap);
                 }
             } catch (error) {
                 console.error(error.message);
@@ -76,7 +80,7 @@ export const UserProvider = ({ children }) => {
         if (activeUsers.length === 0) {
             setSelectUserDialogOpen(true);
         }
-    }, [userList, activeUsers]);
+    }, [systemUsers, activeUsers]);
 
     // Updates the email string
     useEffect(() => {
@@ -89,15 +93,15 @@ export const UserProvider = ({ children }) => {
 
 
     return <UserContext.Provider value={{ 
-        userList,
-        setUserList,
+        systemUsers,
+        setSystemUsers,
         activeUsers,
         setActiveUsers,
         activeUsersEmailStr,
         setSelectUserDialogOpen}}>
         {children}
         <SelectUserDialog
-            userList={userList}
+            systemUsers={systemUsers}
             activeUsers={activeUsers}
             setActiveUsers={setActiveUsers}
             open={selectUserDialogOpen}

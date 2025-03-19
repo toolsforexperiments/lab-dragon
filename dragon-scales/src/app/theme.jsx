@@ -50,6 +50,11 @@ export const theme = createTheme({
             light: '#0000004D',
             primary: '#000000',
             secondary: '#94A3B8'
+        },
+        buttons: {
+            iconButton: {
+                entityHeader: "#0000008A",
+            }
         }
     },
     typography: {

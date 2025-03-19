@@ -8,7 +8,8 @@ from dragon_core.utils import create_timestamp
 from dragon_core.components import (ContentBlock,
                                     SupportedContentBlockType,
                                     Table, create_text_block,
-                                    create_image_block, create_image_link_block)
+                                    create_image_block, create_image_link_block,
+                                    Comment, create_comment)
 
 
 # FIXME: The items in the order should all be the same, not some tuple and some list.
@@ -26,6 +27,7 @@ class Entity(object):
                  deleted: bool = False,
                  description: str = '',
                  content_blocks: List[ContentBlock] = [],
+                 comments: List[Comment] = [],
                  children: List[Union[str, Path]] = [],
                  params: List[Tuple[str]] = [],
                  data_buckets: List[Union[str, Path]] = [],
@@ -63,6 +65,11 @@ class Entity(object):
             self.content_blocks = content_blocks
         else:
             self.content_blocks = [].copy()
+
+        if isinstance(comments, list) and len(comments) != 0:
+            self.comments = comments
+        else:
+            self.comments = [].copy()
 
         # If we don't save a copy of the list,
         #   python ends up assigning the same object in memory to every Entity instance.
@@ -118,7 +125,9 @@ class Entity(object):
         
         # Same as children, we want to save the str version of every content block, not the object.
         vals['content_blocks'] = [str(block) for block in self.content_blocks]
-        
+
+        vals['comments'] = [str(comment) for comment in self.comments]
+
         # We want to save the str version of every child, not the object.
         vals['children'] = [str(child) for child in self.children]
         
@@ -264,6 +273,44 @@ class Entity(object):
         order = self._find_order_index(child_id)
         self.order[order] = (child_id, "entity", False)
 
+        return True
+
+    def add_comment(self, body, user, content_block_id=None):
+        target_block = None
+        if content_block_id is not None:
+            for block in self.content_blocks:
+                if block.ID == content_block_id:
+                    target_block = block
+                    break
+            if target_block is None:
+                raise ValueError(f"Content block with id {content_block_id} does not exist.")
+
+        target = content_block_id if target_block is not None else self.ID
+        self.comments.append(create_comment(body=body, parent=self.ID, target=target, user=user))
+        return True
+
+    def add_comment_reply(self, comment_id, body, user):
+        comment = None
+        for com in self.comments:
+            if com.ID == comment_id:
+                comment = com
+                break
+        if comment is None:
+            raise ValueError(f"Comment with id {comment_id} does not exist.")
+
+        comment.add_reply(body, user)
+        return True
+
+    def resolve_comment(self, comment_id):
+        comment = None
+        for com in self.comments:
+            if com.ID == comment_id:
+                comment = com
+                break
+        if comment is None:
+            raise ValueError(f"Comment with id {comment_id} does not exist.")
+
+        comment.resolved = True
         return True
 
     def suggest_data(self, query: str = "", min_threshold=5) -> List[str]:

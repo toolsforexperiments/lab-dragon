@@ -560,6 +560,109 @@ paths:
           "404":
             description: "Entity not found"
 
+  /entities/{ID}/add_comment:
+    put:
+      summary: "Adds a comment to the entity with given ID"
+      operationId: "dragon_core.api.entities.add_comment"
+      tags:
+        - Entities
+        - Comments
+      parameters:
+        - $ref: "#/components/parameters/ID"
+        - $ref: "#/components/parameters/user"
+        - in: query
+          name: "content_block_id"
+          description: "Optional parameter, if provided the comment will be added to the content block with the given ID"
+          required: false
+          schema:
+            type: "string"
+      requestBody:
+        description: "Text of the comment"
+        required: true
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                comment:
+                  type: "string"
+              required:
+                - comment
+      responses:
+        "201":
+          description: "Successfully added comment"
+        "400":
+          description: "Comment not present in request"
+        "401":
+          description: "content_block_id not found"
+        "403":
+          description: "User not found"
+        "404":
+          description: "Entity not found"
+
+  /entities/{ID}/add_comment_reply/{comment_id}:
+    put:
+      summary: "Adds a reply to the comment with the given ID"
+      operationId: "dragon_core.api.entities.add_comment_reply"
+      tags:
+        - Entities
+        - Comments
+      parameters:
+        - $ref: "#/components/parameters/ID"
+        - in: path
+          name: "comment_id"
+          description: "The ID of the comment to reply to"
+          required: true
+          schema:
+              type: "string"
+        - $ref: "#/components/parameters/user"
+      requestBody:
+        description: "Text of the comment"
+        required: true
+        content:
+          application/json:
+            schema:
+              type: "object"
+              properties:
+                reply_body:
+                  type: "string"
+              required:
+                - reply_body
+      responses:
+        "201":
+          description: "Successfully added reply"
+        "400":
+          description: "Reply not present in request"
+        "401":
+          description: "Comment not found"
+        "403":
+          description: "User not found"
+        "404":
+          description: "Entity not found"
+
+  /entities/{ID}/resolve_comment/{comment_id}:
+    delete:
+      summary: "Resolves the comment with the given ID"
+      operationId: "dragon_core.api.entities.resolve_comment"
+      tags:
+        - Entities
+        - Comments
+      parameters:
+        - $ref: "#/components/parameters/ID"
+        - in: path
+          name: "comment_id"
+          description: "The ID of the comment to resolve"
+          required: true
+          schema:
+              type: "string"
+      responses:
+        "201":
+          description: "Successfully resolved comment"
+        "401":
+          description: "Comment not found"
+        "404":
+          description: "Entity not found"
+
   /entities/add_library:
     post:
       operationId: "dragon_core.api.entities.add_library"

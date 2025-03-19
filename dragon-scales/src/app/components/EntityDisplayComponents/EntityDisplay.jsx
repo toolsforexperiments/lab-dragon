@@ -13,22 +13,24 @@ import {
     Popover,
     Dialog, DialogTitle, DialogContent, DialogActions, Button
 } from "@mui/material";
-import {styled} from "@mui/material/styles";
+import {styled, useTheme} from "@mui/material/styles";
 import {ClickAwayListener} from '@mui/base/ClickAwayListener';
 import {Add} from "@mui/icons-material";
 import DeleteIcon from '@mui/icons-material/Delete';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
 
 import {getEntity, createEntity, deleteEntity, editEntityName, addImageLinkBlock} from "@/app/calls";
 import {entityHeaderTypo, creationMenuItems} from "@/app/constants";
 import TypeChip from "@/app/components/EntityDisplayComponents/TypeChip";
 import {UserContext} from "@/app/contexts/userContext";
-import CreationMenu from "@/app/components/EntityDisplayComponents/CreationMenu";
+import CreationMenu from "@/app/components/EntityDisplayComponents/Menus/CreationMenu";
 import ContentBlock from "@/app/components/EntityDisplayComponents/ContentBlocks/ContentBlock";
 import TextBlockEditor from "@/app/components/EntityDisplayComponents/ContentBlocks/TextBlockEditor";
 import ImageBlockDrop from "@/app/components/EntityDisplayComponents/ContentBlocks/ImageBlockDrop";
 import TargetIcon from "@/app/components/icons/TargetIcon";
-import TargetingMenu from "@/app/components/TargetingMenu";
+import TargetingMenu from "@/app/components/EntityDisplayComponents/Menus/TargetingMenu";
 import {EntitiesRefContext} from "@/app/contexts/entitiesRefContext";
+import EntityOptionsMenu from "@/app/components/EntityDisplayComponents/Menus/EntityOptionsMenu";
 
 const Header = styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entityType'})(
     ({theme, entityType}) => ({
@@ -38,7 +40,7 @@ const Header = styled(CardHeader, {shouldForwardProp: (prop) => prop !== 'entity
             opacity: 0,
             transition: 'opacity 0.3s',
             marginRight: "10px",
-            color: 'red',
+            color: theme.palette.buttons.iconButton.entityHeader,
         },
         '&:hover .MuiButtonBase-root': {
             opacity: 1,
@@ -61,16 +63,19 @@ const HoverAddSection = styled(Box)(({theme}) => ({
 
 }));
 
-const HoverCard = styled(Card)(({theme}) => ({
-    margin: 'inherit',
-    position: 'relative',
-    '&:hover': {
-        '& > *:last-child': {
-            opacity: 1,
-            backgroundColor: theme.palette.background.light,
+const HoverCard = styled(Card, {shouldForwardProp: (prop) => prop !== 'highlighted'})(
+    ({theme, highlighted}) => ({
+        margin: 'inherit',
+        position: 'relative',
+        backgroundColor: highlighted ? theme.palette.primary.light : theme.palette.background.default,
+        '&:hover': {
+            '& > *:last-child': {
+                opacity: 1,
+                backgroundColor: theme.palette.background.light,
+            }
         }
-    }
-}));
+    })
+);
 
 const ActionHint = styled(Typography)(({theme}) => ({
     color: theme.palette.text.light,
@@ -126,6 +131,8 @@ export default function EntityDisplay({
                                           underChildId,
                                       }) {
 
+    const theme = useTheme();
+
     const [entity, setEntity] = useState({})
     const [newNameHolder, setNewNameHolder] = useState("");
     const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
@@ -150,12 +157,19 @@ export default function EntityDisplay({
     const [anchorTargetingMenu, setAnchorTargetingMenu] = useState(null);
     const [openTargetingMenu, setOpenTargetingMenu] = useState(false);
 
+    // More options menu
+    const [anchorMoreOptionsMenu, setAnchorMoreOptionsMenu] = useState(null);
+    const [openMoreOptionsMenu, setOpenMoreOptionsMenu] = useState(false);
+
+    // Highlighting when a comment is hovered
+    const [highlighted, setHighlighted] = useState(false);
+
     const textFieldRef = useRef(null);
     const contentBlocksIndex = useRef({});
     // used to handle scrolling to entity
     const entityRef = useRef(null)
 
-    const { entitiesRef } = useContext(EntitiesRefContext);
+    const { setEntitiesRef, setCommentsIndex } = useContext(EntitiesRefContext);
     const {activeUsersEmailStr} = useContext(UserContext);
 
     const reload = () => {
@@ -169,6 +183,21 @@ export default function EntityDisplay({
         reloadParent();
         reloadTrees();
     }
+
+    const handleClickAway = () => {
+        if (newNameHolder !== "") {
+            createEntity(newNameHolder, activeUsersEmailStr, entityType, parentId, underChildId).then((ret) => {
+                if (ret === true) {
+                    reload();
+                } else {
+                    setParentErrorSnackbarMessage(`Error creating new ${entityType}, please try again.`);
+                    setParentErrorSnackbarOpen(true);
+                    reload();
+                }
+            });
+        }
+        toggleParentCreationEntityDisplay();
+    };
 
     const handleImageLinkBlockCreation = (imagePath, instanceId) => {
         addImageLinkBlock(entityId, activeUsersEmailStr, imagePath, instanceId, lastClickedItemId).then((ret) => {
@@ -239,17 +268,28 @@ export default function EntityDisplay({
         }
     }
 
-    const handleTargetClick = (event, itemId) => {
+    // targeting menu
+    const handleTargetClick = (event) => {
         event.stopPropagation();
         setAnchorTargetingMenu(event.currentTarget);
-        setLastClickedItemId(itemId);
         setOpenTargetingMenu(true);
     }
 
     const handleTargetMenuClose = () => {
         setOpenTargetingMenu(false);
         setAnchorTargetingMenu(null);
-        setLastClickedItemId("");
+    }
+
+    // more options menu
+    const handleMoreOptionsMenuClick = (event) => {
+        event.stopPropagation();
+        setAnchorMoreOptionsMenu(event.currentTarget);
+        setOpenMoreOptionsMenu(true);
+    }
+
+    const handleMoreOptionsMenuClose = () => {
+        setOpenMoreOptionsMenu(false);
+        setAnchorMoreOptionsMenu(null);
     }
 
     // Add handler for IconButton click
@@ -278,7 +318,50 @@ export default function EntityDisplay({
                     contentBlocksIndex.current[parsedBlock.ID] = parsedBlock;
                     return parsedBlock;
                 });
+                ent.comments = ent.comments.map((comment) => {
+                    let parsedComment = JSON.parse(comment);
+                    if (!parsedComment.resolved) {
+                        parsedComment.replies = parsedComment.replies.map((reply) => {
+                            return JSON.parse(reply);
+                        });
+                        setCommentsIndex(prev => {
+                            return {
+                                ...prev,
+                                [parsedComment.ID]: {
+                                    "comment": parsedComment,
+                                    "height": prev[parsedComment.ID] ? prev[parsedComment.ID].height : null
+                                }
+                            }
+                        });
+                    } else {
+                        setCommentsIndex(prev => {
+                            if (prev.hasOwnProperty(parsedComment.ID)) {
+                                const {[parsedComment.ID]: _, ...rest} = prev;
+                                return rest;
+                            }
+                            return prev;
+                        });
+                    }
+
+                    return parsedComment;
+                })
                 setEntity(ent);
+                // Registering this entity in the entitiesRef. Both its ref as well as its reload function.
+                if (entityRef) {
+                    setEntitiesRef((prev) => {
+                        return {
+                            ...prev,
+                            [entityId]: {"ref": entityRef,
+                                "reload": reloadEntity,
+                                "highlight": (() => setHighlighted(true)),
+                                "deHighlight": (() => setHighlighted(false)),
+                                "deleted": ent.deleted,
+                                // we need the parent to accommodate for deeply nested entities. When the parent is not inj the entitiesRef, it means that it is not part of the visual tree so we can dismiss it
+                                "parentId": ent.parent,}
+                        }
+                    })
+                }
+
             } else {
                 setEntity(null);
             }
@@ -302,27 +385,6 @@ export default function EntityDisplay({
             }, 0);
         }
     }, [entityId]);
-
-    useEffect(() => {
-        if (entityRef.current) {
-            entitiesRef.current[entityId] = entityRef;
-        }
-    }, [entityRef.current]);
-
-    const handleClickAway = () => {
-        if (newNameHolder !== "") {
-            createEntity(newNameHolder, activeUsersEmailStr, entityType, parentId, underChildId).then((ret) => {
-                if (ret === true) {
-                    reload();
-                } else {
-                    setParentErrorSnackbarMessage(`Error creating new ${entityType}, please try again.`);
-                    setParentErrorSnackbarOpen(true);
-                    reload();
-                }
-            });
-        }
-        toggleParentCreationEntityDisplay();
-    };
 
     if (entity && entity.deleted === true){
         return null;
@@ -369,7 +431,7 @@ export default function EntityDisplay({
 
             // the last option is the loaded entity display we actually want to show
         ) : (
-            <HoverCard sx={{margin: 'inherit', position: 'relative'}} ref={entityRef}>
+            <HoverCard sx={{margin: 'inherit', position: 'relative'}} highlighted={highlighted} ref={entityRef}>
                 <Header title={
                     openEditNameTextField ? (
                         <ClickAwayListener onClickAway={handleEditName}>
@@ -399,11 +461,17 @@ export default function EntityDisplay({
                             </Box>
                             <Box>
                                 <IconButton onClick={handleTargetClick}>
-                                    <TargetIcon sx={{color: "#0000008A"}}/>
+                                    <TargetIcon sx={{color: theme.palette.buttons.iconButton.entityHeader}}/>
                                 </IconButton>
+                                
                                 <IconButton onClick={onDeleteDialogOpen}>
-                                    <DeleteIcon/>
+                                    <DeleteIcon sx={{color: "red"}}/>
                                 </IconButton>
+
+                                <IconButton onClick={handleMoreOptionsMenuClick}>
+                                    <MoreVertIcon/>
+                                </IconButton>
+
                             </Box>
                         </Box>
                     )
@@ -527,6 +595,27 @@ export default function EntityDisplay({
                     }}
                 >
                     <TargetingMenu entity={entity}/>
+                </Popover>
+
+                {/* More Options Menu */}
+                <Popover
+                    open={openMoreOptionsMenu}
+                    anchorEl={anchorMoreOptionsMenu}
+                    onClose={handleMoreOptionsMenuClose}
+                    anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'right',
+                    }}
+                    transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'right',
+                    }}
+                    marginThreshold={16}
+                    sx={{
+                        transform: 'translateX(-50px)',
+                    }}
+                >
+                    <EntityOptionsMenu entityId={entityId} handleClose={handleMoreOptionsMenuClose}/>
                 </Popover>
 
                 {/* Menu that pops up when the plus is pressed */}
