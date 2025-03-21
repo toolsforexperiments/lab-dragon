@@ -21,13 +21,17 @@ import {EntitiesRefContext} from "@/app/contexts/entitiesRefContext";
 const StyledComment = styled(Paper, { shouldForwardProp: (prop) => prop !== 'topHeight' && prop !== 'isActive'  })(({ theme, topHeight, isActive }) => ({
     position: "absolute",
     top: topHeight,
-    right: 0,
     left: 0,
-    padding: theme.spacing(1),
-    marginLeft: theme.spacing(1),
-    marginRight: theme.spacing(1),
+    right: theme.spacing(2),
+    maxWidth: '100%',
+    boxSizing: "border-box",
+    padding: theme.spacing(1.5),
+    marginLeft: 0,
     boxShadow: theme.shadows[4],
+    wordWrap: "break-word",
+    overflowWrap: "break-word",
     transition: 'all 0.3s ease-in-out',
+    zIndex: 5,
 
     ...(!isActive && {
         "&:hover": {
@@ -38,7 +42,6 @@ const StyledComment = styled(Paper, { shouldForwardProp: (prop) => prop !== 'top
 
         boxShadow: theme.shadows[6],
     })
-
 }));
 
 
@@ -129,7 +132,7 @@ export default function Comment({comment, topHeight}) {
 
     const renderNamesAndDate = (users, time, topLevel=false) => {
         return (
-        <Box>
+        <Box sx={{zIndex: 0}}>
             <Stack justifyContent="space-between" direction="row" alignItems="center">
                 <Stack direction="row" spacing={0.3} alignItems="center">
                     {users.map((userEmail) => {

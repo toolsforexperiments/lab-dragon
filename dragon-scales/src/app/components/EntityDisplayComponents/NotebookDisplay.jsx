@@ -88,15 +88,19 @@ export default function NotebookDisplay({ notebookId, libraryId, libraryName, re
     }, [notebookId]);
 
     return (
-        <Box>
+        <Box sx={{
+            maxWidth: '100%',
+            '& img': { maxWidth: '100%', height: 'auto' },
+            '& > *': { maxWidth: '100%' }
+        }}>
             {notebook === null ? (
                 <Typography variant="h3">Error loading notebook with id {notebookId} please try again</Typography>
             ) : Object.keys(notebook).length === 0 ? (
                 <Typography variant="h3">Loading...</Typography>
             ) : (
                 // Display populated notebook
-                <Box>
-                    <Stack direction="row" justifyContent="space-between">
+                <Box sx={{ maxWidth: '100%', overflow: 'hidden' }}>
+                    <Stack direction="row" justifyContent="space-between" sx={{ maxWidth: '100%' }}>
                         <EntityBreadcrumbs links={[["/library/" + libraryId, libraryName], ["/library/" + libraryId + "?select=" + notebookId, notebook.name]]} />
                         <Box>
                             <Stack direction="row" >
