@@ -21,6 +21,7 @@ const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'dra
     right: 0,
     marginRight: "10px",
     overflow: "hidden",
+    zIndex: 50,
 
     "& .MuiDrawer-paper": {
         width: drawerWidth,
@@ -31,7 +32,22 @@ const StyledDrawer = styled(Drawer, { shouldForwardProp: (prop) => prop !== 'dra
         borderRadius: "16px",
         overflow: "hidden",
         right: 0,
+        zIndex: 50,
     },
+}));
+
+const CommentsContainer = styled(Box)(({ theme }) => ({
+    position: "relative",
+    width: "100%",
+    height: "100%",
+    overflowY: "auto",
+    overflowX: "hidden",
+    padding: "0 5px",
+    boxSizing: "border-box",
+    zIndex: 10,
+    '& > *': {
+        maxWidth: '100%' // Ensure all children respect container width
+    }
 }));
 
 
@@ -164,12 +180,7 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
 
     return (
         <StyledDrawer variant="persistent" anchor="right" open={open} onClose={onClose} drawerWidth={drawerWidth}>
-            <Box sx={{
-                position: "relative",
-                width: "100%",
-                height: "100%",
-                overflowY: "auto",
-            }}>
+            <CommentsContainer>
                 {newCommentRef !== null &&
                     <ClickAwayListener onClickAway={handleNewCommentClose}>
                         <Box>
@@ -192,7 +203,7 @@ export default function CommentsPanel({ open, setOpen, onClose, drawerWidth }) {
                     )
                 })}
 
-            </Box>
+            </CommentsContainer>
             <Snackbar
                 open={isSnackbarOpen}
                 autoHideDuration={6000}

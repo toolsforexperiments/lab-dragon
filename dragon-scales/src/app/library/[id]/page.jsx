@@ -30,7 +30,7 @@ const Main = styled('main')(({ theme}) => ({
     }),
 );
 
-const ContentStack = styled(Stack, )(({ theme}) => ({
+const ContentStack = styled(Stack, )(({ theme, isDragging }) => ({
         position: 'relative',
         zIndex: 0,
         spacing: 5,
@@ -39,11 +39,20 @@ const ContentStack = styled(Stack, )(({ theme}) => ({
         margin: '0 12px',
         marginBottom: '50px',
         minWidth: 0,
+        maxWidth: '100%',
         overflow: "visible",
-        transition: theme.transitions.create(['margin', 'width'], {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.leavingScreen,
-        })
+        transition: isDragging ? 'none' : theme.transitions.create(['margin', 'width', 'flex', 'flex-basis'], {
+            easing: theme.transitions.easing.easeInOut,
+            duration: theme.transitions.duration.standard,
+        }),
+        '& img': {
+            maxWidth: '100%',
+            height: 'auto'
+        },
+        '& > *': {
+            maxWidth: '100%',
+            overflow: 'hidden'
+        }
     }),
 );
 
@@ -55,6 +64,9 @@ const DraggableBox = styled(Box)(({ theme }) => ({
     '&:hover': {
         backgroundColor: theme.palette.primary.main,
     },
+    '&:active': {
+        backgroundColor: theme.palette.primary.dark,
+    }
 }));
 
 
@@ -69,6 +81,12 @@ export default function Library({ params }) {
 
     const [commentsPanelWidth, setCommentsPanelWidth] = useState(410);
     const [commentsPanelOpen, setCommentsPanelOpen] = useState(false);
+    
+    const [isDragging, setIsDragging] = useState(false);
+
+    // This is used for immediate width updates during dragging
+    const drawerWidthRef = useRef(410);
+    const commentsPanelWidthRef = useRef(410);
 
     // This is used to force a re-render of the tree when a new entity is created.
     const [updateTrees, setUpdateTrees] = useState(0);
@@ -79,6 +97,7 @@ export default function Library({ params }) {
     const isDraggingDrawerRef = useRef(false);
     const isDraggingCommentsPanelRef = useRef(false);
     const stackRef = useRef(null);
+    const containerRef = useRef(null);
 
     const { activeUsersEmailStr } = useContext(UserContext);
 
@@ -92,42 +111,98 @@ export default function Library({ params }) {
 
     // The following 3 handles are what is used to resize the drawer
     const handleMouseDownDrawer = (e) => {
+        e.preventDefault();
         isDraggingDrawerRef.current = true;
+        setIsDragging(true);
         document.addEventListener('mousemove', handleMouseMoveDrawer);
         document.addEventListener('mouseup', handleMouseUpDrawer);
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
     }
 
     const handleMouseMoveDrawer = (e) => {
-        if (isDraggingDrawerRef.current) {
-            const newWidth = e.clientX;
-            // the 80 is the width of the toolbar and the 12px margin, this needs to change if any of that changes.
-            setDrawerWidth(newWidth - 112);
+        if (isDraggingDrawerRef.current && containerRef.current) {
+            // Calculate container bounds
+            const containerRect = containerRef.current.getBoundingClientRect();
+            const minWidth = 100; // Minimum drawer width
+            const maxWidth = containerRect.width * 0.8; // Maximum drawer width (80% of container)
+            
+            // Calculate new width based on mouse position relative to container
+            // Adjust for Toolbar width (68px) and container's left margin (35px + 12px)
+            const relativeX = e.clientX - 58; // Subtract the toolbar width
+            const newWidth = Math.max(minWidth, Math.min(maxWidth, relativeX - 47)); // 47 = 35px marginLeft + 12px margin
+            
+            // Update ref for immediate visual feedback
+            drawerWidthRef.current = newWidth;
+            
+            // Apply the width directly to the element for immediate update
+            const drawerElement = document.querySelector('.explorer-drawer-container');
+            if (drawerElement) {
+                drawerElement.style.width = `${newWidth}px`;
+            }
         }
     };
 
     const handleMouseUpDrawer = () => {
-        isDraggingDrawerRef.current = false;
-        document.removeEventListener('mousemove', handleMouseMoveDrawer);
-        document.removeEventListener('mouseup', handleMouseUpDrawer);
+        if (isDraggingDrawerRef.current) {
+            // Update state with final width for React rendering
+            setDrawerWidth(drawerWidthRef.current);
+            isDraggingDrawerRef.current = false;
+            setIsDragging(false);
+            document.removeEventListener('mousemove', handleMouseMoveDrawer);
+            document.removeEventListener('mouseup', handleMouseUpDrawer);
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
     };
 
     const handleMouseDownCommentsPanel = (e) => {
+        e.preventDefault();
         isDraggingCommentsPanelRef.current = true;
+        setIsDragging(true);
         document.addEventListener('mousemove', handleMouseMoveCommentsPanel);
         document.addEventListener('mouseup', handleMouseUpCommentsPanel);
+        document.body.style.cursor = 'col-resize';
+        document.body.style.userSelect = 'none';
     }
 
     const handleMouseMoveCommentsPanel = (e) => {
-        if (isDraggingCommentsPanelRef.current) {
-            const newWidth = e.clientX;
-            setCommentsPanelWidth(window.innerWidth - newWidth - 25);
+        if (isDraggingCommentsPanelRef.current && containerRef.current) {
+            // Calculate container bounds
+            const containerRect = containerRef.current.getBoundingClientRect();
+            const minWidth = 100; // Minimum panel width
+            const maxWidth = containerRect.width * 0.8; // Maximum panel width
+            
+            // Calculate new width based on mouse position relative to viewport
+            // We need to account for the toolbar (68px) and left margin (35px + 12px)
+            const viewportWidth = window.innerWidth;
+            const relativeX = e.clientX - 68; // Subtract the toolbar width
+            
+            // Calculate the width based on the distance from the right side
+            const newWidth = Math.max(minWidth, Math.min(maxWidth, viewportWidth - relativeX - 68 - 25));
+            
+            // Update ref for immediate visual feedback
+            commentsPanelWidthRef.current = newWidth;
+            
+            // Apply the width directly to the element for immediate update
+            const panelElement = document.querySelector('.comments-panel-container');
+            if (panelElement) {
+                panelElement.style.width = `${newWidth}px`;
+            }
         }
     }
 
     const handleMouseUpCommentsPanel = () => {
-        isDraggingCommentsPanelRef.current = false;
-        document.removeEventListener('mousemove', handleMouseMoveCommentsPanel);
-        document.removeEventListener('mouseup', handleMouseUpCommentsPanel);
+        if (isDraggingCommentsPanelRef.current) {
+            // Update state with final width for React rendering
+            setCommentsPanelWidth(commentsPanelWidthRef.current);
+            isDraggingCommentsPanelRef.current = false;
+            setIsDragging(false);
+            document.removeEventListener('mousemove', handleMouseMoveCommentsPanel);
+            document.removeEventListener('mouseup', handleMouseUpCommentsPanel);
+            document.body.style.cursor = '';
+            document.body.style.userSelect = '';
+        }
     }
 
     const triggerUpdateTrees = () => {
@@ -172,21 +247,24 @@ export default function Library({ params }) {
             ) : Object.keys(library).length === 0 ? (
                 <Typography variant="h6">Loading...</Typography>
             ) : (
-                <Box sx={{
-                    height: "100%", 
-                    position: "relative", 
-                    flexGrow: 1, 
-                    display: "flex", 
-                    flexDirection: "column", 
-                    marginLeft: "35px", 
-                    maxWidth: "100%",
-                    overflow: "auto"
-                }}>
+                <Box 
+                    ref={containerRef}
+                    sx={{
+                        height: "100%", 
+                        position: "relative", 
+                        flexGrow: 1, 
+                        display: "flex", 
+                        flexDirection: "column", 
+                        marginLeft: "15px", 
+                        maxWidth: "100%",
+                        overflow: "auto"
+                    }}
+                >
                     <Stack sx={{
                         position: "sticky",
                         top: 0,
                         backgroundColor: "white",
-                        zIndex: 10,
+                        zIndex: 300,
                         padding: "10px 0",
                         borderBottom: "1px solid rgba(0, 0, 0, 0.12)"
                     }} direction="row" alignItems="center" spacing={2}>
@@ -199,10 +277,6 @@ export default function Library({ params }) {
 
                             <Add fontSize="inherit" />
                         </IconButton>
-
-                        {/* <IconButton sx={{ fontSize: '1.5rem', color: 'black' }} title={"Placeholder for now"}>
-                            <Tune fontSize="inherit" />
-                        </IconButton> */}
 
                         <Button onClick={() => { setDrawerOpen(!drawerOpen) }}>Toggle Drawer</Button>
                         <Button onClick={() => { setCommentsPanelOpen(!commentsPanelOpen) }}>Toggle Comments Panel</Button>
@@ -217,19 +291,22 @@ export default function Library({ params }) {
                                     width: '100%',
                                     position: 'relative'
                                 }}>
-                                    <Box sx={{
-                                        position: 'sticky',
-                                        top: 60,
-                                        height: 'calc(100vh - 140px)',
-                                        alignSelf: 'flex-start',
-                                        width: drawerOpen ? `${drawerWidth}px` : '0px',
-                                        overflow: 'hidden',
-                                        zIndex: 1,
-                                        transition: (theme) => theme.transitions.create(['width'], {
-                                            easing: theme.transitions.easing.sharp,
-                                            duration: theme.transitions.duration.leavingScreen,
-                                        }),
-                                    }}>
+                                    <Box 
+                                        className="explorer-drawer-container"
+                                        sx={{
+                                            position: 'sticky',
+                                            top: 60,
+                                            height: 'calc(100vh - 140px)',
+                                            alignSelf: 'flex-start',
+                                            width: drawerOpen ? `${drawerWidth}px` : '0px',
+                                            overflow: 'hidden',
+                                            zIndex: 1,
+                                            transition: isDragging ? 'none' : (theme) => theme.transitions.create(['width'], {
+                                                easing: theme.transitions.easing.sharp,
+                                                duration: theme.transitions.duration.leavingScreen,
+                                            }),
+                                        }}
+                                    >
                                         <ExplorerDrawer
                                             library={library}
                                             open={drawerOpen}
@@ -240,7 +317,20 @@ export default function Library({ params }) {
                                     {drawerOpen && <DraggableBox onMouseDown={handleMouseDownDrawer} />}
                                     
                                     <ContentStack 
-                                        ref={stackRef}>
+                                        ref={stackRef}
+                                        isDragging={isDragging}
+                                        sx={{ 
+                                            flexGrow: 1,
+                                            flexBasis: commentsPanelOpen ? 0 : 'auto',
+                                            width: '100%',
+                                            transition: isDragging ? 'none' : (theme) => theme.transitions.create(
+                                                ['flex', 'flex-basis', 'width'], 
+                                                {
+                                                    easing: theme.transitions.easing.easeInOut,
+                                                    duration: theme.transitions.duration.standard,
+                                                }
+                                            )
+                                        }}>
                                         {library.children && library.children.map(child => (
                                             <NotebookDisplay
                                                 key={child + "-NotebookDisplay"}
@@ -252,14 +342,23 @@ export default function Library({ params }) {
                                     </ContentStack>
                                     
                                     {commentsPanelOpen && <DraggableBox onMouseDown={handleMouseDownCommentsPanel} />}
-                                    <Box sx={{ 
-                                        width: commentsPanelOpen ? `${commentsPanelWidth}px` : '0px',
-                                        overflow: 'hidden',
-                                        transition: (theme) => theme.transitions.create(['width'], {
-                                            easing: theme.transitions.easing.sharp,
-                                            duration: theme.transitions.duration.leavingScreen,
-                                        }),
-                                    }}>
+                                    <Box 
+                                        className="comments-panel-container"
+                                        sx={{ 
+                                            width: commentsPanelOpen ? `${commentsPanelWidth}px` : '0px',
+                                            overflow: 'hidden',
+                                            minWidth: commentsPanelOpen ? '300px' : '0px',
+                                            position: 'relative',
+                                            flex: commentsPanelOpen ? 'none' : '0 0 0px',
+                                            transition: isDragging ? 'none' : (theme) => theme.transitions.create(
+                                                ['width', 'flex', 'min-width'], 
+                                                {
+                                                    easing: theme.transitions.easing.easeInOut,
+                                                    duration: theme.transitions.duration.standard,
+                                                }
+                                            ),
+                                        }}
+                                    >
                                         <CommentsPanel
                                             open={commentsPanelOpen}
                                             setOpen={setCommentsPanelOpen}
@@ -271,9 +370,7 @@ export default function Library({ params }) {
                             </EntitiesRefProvider>
                         </Stack>
                     </Main>
-
 🔥🔥🔥🐉🐉🐉
-
                   <NewEntityDialog
                     user={activeUsersEmailStr}
                     type="Notebook"
