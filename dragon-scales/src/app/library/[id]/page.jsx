@@ -60,7 +60,8 @@ const DraggableBox = styled(Box)(({ theme }) => ({
     width: '8px',
     backgroundColor: 'grey.300',
     cursor: 'col-resize',
-    marginRight: "10px",
+    marginRight: "5px",
+    marginLeft: "5px",
     '&:hover': {
         backgroundColor: theme.palette.primary.main,
     },
@@ -299,7 +300,6 @@ export default function Library({ params }) {
                                             height: 'calc(100vh - 140px)',
                                             alignSelf: 'flex-start',
                                             width: drawerOpen ? `${drawerWidth}px` : '0px',
-                                            overflow: 'hidden',
                                             zIndex: 1,
                                             transition: isDragging ? 'none' : (theme) => theme.transitions.create(['width'], {
                                                 easing: theme.transitions.easing.sharp,
