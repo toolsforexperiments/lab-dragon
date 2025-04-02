@@ -33,8 +33,6 @@ try:
     # Config coming from starting script.
     CONFIG = current_app.config['API_config']
 
-    ROOTPATH: Path = Path()
-
     LAIRSPATH: Path = Path(CONFIG['lairs_directory'])
 
     RESOURCEPATH: Path = Path(CONFIG['resource_path'])
@@ -43,8 +41,6 @@ except Exception as e:
     print(f"Getting config from environment dotenv")
 
     CONFIG = {}
-    
-    ROOTPATH: Path = Path()
 
     LAIRSPATH: Path = Path()
 
@@ -78,7 +74,6 @@ INSTANCEIMAGE = {}
 def set_initial_indices():
     global LOADING_FROM_ENV
     global CONFIG
-    global ROOTPATH
     global LAIRSPATH
     global RESOURCEPATH
     global DRAGONLAIR
@@ -92,7 +87,6 @@ def set_initial_indices():
     global INSTANCEIMAGE
 
     if not LOADING_FROM_ENV:
-        ROOTPATH = Path()
 
         LAIRSPATH = Path(CONFIG['lairs_directory'])
 
@@ -106,7 +100,6 @@ def set_initial_indices():
         url_host = CONFIG['url_host']
 
     else:
-        ROOTPATH = Path()
 
         LAIRSPATH = Path(os.getenv("LAIRS_DIRECTORY"))
 
@@ -114,6 +107,7 @@ def set_initial_indices():
         
         # Holds all of the users that exists in the notebook
         config_users = copy.copy(os.getenv("USERS"))
+        config_users = config_users.replace("'", '"')  # JSON conversion might fail if user used ' instead of "
         if isinstance(config_users, str):
             config_users = json.loads(config_users)
 

@@ -1,7 +1,3 @@
-# If true the pytest fixture to create a testing environment will be run to create a fresh testing notebook.
-# The path of the notebook is the parent of the value NOTEBOOK_ROOT
-create_testing_environment = false
-
 # Path of the directory containg the lair.
 # No one should ever touch it.
 
@@ -18,8 +14,8 @@ api_url_prefix="http://localhost:8000"
 url_host="http://localhost:3000"
 
 
-# hostname of erver
-traefik_host="localhost"
+# hostname of server
+host="localhost"
 
 
 # Specifies the users that will be available to select in the notebook.

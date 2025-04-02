@@ -25,5 +25,5 @@ app.add_api('API_specification.yaml')
 
 
 if __name__ == '__main__':
-    host = os.getenv('TRAEFIK_HOST')
+    host = os.getenv('HOST')
     app.run(host=host, port=8000)

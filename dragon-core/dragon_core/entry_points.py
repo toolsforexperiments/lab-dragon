@@ -23,7 +23,7 @@ def start_server(config_path: Path) -> None:
 
     create_testing_environment = config['create_testing_environment']
     lairs_directory = config['lairs_directory']
-    traefik_host = config['traefik_host']
+    host = config['host']
 
     if create_testing_environment:
         # target = Path(resource_path)
@@ -44,7 +44,7 @@ def start_server(config_path: Path) -> None:
     with app.app.app_context():
         app.app.config['API_config'] = config
 
-        app.run(host=traefik_host, port=8000)
+        app.run(host=host, port=8000)
 
 
 def dragon_ignite_fire_sack() -> None:
