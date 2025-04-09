@@ -21,14 +21,21 @@ services:
     build:
       context: ./dragon-core
     volumes:
-      - .:/home/pfafflab/data
+      - ${IMAGE_MAPPING_DIRECTORY}:${IMAGE_HOME_DIRECTORY}
     container_name: "dragon-core"
     environment:
       COMPOSE_PROJECT_NAME: dev
+      IMAGE_HOME_DIRECTORY: ${IMAGE_HOME_DIRECTORY}
+      HOST: ${HOST}
+      LAIRS_DIRECTORY: ${LAIRS_DIRECTORY}
+      RESOURCE_PATH: ${RESOURCE_PATH}
+      USERS: ${USERS}
+      API_URL_PREFIX: ${API_URL_PREFIX}
+      URL_HOST: ${URL_HOST}
 
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.connexion.rule=Host(`localhost`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.connexion.rule=Host(`${HOST:-localhost}`) && PathPrefix(`/api`)"
       - "traefik.http.services.connexion.loadbalancer.server.port=8000"
 
 
@@ -39,7 +46,7 @@ services:
       context: ./dragon-scales
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.nextjs.rule=Host(`localhost`)"
+      - "traefik.http.routers.nextjs.rule=Host(`${HOST:-localhost}`)"
       - "traefik.http.services.nextjs.loadbalancer.server.port=3000"
 
 networks:

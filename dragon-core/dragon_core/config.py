@@ -38,8 +38,8 @@ def verify_and_parse_config(config_path: Path) -> dict:
         raise ValueError("api_url_prefix not found in config file")
     ret['api_url_prefix'] = c['api_url_prefix']
 
-    if 'traefik_host' not in c:
-        raise ValueError("traefik_host not found in config file")
-    ret['traefik_host'] = c['traefik_host']
+    if 'host' not in c:
+        raise ValueError("host not found in config file")
+    ret['host'] = c['host']
 
     return ret

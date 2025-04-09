@@ -2,8 +2,8 @@ FROM python:3.11.7-slim
 
 EXPOSE 8000
 
-ENV TRAEFIK_HOST=localhost \
-    VOLUME_ORIGIN=/home/pfafflab/data \
+ENV HOST=localhost \
+    IMAGE_HOME_DIRECTORY=/home/pfafflab/data \
     LAIRS_DIRECTORY=/home/pfafflab/data \
     RESOURCE_PATH=/home/pfafflab/data/resource \
     USERS="{}" \
@@ -33,8 +33,8 @@ COPY --chown=pfafflab . ./dragon-core
 
 RUN pip install uvicorn
 RUN pip install -e ./dragon-core/
-RUN mkdir /home/pfafflab/data
+RUN mkdir $IMAGE_HOME_DIRECTORY
 
-WORKDIR /home/pfafflab/data
+WORKDIR $IMAGE_HOME_DIRECTORY
 
 CMD uvicorn 'dragon_core.api.starting_app:app' --host 0.0.0.0 --forwarded-allow-ips '*'
