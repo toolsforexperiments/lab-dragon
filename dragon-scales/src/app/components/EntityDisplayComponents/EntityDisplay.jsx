@@ -460,23 +460,30 @@ export default function EntityDisplay({
                                         {entity.name}
                                     </Typography>
                                     <Typography variant="subtitle2">
-                                        Last edited:&nbsp;
-                                        {entity.hasOwnProperty("edit_times") && entity.edit_times.length > 0 ?
-                                            new Date(entity.edit_times[entity.edit_times.length - 1]).toLocaleString('en-US', {
+                                        {entity.hasOwnProperty("edit_times") && entity.edit_times.length > 0 ? (
+                                            <>
+                                            Last edited:&nbsp;
+                                            {new Date(entity.edit_times[entity.edit_times.length - 1]).toLocaleString('en-US', {
                                                 year: 'numeric',
                                                 month: 'short',
                                                 day: 'numeric',
                                                 hour: '2-digit',
                                                 minute: '2-digit'
-                                            }) : 
-                                            new Date(entity.end_time).toLocaleString('en-US', {
+                                            })}
+                                            </> 
+                                        ) : (
+                                            <>
+                                            Created on:&nbsp;
+                                            {new Date(entity.end_time).toLocaleString('en-US', {
                                                 year: 'numeric',
                                                 month: 'short',
                                                 day: 'numeric',
                                                 hour: '2-digit',
                                                 minute: '2-digit'
-                                            })
-                                        }
+                                            })}
+                                            </>
+                                        )}
+                                        
                                     </Typography>
                                 </Stack>
                             </Box>
