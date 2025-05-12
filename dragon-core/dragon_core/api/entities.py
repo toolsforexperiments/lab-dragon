@@ -178,6 +178,9 @@ def create_path_entity_copy(ent: Entity) -> Entity:
      intention of having it optional is to avoid having to compute it every time this function is called if this
      function gets called multiple times for a single operation. :return:
     """
+
+    ent.add_edit_timestamp()
+
     copy_ent = copy.deepcopy(ent)
     if ent.parent in UUID_TO_PATH_INDEX:
         copy_ent.parent = UUID_TO_PATH_INDEX[ent.parent]

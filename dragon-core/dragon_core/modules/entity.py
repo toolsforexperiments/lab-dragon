@@ -31,6 +31,7 @@ class Entity(object):
                  children: List[Union[str, Path]] = [],
                  params: List[Tuple[str]] = [],
                  data_buckets: List[Union[str, Path]] = [],
+                 edit_times: List[str] = [],
                  bookmarked: bool = False,
                  start_time: str = None,
                  end_time: str = None,
@@ -90,6 +91,12 @@ class Entity(object):
         else:
             self.data_buckets = [].copy()
         self.bookmarked = bookmarked
+
+        if isinstance(edit_times, list) and len(edit_times) != 0:
+            self.edit_times = [create_timestamp()]
+        else:
+            self.edit_times = edit_times
+
         if start_time is None or start_time == '':
             self.start_time = create_timestamp()
         else:
@@ -130,7 +137,9 @@ class Entity(object):
 
         # We want to save the str version of every child, not the object.
         vals['children'] = [str(child) for child in self.children]
-        
+
+        vals['edit_times'] = self.edit_times
+
         vals['params'] = self.params
         
         vals['data_buckets'] = self.data_buckets
@@ -366,5 +375,6 @@ class Entity(object):
         if bucket_id in self.data_buckets:
             self.data_buckets.remove(bucket_id)
 
-    
+    def add_edit_timestamp(self):
+        self.edit_times.append(create_timestamp())
     
