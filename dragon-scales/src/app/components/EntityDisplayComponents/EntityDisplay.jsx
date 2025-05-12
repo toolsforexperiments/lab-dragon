@@ -455,9 +455,37 @@ export default function EntityDisplay({
                         <Box display="flex" flexDirection="row" justifyContent="space-between" onDoubleClick={onOpenEditTextField}>
                             <Box display="flex" alignItems="center">
                                 <TypeChip type={entity.type}/>
-                                <Typography variant={entityHeaderTypo[entity.type]}>
-                                    {entity.name}
-                                </Typography>
+                                <Stack>
+                                    <Typography variant={entityHeaderTypo[entity.type]}>
+                                        {entity.name}
+                                    </Typography>
+                                    <Typography variant="subtitle2">
+                                        {entity.hasOwnProperty("edit_times") && entity.edit_times.length > 0 ? (
+                                            <>
+                                            Last edited:&nbsp;
+                                            {new Date(entity.edit_times[entity.edit_times.length - 1]).toLocaleString('en-US', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                            </> 
+                                        ) : (
+                                            <>
+                                            Created on:&nbsp;
+                                            {new Date(entity.end_time).toLocaleString('en-US', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric',
+                                                hour: '2-digit',
+                                                minute: '2-digit'
+                                            })}
+                                            </>
+                                        )}
+                                        
+                                    </Typography>
+                                </Stack>
                             </Box>
                             <Box>
                                 <IconButton onClick={handleTargetClick}>

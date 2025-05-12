@@ -30,7 +30,7 @@ const Main = styled('main')(({ theme}) => ({
     }),
 );
 
-const ContentStack = styled(Stack, )(({ theme, isDragging }) => ({
+const ContentStack = styled(Stack, { shouldForwardProp: (prop) => prop !== 'isDragging'})(({ theme, isDragging}) => ({
         position: 'relative',
         zIndex: 0,
         spacing: 5,
